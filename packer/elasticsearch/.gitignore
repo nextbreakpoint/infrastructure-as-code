@@ -1,0 +1,6 @@
+boxes/*
+.vagrant
+*.pem
+packer_vars*.json
+variables.json
+*vars.json

@@ -1,0 +1,87 @@
+{
+  "variables": {
+    "key_name": "",
+    "key_path": "",
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_region": "eu-west-1",
+    "aws_build_regions" : "",
+    "aws_source_ami": "ami-98ecb7fe",
+    "aws_instance_type": "t2.small",
+    "aws_vpc_id": "",
+    "aws_subnet_id": "",
+    "ami_name_prefix": "kibana",
+    "elastic_version": "5.2.1",
+    "kibana_version": "5.2.1",
+    "consul_version": "0.7.5",
+    "consul_template_version": "0.18.1"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "{{user `aws_region`}}",
+    "vpc_id": "{{user `aws_vpc_id`}}",
+    "subnet_id": "{{user `aws_subnet_id`}}",
+    "source_ami": "{{user `aws_source_ami`}}",
+    "instance_type": "{{user `aws_instance_type`}}",
+    "ami_name": "{{user `ami_name_prefix`}}_{{user `kibana_version`}}-consul_{{user `consul_version`}}-{{timestamp}}",
+    "ssh_pty": "true",
+    "ssh_timeout": "10m",
+    "ssh_username": "ubuntu",
+    "ssh_keypair_name": "{{user `key_name`}}",
+    "ssh_private_key_file": "{{user `key_path`}}"
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "scripts/default.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/nginx.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/cloudwatch-agent.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/consul.sh",
+      "environment_vars": [
+        "CONSUL_VERSION={{user `consul_version`}}",
+        "CONSUL_TEMPLATE_VERSION={{user `consul_template_version`}}"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "file",
+      "source": "config/awsplugin.sh",
+      "destination": "/tmp/awsplugin.sh"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/elastic.sh",
+      "environment_vars": [
+        "ELASTIC_VERSION={{user `elastic_version`}}"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/kibana.sh",
+      "environment_vars": [
+        "KIBANA_VERSION={{user `kibana_version`}}"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/logstash-fowarder.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    }
+  ]
+}

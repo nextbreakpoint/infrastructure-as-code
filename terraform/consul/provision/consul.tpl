@@ -1,0 +1,87 @@
+#!/bin/bash
+set -e
+
+export CONSUL_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
+
+sudo apt-get install -y vim curl wget unzip screen python
+
+sudo cat <<EOF >/tmp/cloudwatch.cfg
+[general]
+state_file = /var/awslogs/state/agent-state
+
+[consul]
+file = ${consul_log_file}
+log_group_name = ${log_group_name}
+log_stream_name = ${log_stream_name}-consul
+datetime_format = %b %d %H:%M:%S
+EOF
+
+echo "Fetching Consul..."
+sudo curl -L -o consul.zip https://releases.hashicorp.com/consul/0.7.5/consul_0.7.5_linux_amd64.zip
+
+echo "Installing Consul..."
+sudo unzip consul.zip >/dev/null
+sudo chmod +x consul
+sudo mv consul /usr/local/bin/consul
+sudo mkdir -p /etc/consul.d
+sudo mkdir -p /etc/service
+sudo mkdir -p /mnt/consul
+sudo mkdir -p /var/consul
+sudo chmod +rwx /mnt/consul
+sudo chmod +rwx /var/consul
+sudo chown -R ubuntu:ubuntu /mnt/consul
+sudo chown -R ubuntu:ubuntu /var/consul
+
+sudo cat <<EOF >/tmp/consul.json
+{
+  "datacenter": "terraform",
+  "data_dir": "/mnt/consul",
+  "log_level": "TRACE",
+  "bind_addr": "CONSUL_HOST",
+  "client_addr": "CONSUL_HOST",
+  "ui": true,
+  "server": true,
+  "bootstrap_expect": ${bootstrap_expect},
+  "retry_join_ec2": {
+  		"region": "${aws_region}",
+      "tag_key": "stream",
+      "tag_value": "terraform"
+  }
+}
+EOF
+sudo sed -i -e 's/CONSUL_HOST/'$CONSUL_HOST'/g' /tmp/consul.json
+sudo mv /tmp/consul.json /etc/consul.d/consul.json
+
+sudo cat <<EOF >/tmp/consul.service
+[Unit]
+Description=Consul service discovery agent
+Requires=network-online.target
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+PIDFile=/var/consul/consul.pid
+Restart=on-failure
+Environment=GOMAXPROCS=2
+ExecStartPre=/bin/rm -f /var/consul/consul.pid
+ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
+ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="CONSUL_HOST" -node="consul-CONSUL_HOST" >>${consul_log_file} 2>&1
+ExecReload=/bin/kill -s HUP 
+KillSignal=SIGINT
+TimeoutStopSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo sed -i -e 's/CONSUL_HOST/'$CONSUL_HOST'/g' /tmp/consul.service
+sudo mv /tmp/consul.service /etc/systemd/system/consul.service
+
+sudo service consul start
+
+#sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
+
+#sudo update-rc.d awslogs defaults 95 10
+#sudo service awslogs start
+
+echo "Done"
