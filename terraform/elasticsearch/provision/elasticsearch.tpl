@@ -117,9 +117,8 @@ sudo mv /tmp/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 sudo mkdir -p ${elasticsearch_data_dir}
 sudo mkdir -p ${elasticsearch_logs_dir}
 
-sudo mkfs -t ext4 ${volume_name}
 sudo mount ${volume_name} ${elasticsearch_data_dir}
-sudo echo "${volume_name} ${elasticsearch_data_dir} ext4 defaults,nofail 0 2" >> /etc/fstab
+echo "${volume_name} ${elasticsearch_data_dir} ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab >/dev/null
 
 sudo chown -R elasticsearch:elasticsearch ${elasticsearch_data_dir}
 sudo chown -R elasticsearch:elasticsearch ${elasticsearch_logs_dir}

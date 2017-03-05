@@ -235,6 +235,8 @@ resource "aws_volume_attachment" "elasticsearch_volume_attachment_b" {
 }
 
 resource "null_resource" "elasticsearch_server_a" {
+  depends_on = ["aws_volume_attachment.elasticsearch_volume_attachment_a"]
+
   triggers {
     cluster_instance_ids = "${join(",", aws_instance.elasticsearch_server_a.*.id)}"
   }
@@ -256,6 +258,8 @@ resource "null_resource" "elasticsearch_server_a" {
 }
 
 resource "null_resource" "elasticsearch_server_b" {
+  depends_on = ["aws_volume_attachment.elasticsearch_volume_attachment_b"]
+
   triggers {
     cluster_instance_ids = "${join(",", aws_instance.elasticsearch_server_b.*.id)}"
   }
