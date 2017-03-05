@@ -4,8 +4,8 @@
 
 provider "aws" {
   region = "${var.aws_region}"
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
+  profile = "${var.aws_profile}"
+  shared_credentials_file = "${var.aws_shared_credentials_file}"
 }
 
 ##############################################################################
@@ -18,9 +18,6 @@ data "terraform_remote_state" "vpc" {
         bucket = "nextbreakpoint-terraform-state"
         region = "${var.aws_region}"
         key = "vpc.tfstate"
-        profile = "default"
-        access_key = "${var.aws_access_key}"
-        secret_key = "${var.aws_secret_key}"
     }
 }
 
@@ -30,9 +27,6 @@ data "terraform_remote_state" "network" {
         bucket = "nextbreakpoint-terraform-state"
         region = "${var.aws_region}"
         key = "network.tfstate"
-        profile = "default"
-        access_key = "${var.aws_access_key}"
-        secret_key = "${var.aws_secret_key}"
     }
 }
 
@@ -42,9 +36,6 @@ data "terraform_remote_state" "consul" {
         bucket = "nextbreakpoint-terraform-state"
         region = "${var.aws_region}"
         key = "consul.tfstate"
-        profile = "default"
-        access_key = "${var.aws_access_key}"
-        secret_key = "${var.aws_secret_key}"
     }
 }
 
@@ -195,7 +186,7 @@ resource "aws_instance" "web_server_a" {
   instance_type = "t2.small"
 
   # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.nginx_ami, var.aws_region)}"
+  ami = "${lookup(var.nginx_amis, var.aws_region)}"
 
   subnet_id = "${data.terraform_remote_state.network.network-public-subnet-a-id}"
   associate_public_ip_address = "true"
@@ -226,7 +217,7 @@ resource "aws_instance" "web_server_b" {
   instance_type = "t2.small"
 
   # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.nginx_ami, var.aws_region)}"
+  ami = "${lookup(var.nginx_amis, var.aws_region)}"
 
   subnet_id = "${data.terraform_remote_state.network.network-public-subnet-b-id}"
   associate_public_ip_address = "true"

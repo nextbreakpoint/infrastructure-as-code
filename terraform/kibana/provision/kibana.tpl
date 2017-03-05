@@ -124,10 +124,6 @@ sudo mv /tmp/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 sudo mkdir -p ${elasticsearch_data_dir}
 sudo mkdir -p ${elasticsearch_logs_dir}
 
-#sudo mkfs -t ext4 ${volume_name}
-#sudo mount ${volume_name} ${elasticsearch_data_dir}
-#sudo echo "${volume_name} ${elasticsearch_data_dir} ext4 defaults,nofail 0 2" >> /etc/fstab
-
 sudo chown -R elasticsearch:elasticsearch ${elasticsearch_data_dir}
 sudo chown -R elasticsearch:elasticsearch ${elasticsearch_logs_dir}
 
@@ -156,23 +152,17 @@ sudo mv /tmp/kibana.yml /etc/kibana/kibana.yml
 sudo update-rc.d kibana defaults 95 10
 sudo service kibana start
 
-echo "Fetching Filebeat..."
-sudo curl -L -o filebeat.deb https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.2.1-amd64.deb
-
-echo "Installing Filebeat..."
-sudo apt-get install -y ./filebeat.deb
-
-sudo rm filebeat.deb
-
-sudo /usr/share/filebeat/scripts/import_dashboards -es http://$ELASTICSEARCH_HOST:9200 -k .kibana
-
-sudo curl -XPUT 'http://'$ELASTICSEARCH_HOST':9200/.kibana/index-pattern/filebeat-*' -d@/tmp/filebeat-index.json
-
 sudo service consul start
 
 sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
 
 sudo update-rc.d awslogs defaults 95 10
 sudo service awslogs start
+
+sleep 5
+
+sudo /usr/share/filebeat/scripts/import_dashboards -es http://$ELASTICSEARCH_HOST:9200 -k .kibana
+
+sudo curl -XPUT 'http://'$ELASTICSEARCH_HOST':9200/.kibana/index-pattern/filebeat-*' -d@/tmp/filebeat-index.json
 
 echo "Done"

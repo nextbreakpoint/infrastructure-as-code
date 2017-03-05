@@ -29,22 +29,13 @@ variable "stream_tag" {
 }
 
 ###################################################################
-# Route53 configuration below
+# Volumes
 ###################################################################
 
-### MANDATORY ###
-variable "hosted_zone_name" {}
-
-###################################################################
-# VPC configuration below
-###################################################################
-
-### MANDATORY ###
-variable "aws_network_vpc_cidr" {
-  description = "Network VPC cidr block"
+variable "volume_size" {
+  default = "4"
 }
 
-### MANDATORY ###
-variable "aws_bastion_vpc_cidr" {
-  description = "Bastion VPC cidr block"
+variable "volume_encrypted" {
+  default = "false"
 }

@@ -12,14 +12,6 @@ log_stream_name = ${log_stream_name}-consul
 datetime_format = %b %d %H:%M:%S
 EOF
 
-echo "Fetching Filebeat..."
-sudo curl -L -o filebeat.deb https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.2.1-amd64.deb
-
-echo "Installing Filebeat..."
-sudo apt-get install -y ./filebeat.deb
-
-sudo rm filebeat.deb
-
 #sudo chown filebeat:filebeat -R /usr/share/filebeat
 
 sudo cat <<EOF >/tmp/filebeat.yml

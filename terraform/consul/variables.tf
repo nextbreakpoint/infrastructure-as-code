@@ -3,13 +3,15 @@
 ###################################################################
 
 ### MANDATORY ###
-variable "aws_access_key" {}
+variable "aws_shared_credentials_file" {
+}
 
-### MANDATORY ###
-variable "aws_secret_key" {}
+variable "aws_region" {
+  default = "eu-west-1"
+}
 
-variable "stream_tag" {
-  default = "terraform"
+variable "aws_profile" {
+  default = "default"
 }
 
 ### MANDATORY ###
@@ -22,9 +24,8 @@ variable "key_path" {
   description = "Path to the private portion of the SSH key specified."
 }
 
-variable "aws_region" {
-  description = "AWS region to launch servers."
-  default = "eu-west-1"
+variable "stream_tag" {
+  default = "terraform"
 }
 
 variable "log_group_name" {
@@ -41,6 +42,7 @@ variable "log_stream_name" {
 
 ### MANDATORY ###
 variable "consul_amis" {
+  type = "map"
 }
 
 variable "allowed_cidr_blocks" {

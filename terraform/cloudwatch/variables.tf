@@ -27,24 +27,3 @@ variable "key_path" {
 variable "stream_tag" {
   default = "terraform"
 }
-
-###################################################################
-# Route53 configuration below
-###################################################################
-
-### MANDATORY ###
-variable "hosted_zone_name" {}
-
-###################################################################
-# VPC configuration below
-###################################################################
-
-### MANDATORY ###
-variable "aws_network_vpc_cidr" {
-  description = "Network VPC cidr block"
-}
-
-### MANDATORY ###
-variable "aws_bastion_vpc_cidr" {
-  description = "Bastion VPC cidr block"
-}

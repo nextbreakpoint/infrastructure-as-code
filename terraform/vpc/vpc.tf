@@ -4,8 +4,8 @@
 
 provider "aws" {
   region = "${var.aws_region}"
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
+  profile = "${var.aws_profile}"
+  shared_credentials_file = "${var.aws_shared_credentials_file}"
 }
 
 ##############################################################################
@@ -88,7 +88,6 @@ resource "aws_route53_zone" "network" {
 ##############################################################################
 
 resource "aws_vpc_peering_connection" "network_to_bastion" {
-  peer_owner_id = "${var.aws_peer_owner_id}"
   peer_vpc_id = "${aws_vpc.bastion.id}"
   vpc_id = "${aws_vpc.network.id}"
   auto_accept = true

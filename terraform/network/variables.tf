@@ -3,13 +3,15 @@
 ###################################################################
 
 ### MANDATORY ###
-variable "aws_access_key" {}
+variable "aws_shared_credentials_file" {
+}
 
-### MANDATORY ###
-variable "aws_secret_key" {}
+variable "aws_region" {
+  default = "eu-west-1"
+}
 
-variable "stream_tag" {
-  default = "terraform"
+variable "aws_profile" {
+  default = "default"
 }
 
 ### MANDATORY ###
@@ -22,9 +24,8 @@ variable "key_path" {
   description = "Path to the private portion of the SSH key specified."
 }
 
-variable "aws_region" {
-  description = "AWS region to launch servers."
-  default = "eu-west-1"
+variable "stream_tag" {
+  default = "terraform"
 }
 
 variable "amazon_nat_ami" {
@@ -75,9 +76,4 @@ variable "aws_network_private_subnet_cidr_c" {
 ### MANDATORY ###
 variable "aws_network_public_subnet_cidr_c" {
   description = "Public subnet C cidr block"
-}
-
-### MANDATORY ###
-variable "aws_network_nat_subnet_cidr" {
-  description="NAT subnet cidr block"
 }

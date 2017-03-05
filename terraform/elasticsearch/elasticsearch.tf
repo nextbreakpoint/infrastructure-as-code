@@ -4,8 +4,8 @@
 
 provider "aws" {
   region = "${var.aws_region}"
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
+  profile = "${var.aws_profile}"
+  shared_credentials_file = "${var.aws_shared_credentials_file}"
 }
 
 ##############################################################################
@@ -18,9 +18,6 @@ data "terraform_remote_state" "vpc" {
         bucket = "nextbreakpoint-terraform-state"
         region = "${var.aws_region}"
         key = "vpc.tfstate"
-        profile = "default"
-        access_key = "${var.aws_access_key}"
-        secret_key = "${var.aws_secret_key}"
     }
 }
 
@@ -30,9 +27,6 @@ data "terraform_remote_state" "network" {
         bucket = "nextbreakpoint-terraform-state"
         region = "${var.aws_region}"
         key = "network.tfstate"
-        profile = "default"
-        access_key = "${var.aws_access_key}"
-        secret_key = "${var.aws_secret_key}"
     }
 }
 
@@ -42,9 +36,15 @@ data "terraform_remote_state" "bastion" {
         bucket = "nextbreakpoint-terraform-state"
         region = "${var.aws_region}"
         key = "bastion.tfstate"
-        profile = "default"
-        access_key = "${var.aws_access_key}"
-        secret_key = "${var.aws_secret_key}"
+    }
+}
+
+data "terraform_remote_state" "volumes" {
+    backend = "s3"
+    config {
+        bucket = "nextbreakpoint-terraform-state"
+        region = "${var.aws_region}"
+        key = "volumes.tfstate"
     }
 }
 
@@ -189,10 +189,6 @@ resource "aws_instance" "elasticsearch_server_a" {
     Name = "elasticsearch_server_a"
     Stream = "${var.stream_tag}"
   }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.elasticsearch_server_user_data.rendered}"
-  }
 }
 
 resource "aws_instance" "elasticsearch_server_b" {
@@ -221,6 +217,58 @@ resource "aws_instance" "elasticsearch_server_b" {
   tags {
     Name = "elasticsearch_server_b"
     Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_volume_attachment" "elasticsearch_volume_attachment_a" {
+  device_name = "${var.volume_name}"
+  volume_id = "${data.terraform_remote_state.volumes.elasticsearch-volume-a-id}"
+  instance_id = "${aws_instance.elasticsearch_server_a.id}"
+  skip_destroy = true
+}
+
+resource "aws_volume_attachment" "elasticsearch_volume_attachment_b" {
+  device_name = "${var.volume_name}"
+  volume_id = "${data.terraform_remote_state.volumes.elasticsearch-volume-b-id}"
+  instance_id = "${aws_instance.elasticsearch_server_b.id}"
+  skip_destroy = true
+}
+
+resource "null_resource" "elasticsearch_server_a" {
+  triggers {
+    cluster_instance_ids = "${join(",", aws_instance.elasticsearch_server_a.*.id)}"
+  }
+
+  connection {
+    host = "${element(aws_instance.elasticsearch_server_a.*.private_ip, 0)}"
+    # The default username for our AMI
+    user = "ubuntu"
+    type = "ssh"
+    # The path to your keyfile
+    private_key = "${file(var.key_path)}"
+    bastion_user = "ec2-user"
+    bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
+  }
+
+  provisioner "remote-exec" {
+    inline = "${data.template_file.elasticsearch_server_user_data.rendered}"
+  }
+}
+
+resource "null_resource" "elasticsearch_server_b" {
+  triggers {
+    cluster_instance_ids = "${join(",", aws_instance.elasticsearch_server_b.*.id)}"
+  }
+
+  connection {
+    host = "${element(aws_instance.elasticsearch_server_b.*.private_ip, 0)}"
+    # The default username for our AMI
+    user = "ubuntu"
+    type = "ssh"
+    # The path to your keyfile
+    private_key = "${file(var.key_path)}"
+    bastion_user = "ec2-user"
+    bastion_host = "${data.terraform_remote_state.bastion.bastion-server-b-public-ip}"
   }
 
   provisioner "remote-exec" {
