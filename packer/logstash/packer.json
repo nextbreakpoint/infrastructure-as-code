@@ -10,11 +10,10 @@
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
-    "ami_name_prefix": "kibana",
-    "elastic_version": "5.2.1",
-    "kibana_version": "5.2.1",
-    "consul_version": "0.7.5",
-    "consul_template_version": "0.18.1"
+    "ami_name_prefix": "logstash",
+    "filebeat_version": "5.2.1",
+    "logstash_version": "5.2.1",
+    "consul_version": "0.7.5"
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -25,7 +24,8 @@
     "subnet_id": "{{user `aws_subnet_id`}}",
     "source_ami": "{{user `aws_source_ami`}}",
     "instance_type": "{{user `aws_instance_type`}}",
-    "ami_name": "{{user `ami_name_prefix`}}_{{user `kibana_version`}}-consul_{{user `consul_version`}}-{{timestamp}}",
+    "ami_name": "{{user `ami_name_prefix`}}_{{user `logstash_version`}}-filebeat_{{user `filebeat_version`}}-consul_{{user `consul_version`}}-java_8-{{timestamp}}",
+    "ami_regions": "{{user `aws_build_regions`}}",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
     "ssh_username": "ubuntu",
@@ -40,7 +40,7 @@
     },
     {
       "type": "shell",
-      "script": "scripts/nginx.sh",
+      "script": "scripts/java.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
@@ -50,37 +50,26 @@
     },
     {
       "type": "shell",
+      "script": "scripts/filebeat.sh",
+      "environment_vars": [
+        "FILEBEAT_VERSION={{user `filebeat_version`}}"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
       "script": "scripts/consul.sh",
       "environment_vars": [
-        "CONSUL_VERSION={{user `consul_version`}}",
-        "CONSUL_TEMPLATE_VERSION={{user `consul_template_version`}}"
+        "CONSUL_VERSION={{user `consul_version`}}"
       ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
-      "type": "file",
-      "source": "config/awsplugin.sh",
-      "destination": "/tmp/awsplugin.sh"
-    },
-    {
       "type": "shell",
-      "script": "scripts/elastic.sh",
+      "script": "scripts/logstash.sh",
       "environment_vars": [
-        "ELASTIC_VERSION={{user `elastic_version`}}"
+        "LOGSTASH_VERSION={{user `logstash_version`}}"
       ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/kibana.sh",
-      "environment_vars": [
-        "KIBANA_VERSION={{user `kibana_version`}}"
-      ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/logstash-fowarder.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]

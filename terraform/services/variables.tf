@@ -27,12 +27,6 @@ variable "aws_region" {
   default = "eu-west-1"
 }
 
-variable "amazon_ubuntu_ami" {
-  default = {
-    eu-west-1 = "ami-98ecb7fe"
-  }
-}
-
 variable "log_group_name" {
   default = "terraform"
 }
@@ -44,6 +38,10 @@ variable "log_stream_name" {
 ###################################################################
 # Services configuration below
 ###################################################################
+
+### MANDATORY ###
+variable "base_amis" {
+}
 
 variable "service_profile" {
   default = "service"

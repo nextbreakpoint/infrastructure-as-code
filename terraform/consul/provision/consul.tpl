@@ -3,8 +3,6 @@ set -e
 
 export CONSUL_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
 
-sudo apt-get install -y vim curl wget unzip screen python
-
 sudo cat <<EOF >/tmp/cloudwatch.cfg
 [general]
 state_file = /var/awslogs/state/agent-state
@@ -15,22 +13,6 @@ log_group_name = ${log_group_name}
 log_stream_name = ${log_stream_name}-consul
 datetime_format = %b %d %H:%M:%S
 EOF
-
-echo "Fetching Consul..."
-sudo curl -L -o consul.zip https://releases.hashicorp.com/consul/0.7.5/consul_0.7.5_linux_amd64.zip
-
-echo "Installing Consul..."
-sudo unzip consul.zip >/dev/null
-sudo chmod +x consul
-sudo mv consul /usr/local/bin/consul
-sudo mkdir -p /etc/consul.d
-sudo mkdir -p /etc/service
-sudo mkdir -p /mnt/consul
-sudo mkdir -p /var/consul
-sudo chmod +rwx /mnt/consul
-sudo chmod +rwx /var/consul
-sudo chown -R ubuntu:ubuntu /mnt/consul
-sudo chown -R ubuntu:ubuntu /var/consul
 
 sudo cat <<EOF >/tmp/consul.json
 {
@@ -79,9 +61,9 @@ sudo mv /tmp/consul.service /etc/systemd/system/consul.service
 
 sudo service consul start
 
-#sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
+sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
 
-#sudo update-rc.d awslogs defaults 95 10
-#sudo service awslogs start
+sudo update-rc.d awslogs defaults 95 10
+sudo service awslogs start
 
 echo "Done"

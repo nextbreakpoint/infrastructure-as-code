@@ -27,7 +27,7 @@ variable "aws_region" {
   default = "eu-west-1"
 }
 
-variable "amazon_nat_ami" {
+variable "amazon_nat_amis" {
   default = {
     eu-west-1 = "ami-47ecb121"
   }

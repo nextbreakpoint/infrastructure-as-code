@@ -3,30 +3,6 @@ set -e
 
 export LOGSTASH_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
 
-echo "Installing Java 8..."
-sudo apt-get install -y software-properties-common
-sudo add-apt-repository -y ppa:webupd8team/java
-sudo apt-get update
-
-echo "Accept license"
-sudo echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
-sudo apt-get install -y oracle-java8-installer
-
-sudo apt-get install oracle-java8-set-default
-
-echo "Check installation"
-java -version
-javac -version
-
-sudo apt-get install -y vim curl wget unzip screen python
-
-echo "Fetching Cloudwatch Agent..."
-sudo curl https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -O
-
-echo "Installing Cloudwatch Agent..."
-sudo chmod +x awslogs-agent-setup.py
-sudo mv awslogs-agent-setup.py /usr/bin
-
 sudo cat <<EOF >/tmp/cloudwatch.cfg
 [general]
 state_file = /var/awslogs/state/agent-state
@@ -37,22 +13,6 @@ log_group_name = ${log_group_name}
 log_stream_name = ${log_stream_name}-consul
 datetime_format = %b %d %H:%M:%S
 EOF
-
-echo "Fetching Consul..."
-sudo curl -L -o consul.zip https://releases.hashicorp.com/consul/0.7.5/consul_0.7.5_linux_amd64.zip
-
-echo "Installing Consul..."
-sudo unzip consul.zip >/dev/null
-sudo chmod +x consul
-sudo mv consul /usr/local/bin/consul
-sudo mkdir -p /etc/consul.d
-sudo mkdir -p /etc/service
-sudo mkdir -p /mnt/consul
-sudo mkdir -p /var/consul
-sudo chmod +rwx /mnt/consul
-sudo chmod +rwx /var/consul
-sudo chown -R ubuntu:ubuntu /mnt/consul
-sudo chown -R ubuntu:ubuntu /var/consul
 
 sudo cat <<EOF >/tmp/consul.service
 [Unit]
@@ -110,16 +70,6 @@ sudo cat <<EOF >/tmp/kibana-consul.json
 EOF
 sudo mv /tmp/kibana-consul.json /etc/consul.d/kibana.json
 
-echo "Fetching Logstash..."
-sudo curl -L -o logstash.deb https://artifacts.elastic.co/downloads/logstash/logstash-5.2.1.deb
-
-echo "Installing Logstash..."
-sudo apt-get install -y ./logstash.deb
-
-sudo rm logstash.deb
-
-sudo chown logstash:logstash -R /usr/share/logstash
-
 sudo cat <<EOF >/tmp/logstash.yml
 path.data: /var/lib/logstash
 path.config: /etc/logstash/conf.d
@@ -171,16 +121,14 @@ output {
 EOF
 sudo mv /tmp/30-elasticsearch-output.conf /etc/logstash/conf.d/30-elasticsearch-output.conf 
 
-sudo /usr/share/logstash/bin/logstash-plugin install logstash-input-beats
-
 #sudo update-rc.d logstash defaults 95 10
 sudo service logstash start
 
 sudo service consul start
 
-#sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
+sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
 
-#sudo update-rc.d awslogs defaults 95 10
-#sudo service awslogs start
+sudo update-rc.d awslogs defaults 95 10
+sudo service awslogs start
 
 echo "Done"

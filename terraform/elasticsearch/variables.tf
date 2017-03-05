@@ -27,12 +27,6 @@ variable "aws_region" {
   default = "eu-west-1"
 }
 
-variable "amazon_ubuntu_ami" {
-  default = {
-    eu-west-1 = "ami-98ecb7fe"
-  }
-}
-
 variable "log_group_name" {
   default = "terraform"
 }
@@ -57,10 +51,8 @@ variable "volume_encryption" {
 # Elasticsearch configuration below
 ###################################################################
 
+### MANDATORY ###
 variable "elasticsearch_amis" {
-  default = {
-    eu-west-1 = "ami-3824075e"
-  }
 }
 
 variable "es_instance_type" {

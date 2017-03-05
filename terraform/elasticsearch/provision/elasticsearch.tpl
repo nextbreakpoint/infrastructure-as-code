@@ -3,30 +3,6 @@ set -e
 
 export ELASTICSEARCH_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
 
-echo "Installing Java 8..."
-sudo apt-get install -y software-properties-common
-sudo add-apt-repository -y ppa:webupd8team/java
-sudo apt-get update
-
-echo "Accept license"
-sudo echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
-sudo apt-get install -y oracle-java8-installer
-
-sudo apt-get install oracle-java8-set-default
-
-echo "Check installation"
-java -version
-javac -version
-
-sudo apt-get install -y vim curl wget unzip screen python
-
-echo "Fetching Cloudwatch Agent..."
-sudo curl https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -O
-
-echo "Installing Cloudwatch Agent..."
-sudo chmod +x awslogs-agent-setup.py
-sudo mv awslogs-agent-setup.py /usr/bin
-
 sudo cat <<EOF >/tmp/cloudwatch.cfg
 [general]
 state_file = /var/awslogs/state/agent-state
@@ -37,33 +13,6 @@ log_group_name = ${log_group_name}
 log_stream_name = ${log_stream_name}-consul
 datetime_format = %b %d %H:%M:%S
 EOF
-
-echo "Fetching Consul..."
-sudo curl -L -o consul.zip https://releases.hashicorp.com/consul/0.7.5/consul_0.7.5_linux_amd64.zip
-
-echo "Installing Consul..."
-sudo unzip consul.zip >/dev/null
-sudo chmod +x consul
-sudo mv consul /usr/local/bin/consul
-sudo mkdir -p /etc/consul.d
-sudo mkdir -p /etc/service
-sudo mkdir -p /mnt/consul
-sudo mkdir -p /var/consul
-sudo chmod +rwx /mnt/consul
-sudo chmod +rwx /var/consul
-sudo chown -R ubuntu:ubuntu /mnt/consul
-sudo chown -R ubuntu:ubuntu /var/consul
-
-echo "Fetching Elasticsearch..."
-sudo curl -L -o elastic.deb https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.2.1.deb
-
-echo "Installing Elasticsearch..."
-sudo apt-get install -y ./elastic.deb
-
-sudo rm elastic.deb
-
-sudo chown elasticsearch:elasticsearch -R /usr/share/elasticsearch
-sudo chown elasticsearch:elasticsearch -R /etc/elasticsearch
 
 # Configure the consul agent
 cat <<EOF >/tmp/consul.json
@@ -175,24 +124,16 @@ sudo mkdir -p ${elasticsearch_logs_dir}
 sudo chown -R elasticsearch:elasticsearch ${elasticsearch_data_dir}
 sudo chown -R elasticsearch:elasticsearch ${elasticsearch_logs_dir}
 
-sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch discovery-ec2
-
 echo "Running Elasticsearch..."
-
-#sudo echo "elasticsearch soft nofile 128000" >> /etc/security/limits.conf
-#sudo echo "elasticsearch hard nofile 128000" >> /etc/security/limits.conf
-#sudo echo "root soft nofile 128000" >> /etc/security/limits.conf
-#sudo echo "root hard nofile 128000" >> /etc/security/limits.conf
-#sudo echo "fs.file-max = 500000" >> /etc/sysctl.conf
 
 sudo update-rc.d elasticsearch defaults 95 10
 sudo service elasticsearch start
 
 sudo service consul start
 
-#sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
+sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
 
-#sudo update-rc.d awslogs defaults 95 10
-#sudo service awslogs start
+sudo update-rc.d awslogs defaults 95 10
+sudo service awslogs start
 
 echo "Done"

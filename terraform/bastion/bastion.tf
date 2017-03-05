@@ -126,7 +126,7 @@ module "bastion_servers_a" {
 
   name = "bastion_server_a"
   stream_tag = "${var.stream_tag}"
-  ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
+  ami = "${lookup(var.amazon_nat_amis, var.aws_region)}"
   instance_type = "t2.micro"
   key_name = "${var.key_name}"
   key_path = "${var.key_path}"
@@ -139,7 +139,7 @@ module "bastion_servers_b" {
 
   name = "bastion_server_b"
   stream_tag = "${var.stream_tag}"
-  ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
+  ami = "${lookup(var.amazon_nat_amis, var.aws_region)}"
   instance_type = "t2.micro"
   key_name = "${var.key_name}"
   key_path = "${var.key_path}"

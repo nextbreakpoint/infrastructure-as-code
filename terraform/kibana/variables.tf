@@ -27,12 +27,6 @@ variable "aws_region" {
   default = "eu-west-1"
 }
 
-variable "amazon_ubuntu_ami" {
-  default = {
-    eu-west-1 = "ami-98ecb7fe"
-  }
-}
-
 variable "log_group_name" {
   default = "terraform"
 }
@@ -57,10 +51,8 @@ variable "volume_encryption" {
 # Kibana configuration below
 ###################################################################
 
-variable "aws_kibana_amis" {
-  default = {
-    eu-west-1 = "ami-3a24075c"
-  }
+### MANDATORY ###
+variable "kibana_amis" {
 }
 
 variable "aws_kibana_instance_type" {

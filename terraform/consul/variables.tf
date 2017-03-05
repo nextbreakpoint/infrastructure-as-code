@@ -27,12 +27,6 @@ variable "aws_region" {
   default = "eu-west-1"
 }
 
-variable "amazon_ubuntu_ami" {
-  default = {
-    eu-west-1 = "ami-98ecb7fe"
-  }
-}
-
 variable "log_group_name" {
   default = "terraform"
 }
@@ -45,10 +39,8 @@ variable "log_stream_name" {
 # Consul configuration below
 ###################################################################
 
-variable "aws_consul_amis" {
-  default = {
-    eu-west-1 = "ami-ca2407ac"
-  }
+### MANDATORY ###
+variable "consul_amis" {
 }
 
 variable "allowed_cidr_blocks" {

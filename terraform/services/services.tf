@@ -142,7 +142,7 @@ resource "aws_instance" "backend_service_a" {
   instance_type = "t2.small"
 
   # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.amazon_ubuntu_ami, var.aws_region)}"
+  ami = "${lookup(var.base_amis, var.aws_region)}"
 
   subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
@@ -175,7 +175,7 @@ resource "aws_instance" "backend_service_b" {
   instance_type = "t2.small"
 
   # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.amazon_ubuntu_ami, var.aws_region)}"
+  ami = "${lookup(var.base_amis, var.aws_region)}"
 
   subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   associate_public_ip_address = "false"

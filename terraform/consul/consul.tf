@@ -163,8 +163,7 @@ module "consul_servers_a" {
 
   name = "consul_server_a"
   region = "${var.aws_region}"
-  #ami = "${lookup(var.aws_consul_amis, var.aws_region)}"
-  ami = "${lookup(var.amazon_ubuntu_ami, var.aws_region)}"
+  ami = "${lookup(var.consul_amis, var.aws_region)}"
   subnet = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   instance_type = "t2.micro"
   security_groups = "${aws_security_group.consul_server.id}"
@@ -182,8 +181,7 @@ module "consul_servers_b" {
 
   name = "consul_server_b"
   region = "${var.aws_region}"
-  #ami = "${lookup(var.aws_consul_amis, var.aws_region)}"
-  ami = "${lookup(var.amazon_ubuntu_ami, var.aws_region)}"
+  ami = "${lookup(var.consul_amis, var.aws_region)}"
   subnet = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   instance_type = "t2.micro"
   security_groups = "${aws_security_group.consul_server.id}"
@@ -201,8 +199,7 @@ module "consul_servers_c" {
 
   name = "consul_server_c"
   region = "${var.aws_region}"
-  #ami = "${lookup(var.aws_consul_amis, var.aws_region)}"
-  ami = "${lookup(var.amazon_ubuntu_ami, var.aws_region)}"
+  ami = "${lookup(var.consul_amis, var.aws_region)}"
   subnet = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   instance_type = "t2.micro"
   security_groups = "${aws_security_group.consul_server.id}"
