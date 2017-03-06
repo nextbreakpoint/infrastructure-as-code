@@ -37,7 +37,7 @@ variable "log_stream_name" {
 }
 
 variable "volume_name" {
-  default = "/dev/xvdh"
+  default = "/dev/xvdh1"
 }
 
 ###################################################################
