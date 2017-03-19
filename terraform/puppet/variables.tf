@@ -37,16 +37,16 @@ variable "log_stream_name" {
 }
 
 ###################################################################
-# Services configuration below
+# Puppet configuration below
 ###################################################################
 
 ### MANDATORY ###
-variable "nginx_amis" {
+variable "puppet_amis" {
   type = "map"
 }
 
-variable "service_profile" {
-  default = "service"
+variable "puppet_server_profile" {
+  default = "puppetServer"
 }
 
 ### MANDATORY ###

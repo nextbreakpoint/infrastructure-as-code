@@ -51,7 +51,6 @@ variable "service_profile" {
 
 ### MANDATORY ###
 variable "environment" {
-  description = "Elastic environment tag for auto discovery"
   default = "terraform"
 }
 

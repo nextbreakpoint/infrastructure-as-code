@@ -32,10 +32,19 @@ variable "stream_tag" {
 # Volumes
 ###################################################################
 
-variable "volume_size" {
+variable "elasticsearch_volume_size" {
   default = "4"
 }
 
-variable "volume_encrypted" {
+variable "elasticsearch_volume_encrypted" {
   default = "false"
 }
+
+variable "pipeline_volume_size" {
+  default = "4"
+}
+
+variable "pipeline_volume_encrypted" {
+  default = "false"
+}
+

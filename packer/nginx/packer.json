@@ -48,6 +48,11 @@
     },
     {
       "type": "shell",
+      "script": "scripts/puppet.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
       "script": "scripts/filebeat.sh",
       "environment_vars": [
         "FILEBEAT_VERSION={{user `filebeat_version`}}"
@@ -65,6 +70,11 @@
     {
       "type": "shell",
       "script": "scripts/nginx.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/puppet-agent.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]

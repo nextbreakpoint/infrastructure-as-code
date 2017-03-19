@@ -47,3 +47,7 @@ variable "maintenance_profile" {
 variable "elasticsearch_device_name" {
   default = "/dev/xvdh"
 }
+
+variable "pipeline_device_name" {
+  default = "/dev/xvdi"
+}

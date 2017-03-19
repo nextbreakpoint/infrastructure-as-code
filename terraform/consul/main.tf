@@ -40,18 +40,6 @@ data "terraform_remote_state" "bastion" {
 }
 
 ##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "consul" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
-   type = "A"
-   ttl = "300"
-   records = ["${module.consul_servers_a.private-ips}","${module.consul_servers_b.private-ips}","${module.consul_servers_c.private-ips}"]
-}
-
-##############################################################################
 # Consul servers
 ##############################################################################
 
@@ -201,4 +189,82 @@ module "consul_servers_c" {
   bastion_user = "ec2-user"
   bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
   instance_profile = "${var.consul_profile}"
+}
+
+##############################################################################
+# Load balancer
+##############################################################################
+
+resource "aws_security_group" "consul_elb" {
+  name = "consul elb"
+  description = "consul load balacer"
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+
+  ingress {
+    from_port = 8500
+    to_port = 8500
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "consul elb security group"
+    stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_elb" "consul" {
+  name = "consul-elb"
+  security_groups = ["${aws_security_group.consul_elb.id}"]
+  subnets = ["${data.terraform_remote_state.network.network-private-subnet-a-id}","${data.terraform_remote_state.network.network-private-subnet-b-id}","${data.terraform_remote_state.network.network-private-subnet-c-id}"]
+
+  listener {
+    instance_port = 8500
+    instance_protocol = "http"
+    lb_port = 8500
+    lb_protocol = "http"
+  }
+
+  health_check {
+    healthy_threshold = 2
+    unhealthy_threshold = 3
+    timeout = 10
+    target = "TCP:8500"
+    interval = 30
+  }
+
+  instances = ["${aws_instance.consul_servers_a.id}", "${aws_instance.consul_servers_b.id}", "${aws_instance.consul_servers_c.id}"]
+  cross_zone_load_balancing = true
+  idle_timeout = 400
+  connection_draining = true
+  connection_draining_timeout = 400
+  internal = false
+
+  tags {
+    Name = "consul elb"
+    stream = "${var.stream_tag}"
+  }
+}
+
+##############################################################################
+# Route 53
+##############################################################################
+
+resource "aws_route53_record" "consul" {
+  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+  name = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  type = "A"
+
+  alias {
+    name = "${aws_elb.consul.dns_name}"
+    zone_id = "${aws_elb.consul.zone_id}"
+    evaluate_target_health = true
+  }
 }

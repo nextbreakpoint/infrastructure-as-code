@@ -176,6 +176,13 @@ resource "aws_volume_attachment" "elasticsearch_volume_attachment_a" {
   skip_destroy = true
 }
 
+resource "aws_volume_attachment" "pipeline_volume_attachment_a" {
+  device_name = "${var.pipeline_device_name}"
+  volume_id = "${data.terraform_remote_state.volumes.pipeline-volume-a-id}"
+  instance_id = "${aws_instance.maintenance_server_a.id}"
+  skip_destroy = true
+}
+
 resource "aws_volume_attachment" "elasticsearch_volume_attachment_b" {
   device_name = "${var.elasticsearch_device_name}"
   volume_id = "${data.terraform_remote_state.volumes.elasticsearch-volume-b-id}"
@@ -183,12 +190,21 @@ resource "aws_volume_attachment" "elasticsearch_volume_attachment_b" {
   skip_destroy = true
 }
 
-data "template_file" "maintenance_server_user_data" {
-  template = "${file("provision/elasticsearch.tpl")}"
+data "template_file" "maintenance_server_user_data_elasticsearch" {
+  template = "${file("provision/create_single_partition.tpl")}"
 
   vars {
     aws_region                = "${var.aws_region}"
-    elasticsearch_device_name = "${var.elasticsearch_device_name}"
+    device_name               = "${var.elasticsearch_device_name}"
+  }
+}
+
+data "template_file" "maintenance_server_user_data_pipeline" {
+  template = "${file("provision/create_single_partition.tpl")}"
+
+  vars {
+    aws_region                = "${var.aws_region}"
+    device_name               = "${var.pipeline_device_name}"
   }
 }
 
@@ -209,8 +225,13 @@ resource "null_resource" "maintenance_server_a" {
   }
 
   provisioner "file" {
-      content = "${data.template_file.maintenance_server_user_data.rendered}"
+      content = "${data.template_file.maintenance_server_user_data_elasticsearch.rendered}"
       destination = "/tmp/elasticsearch.sh"
+  }
+
+  provisioner "file" {
+      content = "${data.template_file.maintenance_server_user_data_pipeline.rendered}"
+      destination = "/tmp/pipeline.sh"
   }
 }
 
@@ -231,7 +252,7 @@ resource "null_resource" "maintenance_server_b" {
   }
 
   provisioner "file" {
-      content = "${data.template_file.maintenance_server_user_data.rendered}"
+      content = "${data.template_file.maintenance_server_user_data_elasticsearch.rendered}"
       destination = "/tmp/elasticsearch.sh"
   }
 }

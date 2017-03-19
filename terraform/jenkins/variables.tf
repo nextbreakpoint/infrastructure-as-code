@@ -36,17 +36,21 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
+variable "volume_name" {
+  default = "/dev/xvdh"
+}
+
 ###################################################################
-# Services configuration below
+# Jenkins configuration below
 ###################################################################
 
 ### MANDATORY ###
-variable "nginx_amis" {
+variable "jenkins_amis" {
   type = "map"
 }
 
-variable "service_profile" {
-  default = "service"
+variable "jenkins_server_profile" {
+  default = "jenkinsServer"
 }
 
 ### MANDATORY ###

@@ -14,8 +14,8 @@ provider "aws" {
 
 resource "aws_ebs_volume" "elasticsearch_volume_a" {
   availability_zone = "${format("%s%s", var.aws_region, "a")}"
-  size = "${var.volume_size}"
-  encrypted = "${var.volume_encrypted}"
+  size = "${var.elasticsearch_volume_size}"
+  encrypted = "${var.elasticsearch_volume_encrypted}"
   type = "gp2"
 
   tags {
@@ -26,12 +26,24 @@ resource "aws_ebs_volume" "elasticsearch_volume_a" {
 
 resource "aws_ebs_volume" "elasticsearch_volume_b" {
   availability_zone = "${format("%s%s", var.aws_region, "b")}"
-  size = "${var.volume_size}"
-  encrypted = "${var.volume_encrypted}"
+  size = "${var.elasticsearch_volume_size}"
+  encrypted = "${var.elasticsearch_volume_encrypted}"
   type = "gp2"
 
   tags {
     Name = "elasticsearch_volume_b"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_ebs_volume" "pipeline_volume_a" {
+  availability_zone = "${format("%s%s", var.aws_region, "a")}"
+  size = "${var.pipeline_volume_size}"
+  encrypted = "${var.pipeline_volume_encrypted}"
+  type = "gp2"
+
+  tags {
+    Name = "pipeline_volume_a"
     Stream = "${var.stream_tag}"
   }
 }

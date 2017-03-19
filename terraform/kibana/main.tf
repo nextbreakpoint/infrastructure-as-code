@@ -40,18 +40,6 @@ data "terraform_remote_state" "bastion" {
 }
 
 ##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "kibana" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "kibana.${data.terraform_remote_state.vpc.hosted-zone-name}"
-   type = "A"
-   ttl = "300"
-   records = ["${aws_instance.kibana_server_a.private_ip}","${aws_instance.kibana_server_b.private_ip}"]
-}
-
-##############################################################################
 # Kibana servers
 ##############################################################################
 
@@ -241,5 +229,83 @@ resource "aws_instance" "kibana_server_b" {
 
   provisioner "remote-exec" {
     inline = "${data.template_file.kibana_server_user_data.rendered}"
+  }
+}
+
+##############################################################################
+# Load balancer
+##############################################################################
+
+resource "aws_security_group" "kibana_elb" {
+  name = "kibana elb"
+  description = "kibana load balacer"
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+
+  ingress {
+    from_port = 5601
+    to_port = 5601
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "kibana elb security group"
+    stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_elb" "kibana" {
+  name = "kibana-elb"
+  security_groups = ["${aws_security_group.kibana_elb.id}"]
+  subnets = ["${data.terraform_remote_state.network.network-private-subnet-a-id}","${data.terraform_remote_state.network.network-private-subnet-b-id}"]
+
+  listener {
+    instance_port = 5601
+    instance_protocol = "http"
+    lb_port = 8500
+    lb_protocol = "http"
+  }
+
+  health_check {
+    healthy_threshold = 2
+    unhealthy_threshold = 3
+    timeout = 10
+    target = "TCP:8500"
+    interval = 30
+  }
+
+  instances = ["${aws_instance.kibana_servers_a.id}", "${aws_instance.kibana_servers_b.id}"]
+  cross_zone_load_balancing = true
+  idle_timeout = 400
+  connection_draining = true
+  connection_draining_timeout = 400
+  internal = false
+
+  tags {
+    Name = "kibana elb"
+    stream = "${var.stream_tag}"
+  }
+}
+
+##############################################################################
+# Route 53
+##############################################################################
+
+resource "aws_route53_record" "kibana" {
+  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+  name = "kibana.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  type = "A"
+
+  alias {
+    name = "${aws_elb.kibana.dns_name}"
+    zone_id = "${aws_elb.kibana.zone_id}"
+    evaluate_target_health = true
   }
 }

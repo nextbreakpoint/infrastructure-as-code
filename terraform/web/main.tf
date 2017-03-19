@@ -320,6 +320,10 @@ resource "aws_elb" "web" {
   }
 }
 
+##############################################################################
+# Route 53
+##############################################################################
+
 resource "aws_route53_record" "web" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
   name = "nginx.${data.terraform_remote_state.vpc.hosted-zone-name}"

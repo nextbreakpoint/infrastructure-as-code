@@ -51,14 +51,7 @@ variable "aws_logstash_instance_type" {
 }
 
 ### MANDATORY ###
-# if you have multiple clusters sharing the same es_environment?
-variable "es_cluster" {
-  description = "Elastic cluster name"
-}
-
-### MANDATORY ###
-variable "es_environment" {
-  description = "Elastic environment tag for auto discovery"
+variable "environment" {
   default = "terraform"
 }
 

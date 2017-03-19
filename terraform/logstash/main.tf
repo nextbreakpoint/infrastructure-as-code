@@ -141,8 +141,7 @@ data "template_file" "logstash_server_user_data_a" {
 
   vars {
     aws_region              = "${var.aws_region}"
-    es_cluster              = "${var.es_cluster}"
-    es_environment          = "${var.es_environment}"
+    environment             = "${var.environment}"
     security_groups         = "${aws_security_group.logstash_server.id}"
     elasticsearch_host      = "elasticsearch.terraform"
     consul_log_file         = "${var.consul_log_file}"
@@ -156,8 +155,7 @@ data "template_file" "logstash_server_user_data_b" {
 
   vars {
     aws_region              = "${var.aws_region}"
-    es_cluster              = "${var.es_cluster}"
-    es_environment          = "${var.es_environment}"
+    environment             = "${var.environment}"
     security_groups         = "${aws_security_group.logstash_server.id}"
     elasticsearch_host      = "elasticsearch.terraform"
     consul_log_file         = "${var.consul_log_file}"
