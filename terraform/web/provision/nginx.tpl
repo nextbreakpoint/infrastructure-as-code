@@ -59,17 +59,21 @@ events {
 
 http {
   server {
-    listen *:5601;
+    listen *:80;
+
+    server_name jenkins.nextbreakpoint.com;
 
     location / {
-        proxy_pass http://${kibana_host}:5601;
+        proxy_pass http://${jenkins_host}:8080;
     }
   }
   server {
-    listen *:8500;
+    listen *:80;
+
+    server_name sonarqube.nextbreakpoint.com;
 
     location / {
-        proxy_pass http://${consul_host}:8500;
+        proxy_pass http://${sonarqube_host}:9000;
     }
   }
 }

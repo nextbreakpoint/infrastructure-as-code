@@ -47,6 +47,9 @@
     {
       "type": "shell",
       "script": "scripts/cloudwatch-agent.sh",
+      "environment_vars": [
+        "AWS_REGION={{user `aws_region`}}"
+      ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {

@@ -144,7 +144,7 @@ data "template_file" "kibana_server_user_data" {
     elasticsearch_data_dir  = "/mnt/elasticsearch/data"
     elasticsearch_logs_dir  = "/mnt/elasticsearch/logs"
     elasticsearch_host      = "_site_"
-    elasticsearch_node      = "elasticsearch.terraform"
+    elasticsearch_node      = "elasticsearch.${data.terraform_remote_state.vpc.hosted-zone-name}"
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
@@ -281,7 +281,7 @@ resource "aws_elb" "kibana" {
     interval = 30
   }
 
-  instances = ["${aws_instance.kibana_servers_a.id}", "${aws_instance.kibana_servers_b.id}"]
+  instances = ["${aws_instance.kibana_server_a.id}", "${aws_instance.kibana_server_b.id}"]
   cross_zone_load_balancing = true
   idle_timeout = 400
   connection_draining = true

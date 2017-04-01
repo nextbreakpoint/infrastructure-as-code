@@ -65,20 +65,6 @@ resource "aws_security_group" "jenkins_server" {
   }
 
   ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port = 8080
-    to_port = 8080
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
     from_port = 8080
     to_port = 8080
     protocol = "tcp"
@@ -93,8 +79,8 @@ resource "aws_security_group" "jenkins_server" {
   }
 
   egress {
-    from_port = 9000
-    to_port = 9000
+    from_port = 22
+    to_port = 22
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -113,32 +99,18 @@ resource "aws_security_group" "jenkins_server" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port = 0
-    to_port = 65535
+  egress {
+    from_port = 8080
+    to_port = 8080
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
-  }
-
-  ingress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port = 0
-    to_port = 65535
+    from_port = 9000
+    to_port = 9000
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
@@ -158,7 +130,7 @@ data "template_file" "jenkins_server_user_data" {
     volume_name             = "${var.volume_name}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    logstash_host           = "logstash.terraform"
+    logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
     jenkins_host            = "${aws_instance.jenkins_server.private_ip}"
     sonarqube_host          = "${aws_instance.jenkins_server.private_ip}"
     pipeline_data_dir       = "/mnt/pipeline"
@@ -234,6 +206,14 @@ resource "null_resource" "jenkins_server" {
 resource "aws_route53_record" "jenkins" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
   name = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  type = "A"
+  ttl = "300"
+  records = ["${aws_instance.jenkins_server.*.public_ip}"]
+}
+
+resource "aws_route53_record" "sonarqube" {
+  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+  name = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
   type = "A"
   ttl = "300"
   records = ["${aws_instance.jenkins_server.*.public_ip}"]

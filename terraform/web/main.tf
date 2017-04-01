@@ -70,15 +70,22 @@ resource "aws_security_group" "web_server" {
   }
 
   ingress {
-    from_port = 5601
-    to_port = 5601
+    from_port = 0
+    to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
   ingress {
-    from_port = 8500
-    to_port = 8500
+    from_port = 0
+    to_port = 65535
+    protocol = "udp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  egress {
+    from_port = 22
+    to_port = 22
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -95,34 +102,6 @@ resource "aws_security_group" "web_server" {
     to_port = 443
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 5601
-    to_port = 5601
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 8500
-    to_port = 8500
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
-  }
-
-  ingress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
   egress {
@@ -155,9 +134,11 @@ data "template_file" "web_server_user_data_a" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    logstash_host           = "logstash.terraform"
-    kibana_host             = "kibana.terraform"
-    consul_host             = "consul.terraform"
+    logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    kibana_host             = "kibana.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    consul_host             = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    jenkins_host            = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    sonarqube_host          = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
   }
 }
 
@@ -171,9 +152,11 @@ data "template_file" "web_server_user_data_b" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    logstash_host           = "logstash.terraform"
-    kibana_host             = "kibana.terraform"
-    consul_host             = "consul.terraform"
+    logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    kibana_host             = "kibana.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    consul_host             = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    jenkins_host            = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    sonarqube_host          = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
   }
 }
 
@@ -254,15 +237,15 @@ resource "aws_security_group" "web_elb" {
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
-    from_port = 8500
-    to_port = 8500
+    from_port = 80
+    to_port = 80
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port = 5601
-    to_port = 5601
+  egress {
+    from_port = 80
+    to_port = 80
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -286,16 +269,9 @@ resource "aws_elb" "web" {
   subnets = ["${data.terraform_remote_state.network.network-public-subnet-a-id}","${data.terraform_remote_state.network.network-public-subnet-b-id}"]
 
   listener {
-    instance_port = 8500
+    instance_port = 80
     instance_protocol = "http"
-    lb_port = 8500
-    lb_protocol = "http"
-  }
-
-  listener {
-    instance_port = 5601
-    instance_protocol = "http"
-    lb_port = 5601
+    lb_port = 80
     lb_protocol = "http"
   }
 
@@ -303,7 +279,7 @@ resource "aws_elb" "web" {
     healthy_threshold = 2
     unhealthy_threshold = 3
     timeout = 10
-    target = "TCP:5601"
+    target = "TCP:80"
     interval = 30
   }
 
@@ -324,9 +300,9 @@ resource "aws_elb" "web" {
 # Route 53
 ##############################################################################
 
-resource "aws_route53_record" "web" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "nginx.${data.terraform_remote_state.vpc.hosted-zone-name}"
+resource "aws_route53_record" "kibana" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "kibana.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {
@@ -336,3 +312,38 @@ resource "aws_route53_record" "web" {
   }
 }
 
+resource "aws_route53_record" "consul" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "consul.${var.public_hosted_zone_name}"
+  type = "A"
+
+  alias {
+    name = "${aws_elb.web.dns_name}"
+    zone_id = "${aws_elb.web.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "jenkins" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "jenkins.${var.public_hosted_zone_name}"
+  type = "A"
+
+  alias {
+    name = "${aws_elb.web.dns_name}"
+    zone_id = "${aws_elb.web.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "sonarqube" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "sonarqube.${var.public_hosted_zone_name}"
+  type = "A"
+
+  alias {
+    name = "${aws_elb.web.dns_name}"
+    zone_id = "${aws_elb.web.zone_id}"
+    evaluate_target_health = true
+  }
+}

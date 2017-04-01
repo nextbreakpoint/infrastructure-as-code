@@ -11,7 +11,7 @@
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
-    "ami_name_prefix": "elastic",
+    "ami_name_prefix": "elasticsearch",
     "filebeat_version": "5.2.1",
     "elastic_version": "5.2.1",
     "consul_version": "0.7.5"
@@ -48,6 +48,9 @@
     {
       "type": "shell",
       "script": "scripts/cloudwatch-agent.sh",
+      "environment_vars": [
+        "AWS_REGION={{user `aws_region`}}"
+      ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {

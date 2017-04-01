@@ -1,0 +1,8 @@
+curl -X GET -u "andrea:andrea" http://34.249.85.245:8080/job/test/config.xml -o mylocalconfig.xml
+
+
+curl -u "andrea:andrea" 'http://34.249.85.245:8080/crumbIssuer/api/xml'xpath=concat(//crumbRequestField,":",//crumb)'
+
+
+curl -X POST -u "andrea:andrea" 'http://34.249.85.245:8080/createItem?name=test2' --data-binary @mylocalconfig.xml -H "Content-Type:text/xml" -H "Jenkins-Crumb:33c94b69fbd838adddeadacb1d4947ac"
+

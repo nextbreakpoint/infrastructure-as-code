@@ -78,7 +78,7 @@ resource "aws_route53_zone" "network" {
   vpc_id = "${aws_vpc.network.id}"
 
   tags {
-    Name = "network internal"
+    Name = "network private zone"
     Stream = "${var.stream_tag}"
   }
 }

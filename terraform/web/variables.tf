@@ -36,6 +36,14 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
+### MANDATORY ###
+variable "public_hosted_zone_id" {
+}
+
+### MANDATORY ###
+variable "public_hosted_zone_name" {
+}
+
 ###################################################################
 # Services configuration below
 ###################################################################

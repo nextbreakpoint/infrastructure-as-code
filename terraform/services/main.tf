@@ -120,7 +120,7 @@ data "template_file" "backend_service_user_data" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    logstash_host           = "logstash.terraform"
+    logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
   }
 }
 

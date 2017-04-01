@@ -135,7 +135,6 @@ resource "aws_security_group" "network_nat" {
   }
 }
 
-/*
 resource "aws_instance" "network_nat_a" {
   instance_type = "t2.micro"
 
@@ -216,8 +215,8 @@ resource "aws_instance" "network_nat_c" {
     Stream = "${var.stream_tag}"
   }
 }
-*/
 
+/*
 resource "aws_eip" "net_eip_a" {
 }
 
@@ -241,6 +240,7 @@ resource "aws_nat_gateway" "net_gateway_c" {
     allocation_id = "${aws_eip.net_eip_c.id}"
     subnet_id = "${aws_subnet.network_public_c.id}"
 }
+*/
 
 ##############################################################################
 # Private subnets
@@ -256,8 +256,8 @@ resource "aws_route_table" "network_private_a" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    #instance_id = "${aws_instance.network_nat_a.id}"
-    nat_gateway_id = "${aws_nat_gateway.net_gateway_a.id}"
+    instance_id = "${aws_instance.network_nat_a.id}"
+    #nat_gateway_id = "${aws_nat_gateway.net_gateway_a.id}"
   }
 
   tags {
@@ -276,8 +276,8 @@ resource "aws_route_table" "network_private_b" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    #instance_id = "${aws_instance.network_nat_b.id}"
-    nat_gateway_id = "${aws_nat_gateway.net_gateway_b.id}"
+    instance_id = "${aws_instance.network_nat_b.id}"
+    #nat_gateway_id = "${aws_nat_gateway.net_gateway_b.id}"
   }
 
   tags {
@@ -296,8 +296,8 @@ resource "aws_route_table" "network_private_c" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    #instance_id = "${aws_instance.network_nat_c.id}"
-    nat_gateway_id = "${aws_nat_gateway.net_gateway_c.id}"
+    instance_id = "${aws_instance.network_nat_c.id}"
+    #nat_gateway_id = "${aws_nat_gateway.net_gateway_c.id}"
   }
 
   tags {

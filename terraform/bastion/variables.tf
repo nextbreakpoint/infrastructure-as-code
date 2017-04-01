@@ -34,6 +34,14 @@ variable "amazon_nat_amis" {
   }
 }
 
+### MANDATORY ###
+variable "public_hosted_zone_id" {
+}
+
+### MANDATORY ###
+variable "public_hosted_zone_name" {
+}
+
 ###################################################################
 # Subnets configuration below
 ###################################################################
