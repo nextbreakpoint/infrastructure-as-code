@@ -97,7 +97,7 @@ resource "aws_route_table_association" "network_public_c" {
 ##############################################################################
 
 resource "aws_security_group" "network_nat" {
-  name = "NAT"
+  name = "NAT private"
   description = "NAT security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 

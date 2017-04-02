@@ -26,16 +26,7 @@ data "terraform_remote_state" "network" {
     config {
         bucket = "nextbreakpoint-terraform-state"
         region = "${var.aws_region}"
-        key = "network.tfstate"
-    }
-}
-
-data "terraform_remote_state" "consul" {
-    backend = "s3"
-    config {
-        bucket = "nextbreakpoint-terraform-state"
-        region = "${var.aws_region}"
-        key = "consul.tfstate"
+        key = "network_dev.tfstate"
     }
 }
 
@@ -67,6 +58,13 @@ resource "aws_security_group" "jenkins_server" {
   ingress {
     from_port = 8080
     to_port = 8080
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port = 8081
+    to_port = 8081
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -107,6 +105,13 @@ resource "aws_security_group" "jenkins_server" {
   }
 
   egress {
+    from_port = 8081
+    to_port = 8081
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
     from_port = 9000
     to_port = 9000
     protocol = "tcp"
@@ -133,6 +138,7 @@ data "template_file" "jenkins_server_user_data" {
     logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
     jenkins_host            = "${aws_instance.jenkins_server.private_ip}"
     sonarqube_host          = "${aws_instance.jenkins_server.private_ip}"
+    artifactory_host        = "${aws_instance.jenkins_server.private_ip}"
     pipeline_data_dir       = "/mnt/pipeline"
   }
 }
@@ -143,7 +149,7 @@ resource "aws_iam_instance_profile" "jenkins_server_profile" {
 }
 
 resource "aws_instance" "jenkins_server" {
-  instance_type = "t2.medium"
+  instance_type = "t2.xlarge"
 
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.jenkins_amis, var.aws_region)}"
@@ -208,7 +214,7 @@ resource "aws_route53_record" "jenkins" {
   name = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
   type = "A"
   ttl = "300"
-  records = ["${aws_instance.jenkins_server.*.public_ip}"]
+  records = ["${aws_instance.jenkins_server.*.private_ip}"]
 }
 
 resource "aws_route53_record" "sonarqube" {
@@ -216,6 +222,15 @@ resource "aws_route53_record" "sonarqube" {
   name = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
   type = "A"
   ttl = "300"
-  records = ["${aws_instance.jenkins_server.*.public_ip}"]
+  records = ["${aws_instance.jenkins_server.*.private_ip}"]
 }
+
+resource "aws_route53_record" "artifactory" {
+  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+  name = "artifactory.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  type = "A"
+  ttl = "300"
+  records = ["${aws_instance.jenkins_server.*.private_ip}"]
+}
+
 

@@ -2,6 +2,6 @@
 set -e
 
 echo "Installing MySQL..."
-#sudo apt-get install -y mysql-server
-
-#sudo mysql_secure_installation
+sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password admin'
+sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password admin'
+sudo apt-get install -y mysql-server

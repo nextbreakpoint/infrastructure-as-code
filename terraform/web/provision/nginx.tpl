@@ -59,21 +59,33 @@ events {
 
 http {
   server {
-    listen *:80;
+    listen 80;
 
     server_name jenkins.nextbreakpoint.com;
 
     location / {
         proxy_pass http://${jenkins_host}:8080;
+        proxy_redirect http://${jenkins_host}:8080 http://jenkins.nextbreakpoint.com;
     }
   }
   server {
-    listen *:80;
+    listen 80;
 
     server_name sonarqube.nextbreakpoint.com;
 
     location / {
         proxy_pass http://${sonarqube_host}:9000;
+        proxy_redirect http://${sonarqube_host}:9000 http://sonarqube.nextbreakpoint.com;
+    }
+  }
+  server {
+    listen 80;
+
+    server_name artifactory.nextbreakpoint.com;
+
+    location / {
+        proxy_pass http://${artifactory_host}:8081;
+        proxy_redirect http://${artifactory_host}:8081 http://artifactory.nextbreakpoint.com;
     }
   }
 }

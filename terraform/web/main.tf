@@ -139,6 +139,7 @@ data "template_file" "web_server_user_data_a" {
     consul_host             = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
     jenkins_host            = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
     sonarqube_host          = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    artifactory_host          = "artifactory.${data.terraform_remote_state.vpc.hosted-zone-name}"
   }
 }
 
@@ -157,6 +158,7 @@ data "template_file" "web_server_user_data_b" {
     consul_host             = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
     jenkins_host            = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
     sonarqube_host          = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    artifactory_host          = "artifactory.${data.terraform_remote_state.vpc.hosted-zone-name}"
   }
 }
 
@@ -339,6 +341,18 @@ resource "aws_route53_record" "jenkins" {
 resource "aws_route53_record" "sonarqube" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "sonarqube.${var.public_hosted_zone_name}"
+  type = "A"
+
+  alias {
+    name = "${aws_elb.web.dns_name}"
+    zone_id = "${aws_elb.web.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "artifactory" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "artifactory.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {
