@@ -6,3 +6,5 @@ sudo curl -L -o sonarqube.zip https://sonarsource.bintray.com/Distribution/sonar
 
 echo "Installing SonarQube..."
 sudo unzip -d /opt sonarqube.zip 
+
+sudo rm sonarqube.zip 

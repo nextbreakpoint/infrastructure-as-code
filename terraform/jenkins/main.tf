@@ -149,7 +149,7 @@ resource "aws_iam_instance_profile" "jenkins_server_profile" {
 }
 
 resource "aws_instance" "jenkins_server" {
-  instance_type = "t2.xlarge"
+  instance_type = "t2.medium"
 
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.jenkins_amis, var.aws_region)}"
