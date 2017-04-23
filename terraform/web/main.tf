@@ -134,12 +134,12 @@ data "template_file" "web_server_user_data_a" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    kibana_host             = "kibana.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    consul_host             = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    jenkins_host            = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    sonarqube_host          = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    artifactory_host          = "artifactory.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    kibana_host             = "kibana.${var.hosted_zone_name}"
+    consul_host             = "consul.${var.hosted_zone_name}"
+    jenkins_host            = "jenkins.${var.hosted_zone_name}"
+    sonarqube_host          = "sonarqube.${var.hosted_zone_name}"
+    artifactory_host        = "artifactory.${var.hosted_zone_name}"
   }
 }
 
@@ -153,12 +153,12 @@ data "template_file" "web_server_user_data_b" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    kibana_host             = "kibana.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    consul_host             = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    jenkins_host            = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    sonarqube_host          = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
-    artifactory_host          = "artifactory.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    kibana_host             = "kibana.${var.hosted_zone_name}"
+    consul_host             = "consul.${var.hosted_zone_name}"
+    jenkins_host            = "jenkins.${var.hosted_zone_name}"
+    sonarqube_host          = "sonarqube.${var.hosted_zone_name}"
+    artifactory_host        = "artifactory.${var.hosted_zone_name}"
   }
 }
 

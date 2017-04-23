@@ -36,34 +36,26 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
-### MANDATORY ###
-variable "public_hosted_zone_id" {
-}
-
-### MANDATORY ###
-variable "public_hosted_zone_name" {
-}
-
-### MANDATORY ###
-variable "hosted_zone_name" {
-}
-
 ###################################################################
-# Services configuration below
+# Kafka configuration below
 ###################################################################
 
 ### MANDATORY ###
-variable "nginx_amis" {
+variable "kafka_amis" {
   type = "map"
 }
 
-variable "service_profile" {
-  default = "service"
+variable "aws_kafka_instance_type" {
+  description = "kafka instance type."
+  default  = "t2.medium"
 }
 
-### MANDATORY ###
-variable "environment" {
-  default = "terraform"
+variable "kafka_log_file" {
+  default = "/var/log/kafka/kafka.log"
+}
+
+variable "kafka_profile" {
+  default = "kafkaNode"
 }
 
 ###################################################################

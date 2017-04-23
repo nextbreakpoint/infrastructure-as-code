@@ -30,7 +30,7 @@ resource "aws_route53_record" "bastion" {
    name = "bastion.${var.public_hosted_zone_name}"
    type = "A"
    ttl = "300"
-   records = ["${element(module.bastion_servers_a.public-ips, 0)}","${element(module.bastion_servers_b.public-ips, 0)}"]
+   records = ["${module.bastion_servers_a.public-ips}","${module.bastion_servers_b.public-ips}"]
 }
 
 ##############################################################################

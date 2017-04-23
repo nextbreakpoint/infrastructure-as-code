@@ -10,9 +10,11 @@
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
-    "ami_name_prefix": "jenkins",
+    "ami_name_prefix": "kafka",
     "filebeat_version": "5.2.1",
-    "consul_version": "0.7.5"
+    "consul_version": "0.7.5",
+    "scala_version": "2.12",
+    "kafka_version": "0.10.2.0"
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -23,7 +25,7 @@
     "subnet_id": "{{user `aws_subnet_id`}}",
     "source_ami": "{{user `aws_source_ami`}}",
     "instance_type": "{{user `aws_instance_type`}}",
-    "ami_name": "{{user `ami_name_prefix`}}-filebeat_{{user `filebeat_version`}}-consul_{{user `consul_version`}}-java_8-{{timestamp}}",
+    "ami_name": "{{user `ami_name_prefix`}}_{{user `kafka_version`}}-filebeat_{{user `filebeat_version`}}-consul_{{user `consul_version`}}-java_8-{{timestamp}}",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
     "ssh_username": "ubuntu",
@@ -72,27 +74,16 @@
     },
     {
       "type": "shell",
-      "script": "scripts/docker.sh",
+      "script": "scripts/kafka.sh",
+      "environment_vars": [
+        "KAFKA_VERSION={{user `kafka_version`}}",
+        "SCALA_VERSION={{user `scala_version`}}"
+      ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
       "type": "shell",
-      "script": "scripts/sonarqube.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/mysql.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/artifactory.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/jenkins.sh",
+      "script": "scripts/puppet-agent.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]

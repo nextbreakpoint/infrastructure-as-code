@@ -36,34 +36,26 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
-### MANDATORY ###
-variable "public_hosted_zone_id" {
-}
-
-### MANDATORY ###
-variable "public_hosted_zone_name" {
-}
-
-### MANDATORY ###
-variable "hosted_zone_name" {
-}
-
 ###################################################################
-# Services configuration below
+# ZooKeeper configuration below
 ###################################################################
 
 ### MANDATORY ###
-variable "nginx_amis" {
+variable "zookeeper_amis" {
   type = "map"
 }
 
-variable "service_profile" {
-  default = "service"
+variable "aws_zookeeper_instance_type" {
+  description = "zookeeper instance type."
+  default  = "t2.small"
 }
 
-### MANDATORY ###
-variable "environment" {
-  default = "terraform"
+variable "zookeeper_log_file" {
+  default = "/var/log/zookeeper/zookeeper.log"
+}
+
+variable "zookeeper_profile" {
+  default = "zookeeperNode"
 }
 
 ###################################################################
