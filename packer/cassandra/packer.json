@@ -13,7 +13,7 @@
     "ami_name_prefix": "cassandra",
     "filebeat_version": "5.2.1",
     "consul_version": "0.7.5",
-    "cassandra_version": ""
+    "cassandra_version": "3.9"
   },
   "builders": [{
     "type": "amazon-ebs",
