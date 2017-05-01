@@ -7,14 +7,13 @@
     "aws_security_token": "",
     "aws_region": "eu-west-1",
     "aws_build_regions" : "",
-    "aws_source_ami": "ami-98ecb7fe",
+    "aws_source_ami": "ami-96383af0",
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
     "ami_name_prefix": "elasticsearch",
-    "filebeat_version": "5.2.1",
     "elastic_version": "5.2.1",
-    "consul_version": "0.7.5"
+    "base_version": "1.0"
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -26,7 +25,7 @@
     "instance_type": "{{user `aws_instance_type`}}",
     "vpc_id": "{{user `aws_vpc_id`}}",
     "subnet_id": "{{user `aws_subnet_id`}}",
-    "ami_name": "{{user `ami_name_prefix`}}_{{user `elastic_version`}}-filebeat_{{user `filebeat_version`}}-consul_{{user `consul_version`}}-java_8-{{timestamp}}",
+    "ami_name": "{{user `ami_name_prefix`}}_{{user `elastic_version`}}-base_{{user `base_version`}}-{{timestamp}}",
     "ami_regions": "{{user `aws_build_regions`}}",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
@@ -37,54 +36,10 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "scripts/default.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/java.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/cloudwatch-agent.sh",
-      "environment_vars": [
-        "AWS_REGION={{user `aws_region`}}"
-      ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/puppet.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/filebeat.sh",
-      "environment_vars": [
-        "FILEBEAT_VERSION={{user `filebeat_version`}}"
-      ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/consul.sh",
-      "environment_vars": [
-        "CONSUL_VERSION={{user `consul_version`}}"
-      ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
       "script": "scripts/elasticsearch.sh",
       "environment_vars": [
         "ELASTIC_VERSION={{user `elastic_version`}}"
       ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/puppet-agent.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]

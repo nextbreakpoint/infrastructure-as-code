@@ -3,3 +3,5 @@ set -e
 
 echo "Installing ZooKeeper..."
 sudo apt-get install -y zookeeperd
+
+echo "ZooKeeper installed."

@@ -2,13 +2,11 @@
 set -e
 
 echo "Fetching Elasticsearch..."
-cd /tmp
-sudo curl -L -o elastic.deb https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTIC_VERSION}.deb
+sudo curl -L -o /tmp/elastic.deb https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTIC_VERSION}.deb
 
 echo "Installing Elasticsearch..."
-sudo apt-get install -y ./elastic.deb
-
-sudo rm elastic.deb
+sudo apt-get install -y /tmp/elastic.deb
+sudo rm /tmp/elastic.deb
 
 cd /usr/share/elasticsearch
 sudo chown elasticsearch:elasticsearch -R .
@@ -30,3 +28,5 @@ sudo echo "root soft nofile 128000" >> /etc/security/limits.conf
 sudo echo "root hard nofile 128000" >> /etc/security/limits.conf
 
 sudo echo "fs.file-max = 500000" >> /etc/sysctl.conf
+
+echo "Elasticsearch installed."

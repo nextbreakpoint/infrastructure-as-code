@@ -2,7 +2,9 @@
 set -e
 
 echo "Fetching Spark..."
-cd /tmp
+
 
 echo "Installing Spark..."
 
+
+echo "Spark installed."

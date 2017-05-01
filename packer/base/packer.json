@@ -13,7 +13,9 @@
     "aws_subnet_id": "",
     "ami_name_prefix": "base",
     "filebeat_version": "5.2.1",
-    "consul_version": "0.7.5"
+    "topbeat_version": "1.3.1",
+    "consul_version": "0.7.5",
+    "base_version": "1.0"
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -25,7 +27,7 @@
     "instance_type": "{{user `aws_instance_type`}}",
     "vpc_id": "{{user `aws_vpc_id`}}",
     "subnet_id": "{{user `aws_subnet_id`}}",
-    "ami_name": "{{user `ami_name_prefix`}}-filebeat_{{user `filebeat_version`}}-consul_{{user `consul_version`}}-java_8-{{timestamp}}",
+    "ami_name": "{{user `ami_name_prefix`}}_{{user `base_version`}}-{{timestamp}}",
     "ami_regions": "{{user `aws_build_regions`}}",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
@@ -36,7 +38,7 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "scripts/default.sh",
+      "script": "scripts/tools.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
@@ -46,10 +48,7 @@
     },
     {
       "type": "shell",
-      "script": "scripts/cloudwatch-agent.sh",
-      "environment_vars": [
-        "AWS_REGION={{user `aws_region`}}"
-      ],
+      "script": "scripts/docker.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
@@ -67,6 +66,14 @@
     },
     {
       "type": "shell",
+      "script": "scripts/topbeat.sh",
+      "environment_vars": [
+        "TOPBEAT_VERSION={{user `topbeat_version`}}"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
       "script": "scripts/consul.sh",
       "environment_vars": [
         "CONSUL_VERSION={{user `consul_version`}}"
@@ -76,6 +83,11 @@
     {
       "type": "shell",
       "script": "scripts/puppet-agent.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/update.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]
