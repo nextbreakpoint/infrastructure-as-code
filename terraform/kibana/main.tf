@@ -209,7 +209,7 @@ resource "aws_instance" "kibana_server_b" {
   }
 
   tags {
-    Name = "kibana_server_a"
+    Name = "kibana_server_b"
     Stream = "${var.stream_tag}"
   }
 
