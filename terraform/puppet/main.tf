@@ -30,15 +30,6 @@ data "terraform_remote_state" "network" {
     }
 }
 
-data "terraform_remote_state" "consul" {
-    backend = "s3"
-    config {
-        bucket = "nextbreakpoint-terraform-state"
-        region = "${var.aws_region}"
-        key = "consul.tfstate"
-    }
-}
-
 ##############################################################################
 # Puppet server
 ##############################################################################

@@ -36,6 +36,9 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
+variable "public_hosted_zone_name" {
+}
+
 ###################################################################
 # Kibana configuration below
 ###################################################################

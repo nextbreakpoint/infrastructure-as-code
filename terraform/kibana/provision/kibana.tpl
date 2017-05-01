@@ -159,7 +159,7 @@ sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
 sudo update-rc.d awslogs defaults 95 10
 sudo service awslogs start
 
-sleep 5
+sleep 20
 
 sudo /usr/share/filebeat/scripts/import_dashboards -es http://$ELASTICSEARCH_HOST:9200 -k .kibana
 

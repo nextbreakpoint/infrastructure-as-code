@@ -209,7 +209,7 @@ resource "aws_instance" "cassandra_server_a1" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
@@ -245,7 +245,7 @@ resource "aws_instance" "cassandra_server_b1" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
@@ -281,7 +281,7 @@ resource "aws_instance" "cassandra_server_c1" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
@@ -382,7 +382,7 @@ resource "null_resource" "cassandra_server_a2" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
@@ -409,7 +409,7 @@ resource "null_resource" "cassandra_server_b2" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
@@ -436,7 +436,7 @@ resource "null_resource" "cassandra_server_c2" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {

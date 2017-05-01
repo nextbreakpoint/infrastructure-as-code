@@ -197,7 +197,7 @@ resource "null_resource" "jenkins_server" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     #bastion_user = "ec2-user"
-    #bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
+    #bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {

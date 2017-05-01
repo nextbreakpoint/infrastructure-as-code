@@ -30,15 +30,6 @@ data "terraform_remote_state" "network" {
     }
 }
 
-data "terraform_remote_state" "bastion" {
-    backend = "s3"
-    config {
-        bucket = "nextbreakpoint-terraform-state"
-        region = "${var.aws_region}"
-        key = "bastion.tfstate"
-    }
-}
-
 ##############################################################################
 # Consul servers
 ##############################################################################
@@ -151,7 +142,7 @@ module "consul_servers_a" {
   stream_tag = "${var.stream_tag}"
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
-  bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
+  bastion_host = "bastion.${var.public_hosted_zone_name}"
   instance_profile = "${var.consul_profile}"
 }
 
@@ -169,7 +160,7 @@ module "consul_servers_b" {
   stream_tag = "${var.stream_tag}"
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
-  bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
+  bastion_host = "bastion.${var.public_hosted_zone_name}"
   instance_profile = "${var.consul_profile}"
 }
 
@@ -187,7 +178,7 @@ module "consul_servers_c" {
   stream_tag = "${var.stream_tag}"
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
-  bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
+  bastion_host = "bastion.${var.public_hosted_zone_name}"
   instance_profile = "${var.consul_profile}"
 }
 

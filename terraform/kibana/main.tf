@@ -30,15 +30,6 @@ data "terraform_remote_state" "network" {
     }
 }
 
-data "terraform_remote_state" "bastion" {
-    backend = "s3"
-    config {
-        bucket = "nextbreakpoint-terraform-state"
-        region = "${var.aws_region}"
-        key = "bastion.tfstate"
-    }
-}
-
 ##############################################################################
 # Kibana servers
 ##############################################################################
@@ -176,7 +167,7 @@ resource "aws_instance" "kibana_server_a" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   tags {
@@ -214,7 +205,7 @@ resource "aws_instance" "kibana_server_b" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "${data.terraform_remote_state.bastion.bastion-server-b-public-ip}"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   tags {
@@ -286,7 +277,7 @@ resource "aws_elb" "kibana" {
   idle_timeout = 400
   connection_draining = true
   connection_draining_timeout = 400
-  internal = false
+  internal = true
 
   tags {
     Name = "kibana elb"

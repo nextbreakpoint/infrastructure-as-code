@@ -30,15 +30,6 @@ data "terraform_remote_state" "network" {
     }
 }
 
-data "terraform_remote_state" "bastion" {
-    backend = "s3"
-    config {
-        bucket = "nextbreakpoint-terraform-state"
-        region = "${var.aws_region}"
-        key = "bastion.tfstate"
-    }
-}
-
 data "terraform_remote_state" "volumes" {
     backend = "s3"
     config {
@@ -182,7 +173,7 @@ resource "aws_instance" "elasticsearch_server_a" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   tags {
@@ -211,7 +202,7 @@ resource "aws_instance" "elasticsearch_server_b" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "${data.terraform_remote_state.bastion.bastion-server-b-public-ip}"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   tags {
@@ -249,7 +240,7 @@ resource "null_resource" "elasticsearch_server_a" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "${data.terraform_remote_state.bastion.bastion-server-a-public-ip}"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
@@ -272,7 +263,7 @@ resource "null_resource" "elasticsearch_server_b" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "${data.terraform_remote_state.bastion.bastion-server-b-public-ip}"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {

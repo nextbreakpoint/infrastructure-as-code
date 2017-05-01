@@ -305,7 +305,7 @@ resource "aws_route53_record" "consul" {
   }
 }
 
-/*resource "aws_route53_record" "kibana" {
+resource "aws_route53_record" "kibana" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "kibana.${var.public_hosted_zone_name}"
   type = "A"
@@ -317,7 +317,7 @@ resource "aws_route53_record" "consul" {
   }
 }
 
-resource "aws_route53_record" "jenkins" {
+/*resource "aws_route53_record" "jenkins" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "jenkins.${var.public_hosted_zone_name}"
   type = "A"

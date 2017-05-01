@@ -40,6 +40,9 @@ variable "volume_name" {
   default = "/dev/xvdh"
 }
 
+variable "public_hosted_zone_name" {
+}
+
 ###################################################################
 # Jenkins configuration below
 ###################################################################

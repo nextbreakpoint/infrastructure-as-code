@@ -233,7 +233,7 @@ resource "null_resource" "zookeeper_server_a" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
@@ -263,7 +263,7 @@ resource "null_resource" "zookeeper_server_b" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
@@ -293,7 +293,7 @@ resource "null_resource" "zookeeper_server_c" {
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
