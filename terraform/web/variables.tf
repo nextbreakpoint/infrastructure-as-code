@@ -57,8 +57,8 @@ variable "nginx_amis" {
   type = "map"
 }
 
-variable "service_profile" {
-  default = "service"
+variable "web_server_profile" {
+  default = "webserver"
 }
 
 ### MANDATORY ###

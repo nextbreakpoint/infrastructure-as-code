@@ -245,7 +245,7 @@ resource "aws_elb" "consul" {
   idle_timeout = 400
   connection_draining = true
   connection_draining_timeout = 400
-  internal = false
+  internal = true
 
   tags {
     Name = "consul elb"

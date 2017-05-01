@@ -54,14 +54,14 @@ sudo cat <<EOF >/tmp/zookeeper-consul.json
     "services": [{
         "name": "zookeeper",
         "tags": [
-            "telnet", "zookeeper"
+            "nc", "zookeeper"
         ],
         "port": 2181,
         "checks": [{
             "id": "1",
             "name": "zookeeper TCP",
-            "notes": "Use curl to check the web service every 10 seconds",
-            "script": "telnet `ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }'` 2181 >/dev/null 2>&1",
+            "notes": "Use nc to check the service every 10 seconds",
+            "script": "echo stat | nc `ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }'` 2181 >/dev/null 2>&1",
             "interval": "10s"
         } ],
         "leave_on_terminate": true

@@ -61,8 +61,8 @@ sudo cat <<EOF >/tmp/kafka-consul.json
         "checks": [{
             "id": "1",
             "name": "kafka TCP",
-            "notes": "Use curl to check the web service every 10 seconds",
-            "script": "telnet `ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }'` 9092 >/dev/null 2>&1",
+            "notes": "Use netstat to check the service every 10 seconds",
+            "script": "netstat -tulpn | grep 9092 >/dev/null 2>&1",
             "interval": "10s"
         } ],
         "leave_on_terminate": true

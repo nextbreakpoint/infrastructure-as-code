@@ -54,15 +54,15 @@ sudo cat <<EOF >/tmp/cassandra-consul.json
     "services": [{
         "name": "cassandra",
         "tags": [
-            "telnet", "cassandra"
+            "nodetools", "cassandra"
         ],
         "port": 7000,
         "checks": [{
             "id": "1",
             "name": "cassandra TCP",
-            "notes": "Use curl to check the web service every 10 seconds",
-            "script": "telnet `ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }'` 7000 >/dev/null 2>&1",
-            "interval": "10s"
+            "notes": "Use nodetools to check the service every 30 seconds",
+            "script": "nodetool status >/dev/null 2>&1",
+            "interval": "30s"
         } ],
         "leave_on_terminate": true
     }]

@@ -62,6 +62,20 @@ resource "aws_security_group" "kafka_server" {
     cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
+  ingress {
+    from_port = 8300
+    to_port = 8302
+    protocol = "tcp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  ingress {
+    from_port = 8300
+    to_port = 8302
+    protocol = "udp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
   egress {
     from_port = 22
     to_port = 22
@@ -94,6 +108,20 @@ resource "aws_security_group" "kafka_server" {
     from_port = 2181
     to_port = 2181
     protocol = "tcp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  egress {
+    from_port = 8300
+    to_port = 8302
+    protocol = "tcp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  egress {
+    from_port = 8300
+    to_port = 8302
+    protocol = "udp"
     cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 

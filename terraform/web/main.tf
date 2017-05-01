@@ -30,15 +30,6 @@ data "terraform_remote_state" "network" {
     }
 }
 
-data "terraform_remote_state" "consul" {
-    backend = "s3"
-    config {
-        bucket = "nextbreakpoint-terraform-state"
-        region = "${var.aws_region}"
-        key = "consul.tfstate"
-    }
-}
-
 ##############################################################################
 # Web servers
 ##############################################################################
@@ -164,7 +155,7 @@ data "template_file" "web_server_user_data_b" {
 
 resource "aws_iam_instance_profile" "web_server_profile" {
     name = "web_server_profile"
-    roles = ["${var.service_profile}"]
+    roles = ["${var.web_server_profile}"]
 }
 
 resource "aws_instance" "web_server_a" {
@@ -302,9 +293,9 @@ resource "aws_elb" "web" {
 # Route 53
 ##############################################################################
 
-resource "aws_route53_record" "kibana" {
+resource "aws_route53_record" "consul" {
   zone_id = "${var.public_hosted_zone_id}"
-  name = "kibana.${var.public_hosted_zone_name}"
+  name = "consul.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {
@@ -314,9 +305,9 @@ resource "aws_route53_record" "kibana" {
   }
 }
 
-resource "aws_route53_record" "consul" {
+/*resource "aws_route53_record" "kibana" {
   zone_id = "${var.public_hosted_zone_id}"
-  name = "consul.${var.public_hosted_zone_name}"
+  name = "kibana.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {
@@ -360,4 +351,4 @@ resource "aws_route53_record" "artifactory" {
     zone_id = "${aws_elb.web.zone_id}"
     evaluate_target_health = true
   }
-}
+}*/
