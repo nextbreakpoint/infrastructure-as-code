@@ -67,6 +67,13 @@ resource "aws_security_group" "kibana_server" {
     cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
+  ingress {
+    from_port = 5601
+    to_port = 5601
+    protocol = "tcp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
   egress {
     from_port = 22
     to_port = 22
@@ -109,11 +116,11 @@ resource "aws_security_group" "kibana_server" {
     cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
-  ingress {
+  egress {
     from_port = 5601
     to_port = 5601
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
   tags {
@@ -260,7 +267,7 @@ resource "aws_elb" "kibana" {
   listener {
     instance_port = 5601
     instance_protocol = "http"
-    lb_port = 8500
+    lb_port = 5601
     lb_protocol = "http"
   }
 
@@ -268,7 +275,7 @@ resource "aws_elb" "kibana" {
     healthy_threshold = 2
     unhealthy_threshold = 3
     timeout = 10
-    target = "TCP:8500"
+    target = "TCP:5601"
     interval = 30
   }
 

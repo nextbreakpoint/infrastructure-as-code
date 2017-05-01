@@ -259,7 +259,7 @@ resource "aws_security_group" "web_elb" {
 resource "aws_elb" "web" {
   name = "web-elb"
   security_groups = ["${aws_security_group.web_elb.id}"]
-  subnets = ["${data.terraform_remote_state.network.network-public-subnet-a-id}","${data.terraform_remote_state.network.network-public-subnet-b-id}"]
+  subnets = ["${data.terraform_remote_state.network.network-private-subnet-a-id}","${data.terraform_remote_state.network.network-private-subnet-b-id}"]
 
   listener {
     instance_port = 80
