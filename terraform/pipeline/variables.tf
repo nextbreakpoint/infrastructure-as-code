@@ -44,16 +44,16 @@ variable "public_hosted_zone_name" {
 }
 
 ###################################################################
-# Jenkins configuration below
+# Pipeline configuration below
 ###################################################################
 
 ### MANDATORY ###
-variable "jenkins_amis" {
+variable "pipeline_amis" {
   type = "map"
 }
 
-variable "jenkins_server_profile" {
-  default = "jenkinsServer"
+variable "pipeline_server_profile" {
+  default = "pipelineServer"
 }
 
 ### MANDATORY ###

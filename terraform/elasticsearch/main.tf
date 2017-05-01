@@ -150,7 +150,7 @@ data "template_file" "elasticsearch_server_user_data" {
 
 resource "aws_iam_instance_profile" "elasticsearch_server_profile" {
     name = "elasticsearch_server_profile"
-    roles = ["${var.elastic_profile}"]
+    roles = ["${var.elasticsearch_profile}"]
 }
 
 resource "aws_instance" "elasticsearch_server_a" {

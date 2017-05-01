@@ -293,6 +293,18 @@ resource "aws_elb" "web" {
 # Route 53
 ##############################################################################
 
+resource "aws_route53_record" "nginx" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "nginx.${var.public_hosted_zone_name}"
+  type = "A"
+
+  alias {
+    name = "${aws_elb.web.dns_name}"
+    zone_id = "${aws_elb.web.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
 resource "aws_route53_record" "consul" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "consul.${var.public_hosted_zone_name}"

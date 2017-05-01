@@ -95,11 +95,7 @@ variable "availability_zones" {
 }
 
 variable "elasticsearch_profile" {
-  default = "elasticSearchNode"
-}
-
-variable "elastic_profile" {
-  default = "elasticSearchNode"
+  default = "elasticsearchNode"
 }
 
 ###################################################################
