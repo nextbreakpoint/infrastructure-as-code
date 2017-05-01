@@ -75,6 +75,20 @@ resource "aws_security_group" "kibana_server" {
   }
 
   egress {
+    from_port = 0
+    to_port = 65535
+    protocol = "tcp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 65535
+    protocol = "udp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  egress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
@@ -93,34 +107,6 @@ resource "aws_security_group" "kibana_server" {
     to_port = 443
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 8300
-    to_port = 8302
-    protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
-  }
-
-  egress {
-    from_port = 8300
-    to_port = 8600
-    protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
-  }
-
-  egress {
-    from_port = 9200
-    to_port = 9400
-    protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
-  }
-
-  egress {
-    from_port = 5601
-    to_port = 5601
-    protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
   tags {

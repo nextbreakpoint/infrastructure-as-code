@@ -74,8 +74,8 @@ http {
     server_name kibana.nextbreakpoint.com;
 
     location / {
-        proxy_pass http://${kibana_host}:5061;
-        proxy_redirect http://${kibana_host}:5061 http://kibana.nextbreakpoint.com;
+        proxy_pass http://${kibana_host}:5601;
+        proxy_redirect http://${kibana_host}:5601 http://kibana.nextbreakpoint.com;
     }
   }
   server {
