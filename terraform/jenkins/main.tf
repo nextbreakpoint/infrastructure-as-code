@@ -26,7 +26,7 @@ data "terraform_remote_state" "network" {
     config {
         bucket = "nextbreakpoint-terraform-state"
         region = "${var.aws_region}"
-        key = "network_dev.tfstate"
+        key = "network.tfstate"
     }
 }
 
@@ -59,21 +59,35 @@ resource "aws_security_group" "jenkins_server" {
     from_port = 8080
     to_port = 8080
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
   ingress {
     from_port = 8081
     to_port = 8081
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
   ingress {
     from_port = 9000
     to_port = 9000
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 65535
+    protocol = "tcp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 65535
+    protocol = "udp"
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
   }
 
   egress {
@@ -97,27 +111,6 @@ resource "aws_security_group" "jenkins_server" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  egress {
-    from_port = 8080
-    to_port = 8080
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 8081
-    to_port = 8081
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 9000
-    to_port = 9000
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags {
     Name = "web server security group"
     Stream = "${var.stream_tag}"
@@ -135,7 +128,6 @@ data "template_file" "jenkins_server_user_data" {
     volume_name             = "${var.volume_name}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
     jenkins_host            = "${aws_instance.jenkins_server.private_ip}"
     sonarqube_host          = "${aws_instance.jenkins_server.private_ip}"
     artifactory_host        = "${aws_instance.jenkins_server.private_ip}"
@@ -154,20 +146,12 @@ resource "aws_instance" "jenkins_server" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.jenkins_amis, var.aws_region)}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-public-subnet-a-id}"
-  associate_public_ip_address = "true"
+  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.jenkins_server.id}"]
   key_name = "${var.key_name}"
 
   iam_instance_profile = "${aws_iam_instance_profile.jenkins_server_profile.id}"
-
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-  }
 
   tags {
     Name = "jenkins_server"
@@ -190,14 +174,14 @@ resource "null_resource" "jenkins_server" {
   }
 
   connection {
-    host = "${element(aws_instance.jenkins_server.*.public_ip, 0)}"
+    host = "${element(aws_instance.jenkins_server.*.private_ip, 0)}"
     # The default username for our AMI
     user = "ubuntu"
     type = "ssh"
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
-    #bastion_user = "ec2-user"
-    #bastion_host = "bastion.${var.public_hosted_zone_name}"
+    bastion_user = "ec2-user"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {
