@@ -43,7 +43,7 @@ resource "aws_security_group" "web_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
@@ -64,35 +64,35 @@ resource "aws_security_group" "web_server" {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 0
     to_port = 65535
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -155,7 +155,48 @@ data "template_file" "web_server_user_data_b" {
 
 resource "aws_iam_instance_profile" "web_server_profile" {
     name = "web_server_profile"
-    roles = ["${var.web_server_profile}"]
+    roles = ["${aws_iam_role.web_server_role.name}"]
+}
+
+resource "aws_iam_role" "web_server_role" {
+  name = "web_server_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "web_server_role_policy" {
+  name = "web_server_role_policy"
+  role = "${aws_iam_role.web_server_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:Get*",
+        "s3:List*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_instance" "web_server_a" {
@@ -171,21 +212,9 @@ resource "aws_instance" "web_server_a" {
 
   iam_instance_profile = "${aws_iam_instance_profile.web_server_profile.id}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-  }
-
   tags {
     Name = "web_server_a"
     Stream = "${var.stream_tag}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.web_server_user_data_a.rendered}"
   }
 }
 
@@ -202,17 +231,47 @@ resource "aws_instance" "web_server_b" {
 
   iam_instance_profile = "${aws_iam_instance_profile.web_server_profile.id}"
 
+  tags {
+    Name = "web_server_b"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "null_resource" "web_server_a" {
+  triggers {
+    cluster_instance_ids = "${join(",", aws_instance.web_server_a.*.id)}"
+  }
+
   connection {
+    host = "${element(aws_instance.web_server_a.*.private_ip, 0)}"
     # The default username for our AMI
     user = "ubuntu"
     type = "ssh"
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
+    bastion_user = "ec2-user"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
-  tags {
-    Name = "web_server_b"
-    Stream = "${var.stream_tag}"
+  provisioner "remote-exec" {
+    inline = "${data.template_file.web_server_user_data_a.rendered}"
+  }
+}
+
+resource "null_resource" "web_server_b" {
+  triggers {
+    cluster_instance_ids = "${join(",", aws_instance.web_server_b.*.id)}"
+  }
+
+  connection {
+    host = "${element(aws_instance.web_server_b.*.private_ip, 0)}"
+    # The default username for our AMI
+    user = "ubuntu"
+    type = "ssh"
+    # The path to your keyfile
+    private_key = "${file(var.key_path)}"
+    bastion_user = "ec2-user"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   provisioner "remote-exec" {

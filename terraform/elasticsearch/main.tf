@@ -45,7 +45,7 @@ data "terraform_remote_state" "volumes" {
 
 resource "aws_route53_record" "elasticsearch" {
    zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "elasticsearch.${data.terraform_remote_state.vpc.hosted-zone-name}"
+   name = "elasticsearch.${var.public_hosted_zone_name}"
    type = "A"
    ttl = "300"
    records = ["${aws_instance.elasticsearch_server_a.private_ip}","${aws_instance.elasticsearch_server_b.private_ip}"]
@@ -64,35 +64,35 @@ resource "aws_security_group" "elasticsearch_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 9200
     to_port = 9400
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -113,14 +113,14 @@ resource "aws_security_group" "elasticsearch_server" {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   tags {
@@ -148,9 +148,49 @@ data "template_file" "elasticsearch_server_user_data" {
   }
 }
 
-resource "aws_iam_instance_profile" "elasticsearch_server_profile" {
-    name = "elasticsearch_server_profile"
-    roles = ["${var.elasticsearch_profile}"]
+resource "aws_iam_instance_profile" "elasticsearch_node_profile" {
+    name = "elasticsearch_node_profile"
+    roles = ["${aws_iam_role.elasticsearch_node_role.name}"]
+}
+
+resource "aws_iam_role" "elasticsearch_node_role" {
+  name = "elasticsearch_node_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "elasticsearch_node_role_policy" {
+  name = "elasticsearch_node_role_policy"
+  role = "${aws_iam_role.elasticsearch_node_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_instance" "elasticsearch_server_a" {
@@ -164,7 +204,7 @@ resource "aws_instance" "elasticsearch_server_a" {
   security_groups = ["${aws_security_group.elasticsearch_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_node_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -193,7 +233,7 @@ resource "aws_instance" "elasticsearch_server_b" {
   security_groups = ["${aws_security_group.elasticsearch_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_node_profile.name}"
 
   connection {
     # The default username for our AMI

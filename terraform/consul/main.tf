@@ -43,63 +43,63 @@ resource "aws_security_group" "consul_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8400
     to_port = 8400
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8500
     to_port = 8500
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8600
     to_port = 8600
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8600
     to_port = 8600
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -128,6 +128,51 @@ data "template_file" "consul_server_user_data" {
   }
 }
 
+resource "aws_iam_instance_profile" "consul_node_profile" {
+    name = "consul_node_profile"
+    roles = ["${aws_iam_role.consul_node_role.name}"]
+}
+
+resource "aws_iam_role" "consul_node_role" {
+  name = "consul_node_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "consul_node_role_policy" {
+  name = "consul_node_role_policy"
+  role = "${aws_iam_role.consul_node_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
 module "consul_servers_a" {
   source = "./consul"
 
@@ -143,7 +188,7 @@ module "consul_servers_a" {
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
-  instance_profile = "${var.consul_profile}"
+  instance_profile = "${aws_iam_instance_profile.consul_node_profile.name}"
 }
 
 module "consul_servers_b" {
@@ -161,7 +206,7 @@ module "consul_servers_b" {
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
-  instance_profile = "${var.consul_profile}"
+  instance_profile = "${aws_iam_instance_profile.consul_node_profile.name}"
 }
 
 module "consul_servers_c" {
@@ -179,7 +224,7 @@ module "consul_servers_c" {
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
-  instance_profile = "${var.consul_profile}"
+  instance_profile = "${aws_iam_instance_profile.consul_node_profile.name}"
 }
 
 ##############################################################################
@@ -250,7 +295,7 @@ resource "aws_elb" "consul" {
 
 resource "aws_route53_record" "consul" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "consul.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  name = "consul.${var.hosted_zone_name}"
   type = "A"
 
   alias {

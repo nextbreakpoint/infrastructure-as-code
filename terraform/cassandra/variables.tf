@@ -36,7 +36,20 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
+### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
 variable "public_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
 }
 
 ###################################################################
@@ -55,10 +68,6 @@ variable "aws_cassandra_instance_type" {
 
 variable "cassandra_log_file" {
   default = "/var/log/cassandra/cassandra.log"
-}
-
-variable "cassandra_profile" {
-  default = "cassandraNode"
 }
 
 ###################################################################

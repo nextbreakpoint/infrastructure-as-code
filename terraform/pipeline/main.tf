@@ -52,49 +52,49 @@ resource "aws_security_group" "pipeline_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8080
     to_port = 8080
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8081
     to_port = 8081
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 9000
     to_port = 9000
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -137,7 +137,47 @@ data "template_file" "pipeline_server_user_data" {
 
 resource "aws_iam_instance_profile" "pipeline_server_profile" {
     name = "pipeline_server_profile"
-    roles = ["${var.pipeline_server_profile}"]
+    roles = ["${aws_iam_role.pipeline_server_role.name}"]
+}
+
+resource "aws_iam_role" "pipeline_server_role" {
+  name = "pipeline_server_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "pipeline_server_role_policy" {
+  name = "pipeline_server_role_policy"
+  role = "${aws_iam_role.pipeline_server_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_instance" "pipeline_server" {
@@ -195,7 +235,7 @@ resource "null_resource" "pipeline_server" {
 
 resource "aws_route53_record" "jenkins" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "jenkins.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  name = "jenkins.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
   records = ["${aws_instance.pipeline_server.*.private_ip}"]
@@ -203,7 +243,7 @@ resource "aws_route53_record" "jenkins" {
 
 resource "aws_route53_record" "sonarqube" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "sonarqube.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  name = "sonarqube.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
   records = ["${aws_instance.pipeline_server.*.private_ip}"]
@@ -211,7 +251,7 @@ resource "aws_route53_record" "sonarqube" {
 
 resource "aws_route53_record" "artifactory" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "artifactory.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  name = "artifactory.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
   records = ["${aws_instance.pipeline_server.*.private_ip}"]

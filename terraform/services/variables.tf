@@ -36,6 +36,22 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
+### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "public_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
+}
+
 ###################################################################
 # Services configuration below
 ###################################################################
@@ -43,10 +59,6 @@ variable "log_stream_name" {
 ### MANDATORY ###
 variable "base_amis" {
   type = "map"
-}
-
-variable "service_profile" {
-  default = "service"
 }
 
 ### MANDATORY ###

@@ -4,16 +4,16 @@ set -e
 export BROKER_ID=`cat /tmp/brokerid`
 export KAFKA_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
 
-sudo cat <<EOF >/tmp/cloudwatch.cfg
-[general]
-state_file = /var/awslogs/state/agent-state
-
-[consul]
-file = ${consul_log_file}
-log_group_name = ${log_group_name}
-log_stream_name = ${log_stream_name}-consul
-datetime_format = %b %d %H:%M:%S
-EOF
+#sudo cat <<EOF >/tmp/cloudwatch.cfg
+#[general]
+#state_file = /var/awslogs/state/agent-state
+#
+#[consul]
+#file = ${consul_log_file}
+#log_group_name = ${log_group_name}
+#log_stream_name = ${log_stream_name}-consul
+#datetime_format = %b %d %H:%M:%S
+#EOF
 
 sudo cat <<EOF >/tmp/consul.service
 [Unit]
@@ -129,9 +129,8 @@ sudo nohup /opt/kafka_2.12-0.10.2.0/bin/kafka-server-start.sh -daemon /opt/kafka
 sudo service consul start
 
 #sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
-
 #sudo update-rc.d awslogs defaults 95 10
-sudo service awslogs start
+#sudo service awslogs start
 #sudo systemctl daemon-reload
 
 echo "Done"

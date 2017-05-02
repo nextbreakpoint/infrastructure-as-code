@@ -36,7 +36,20 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
+### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
 variable "public_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
 }
 
 ###################################################################
@@ -60,10 +73,6 @@ variable "environment" {
 
 variable "logstash_log_file" {
   default = "/var/log/logstash.log"
-}
-
-variable "logstash_profile" {
-  default = "logstashNode"
 }
 
 ###################################################################

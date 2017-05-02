@@ -43,42 +43,42 @@ resource "aws_security_group" "zookeeper_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
     from_port = 2181
     to_port = 2181
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 2888
     to_port = 2888
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 3888
     to_port = 3888
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -106,35 +106,35 @@ resource "aws_security_group" "zookeeper_server" {
     from_port = 2181
     to_port = 2181
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 2888
     to_port = 2888
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 3888
     to_port = 3888
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   tags {
@@ -143,9 +143,49 @@ resource "aws_security_group" "zookeeper_server" {
   }
 }
 
-resource "aws_iam_instance_profile" "zookeeper_server_profile" {
-    name = "zookeeper_server_profile"
-    roles = ["${var.zookeeper_profile}"]
+resource "aws_iam_instance_profile" "zookeeper_node_profile" {
+    name = "zookeeper_node_profile"
+    roles = ["${aws_iam_role.zookeeper_node_role.name}"]
+}
+
+resource "aws_iam_role" "zookeeper_node_role" {
+  name = "zookeeper_node_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "zookeeper_node_role_policy" {
+  name = "zookeeper_node_role_policy"
+  role = "${aws_iam_role.zookeeper_node_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_instance" "zookeeper_server_a" {
@@ -159,7 +199,7 @@ resource "aws_instance" "zookeeper_server_a" {
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_node_profile.name}"
 
   tags {
     Name = "zookeeper_server_a"
@@ -178,7 +218,7 @@ resource "aws_instance" "zookeeper_server_b" {
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_node_profile.name}"
 
   tags {
     Name = "zookeeper_server_b"
@@ -197,7 +237,7 @@ resource "aws_instance" "zookeeper_server_c" {
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_node_profile.name}"
 
   tags {
     Name = "zookeeper_server_c"

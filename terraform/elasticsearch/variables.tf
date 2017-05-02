@@ -40,7 +40,20 @@ variable "volume_name" {
   default = "/dev/xvdh"
 }
 
+### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
 variable "public_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
 }
 
 ###################################################################
@@ -92,10 +105,6 @@ variable "minimum_master_nodes" {
 
 variable "availability_zones" {
   default = "eu-west-1a,eu-west-1b"
-}
-
-variable "elasticsearch_profile" {
-  default = "elasticsearchNode"
 }
 
 ###################################################################

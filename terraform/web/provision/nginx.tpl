@@ -1,16 +1,16 @@
 #!/bin/bash
 set -e
 
-sudo cat <<EOF >/tmp/cloudwatch.cfg
-[general]
-state_file = /var/awslogs/state/agent-state
-
-[consul]
-file = ${consul_log_file}
-log_group_name = ${log_group_name}
-log_stream_name = ${log_stream_name}-consul
-datetime_format = %b %d %H:%M:%S
-EOF
+#sudo cat <<EOF >/tmp/cloudwatch.cfg
+#[general]
+#state_file = /var/awslogs/state/agent-state
+#
+#[consul]
+#file = ${consul_log_file}
+#log_group_name = ${log_group_name}
+#log_stream_name = ${log_stream_name}-consul
+#datetime_format = %b %d %H:%M:%S
+#EOF
 
 #sudo chown filebeat:filebeat -R /usr/share/filebeat
 
@@ -62,6 +62,9 @@ http {
     listen 80;
 
     server_name nginx.nextbreakpoint.com;
+
+    location / {
+    }
   }
   server {
     listen 80;

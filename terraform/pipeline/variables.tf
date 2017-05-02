@@ -40,7 +40,20 @@ variable "volume_name" {
   default = "/dev/xvdh"
 }
 
+### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
 variable "public_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
 }
 
 ###################################################################
@@ -50,10 +63,6 @@ variable "public_hosted_zone_name" {
 ### MANDATORY ###
 variable "pipeline_amis" {
   type = "map"
-}
-
-variable "pipeline_server_profile" {
-  default = "pipelineServer"
 }
 
 ### MANDATORY ###

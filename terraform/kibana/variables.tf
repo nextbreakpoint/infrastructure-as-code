@@ -36,7 +36,20 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
+### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
 variable "public_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
 }
 
 ###################################################################
@@ -75,10 +88,6 @@ variable "availability_zones" {
 
 variable "kibana_log_file" {
   default = "/var/log/kibana.log"
-}
-
-variable "kibana_profile" {
-  default = "kibanaNode"
 }
 
 ###################################################################

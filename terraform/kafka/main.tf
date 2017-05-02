@@ -52,28 +52,28 @@ resource "aws_security_group" "kafka_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
     from_port = 9092
     to_port = 9092
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -101,28 +101,28 @@ resource "aws_security_group" "kafka_server" {
     from_port = 9092
     to_port = 9092
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 2181
     to_port = 2181
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   tags {
@@ -144,9 +144,49 @@ data "template_file" "kafka_server_user_data" {
   }
 }
 
-resource "aws_iam_instance_profile" "kafka_server_profile" {
-    name = "kafka_server_profile"
-    roles = ["${var.kafka_profile}"]
+resource "aws_iam_instance_profile" "kafka_node_profile" {
+    name = "kafka_node_profile"
+    roles = ["${aws_iam_role.kafka_node_role.name}"]
+}
+
+resource "aws_iam_role" "kafka_node_role" {
+  name = "kafka_node_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "kafka_node_role_policy" {
+  name = "kafka_node_role_policy"
+  role = "${aws_iam_role.kafka_node_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_instance" "kafka_server_a" {
@@ -160,7 +200,7 @@ resource "aws_instance" "kafka_server_a" {
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.kafka_node_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -197,7 +237,7 @@ resource "aws_instance" "kafka_server_b" {
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.kafka_node_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -234,7 +274,7 @@ resource "aws_instance" "kafka_server_c" {
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.kafka_node_profile.name}"
 
   connection {
     # The default username for our AMI

@@ -43,7 +43,7 @@ resource "aws_security_group" "puppet_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
@@ -78,28 +78,28 @@ resource "aws_security_group" "puppet_server" {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 0
     to_port = 65535
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   tags {
@@ -118,13 +118,53 @@ data "template_file" "puppet_server_user_data" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    logstash_host           = "logstash.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
   }
 }
 
 resource "aws_iam_instance_profile" "puppet_server_profile" {
     name = "puppet_server_profile"
-    roles = ["${var.service_profile}"]
+    roles = ["${aws_iam_role.puppet_server_role.name}"]
+}
+
+resource "aws_iam_role" "puppet_server_role" {
+  name = "puppet_server_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "puppet_server_role_policy" {
+  name = "puppet_server_role_policy"
+  role = "${aws_iam_role.puppet_server_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_instance" "puppet_server" {
@@ -164,7 +204,7 @@ resource "aws_instance" "puppet_server" {
 
 resource "aws_route53_record" "puppet" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "puppet.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  name = "puppet.${var.hosted_zone_name}"
   type = "A"
 
   alias {

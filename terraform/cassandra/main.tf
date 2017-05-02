@@ -43,56 +43,56 @@ resource "aws_security_group" "cassandra_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
     from_port = 7000
     to_port = 7001
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 7199
     to_port = 7199
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 9042
     to_port = 9042
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 9142
     to_port = 9142
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 9160
     to_port = 9160
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -120,49 +120,49 @@ resource "aws_security_group" "cassandra_server" {
     from_port = 7000
     to_port = 7001
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 7199
     to_port = 7199
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 9042
     to_port = 9042
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 9142
     to_port = 9142
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 9160
     to_port = 9160
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
   
   egress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   tags {
@@ -171,9 +171,49 @@ resource "aws_security_group" "cassandra_server" {
   }
 }
 
-resource "aws_iam_instance_profile" "cassandra_server_profile" {
-    name = "cassandra_server_profile"
-    roles = ["${var.cassandra_profile}"]
+resource "aws_iam_instance_profile" "cassandra_node_profile" {
+    name = "cassandra_node_profile"
+    roles = ["${aws_iam_role.cassandra_node_role.name}"]
+}
+
+resource "aws_iam_role" "cassandra_node_role" {
+  name = "cassandra_node_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "cassandra_node_role_policy" {
+  name = "cassandra_node_role_policy"
+  role = "${aws_iam_role.cassandra_node_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 data "template_file" "cassandra_server_user_data_seed" {
@@ -199,7 +239,7 @@ resource "aws_instance" "cassandra_server_a1" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
 
   connection {
     #host = "${element(aws_instance.cassandra_server_a1.*.private_ip, 0)}"
@@ -235,7 +275,7 @@ resource "aws_instance" "cassandra_server_b1" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
 
   connection {
     #host = "${element(aws_instance.cassandra_server_b1.*.private_ip, 0)}"
@@ -271,7 +311,7 @@ resource "aws_instance" "cassandra_server_c1" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
 
   connection {
     #host = "${element(aws_instance.cassandra_server_c1.*.private_ip, 0)}"
@@ -307,7 +347,7 @@ resource "aws_instance" "cassandra_server_a2" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
 
   tags {
     Name = "cassandra_server_a2"
@@ -326,7 +366,7 @@ resource "aws_instance" "cassandra_server_b2" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
 
   tags {
     Name = "cassandra_server_b2"
@@ -345,7 +385,7 @@ resource "aws_instance" "cassandra_server_c2" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
 
   tags {
     Name = "cassandra_server_c2"

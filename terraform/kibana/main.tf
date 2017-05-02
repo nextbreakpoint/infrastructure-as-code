@@ -43,56 +43,56 @@ resource "aws_security_group" "kibana_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 8300
     to_port = 8302
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 9200
     to_port = 9400
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 5601
     to_port = 5601
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
     to_port = 65535
     protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -128,7 +128,7 @@ data "template_file" "kibana_server_user_data" {
     elasticsearch_data_dir  = "/mnt/elasticsearch/data"
     elasticsearch_logs_dir  = "/mnt/elasticsearch/logs"
     elasticsearch_host      = "_site_"
-    elasticsearch_node      = "elasticsearch.${data.terraform_remote_state.vpc.hosted-zone-name}"
+    elasticsearch_node      = "elasticsearch.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
@@ -137,7 +137,47 @@ data "template_file" "kibana_server_user_data" {
 
 resource "aws_iam_instance_profile" "kibana_server_profile" {
     name = "kibana_server_profile"
-    roles = ["${var.kibana_profile}"]
+    roles = ["${aws_iam_role.kibana_server_role.name}"]
+}
+
+resource "aws_iam_role" "kibana_server_role" {
+  name = "kibana_server_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "kibana_server_role_policy" {
+  name = "kibana_server_role_policy"
+  role = "${aws_iam_role.kibana_server_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_instance" "kibana_server_a" {
@@ -151,7 +191,7 @@ resource "aws_instance" "kibana_server_a" {
   security_groups = ["${aws_security_group.kibana_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -189,7 +229,7 @@ resource "aws_instance" "kibana_server_b" {
   security_groups = ["${aws_security_group.kibana_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -284,7 +324,7 @@ resource "aws_elb" "kibana" {
 
 resource "aws_route53_record" "kibana" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "kibana.${data.terraform_remote_state.vpc.hosted-zone-name}"
+  name = "kibana.${var.hosted_zone_name}"
   type = "A"
 
   alias {

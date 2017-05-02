@@ -46,12 +46,12 @@ resource "aws_internet_gateway" "network" {
 }
 
 resource "aws_internet_gateway" "bastion" {
-    vpc_id = "${aws_vpc.bastion.id}"
+  vpc_id = "${aws_vpc.bastion.id}"
 
-    tags {
-        Name = "bastion internet gateway"
-        Stream = "${var.stream_tag}"
-    }
+  tags {
+      Name = "bastion internet gateway"
+      Stream = "${var.stream_tag}"
+  }
 }
 
 resource "aws_vpc_dhcp_options" "network" {

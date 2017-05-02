@@ -7,15 +7,15 @@
     "aws_security_token": "",
     "aws_region": "eu-west-1",
     "aws_build_regions" : "",
-    "aws_source_ami": "ami-98ecb7fe",
-    "aws_instance_type": "t2.micro",
+    "aws_ubuntu_ami": "",
+    "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
     "ami_name_prefix": "base",
     "filebeat_version": "5.2.1",
     "topbeat_version": "1.3.1",
     "consul_version": "0.7.5",
-    "base_version": "1.0"
+    "base_version": ""
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -23,7 +23,7 @@
     "secret_key": "{{user `aws_secret_key`}}",
     "token": "{{user `aws_security_token`}}",
     "region": "{{user `aws_region`}}",
-    "source_ami": "{{user `aws_source_ami`}}",
+    "source_ami": "{{user `aws_ubuntu_ami`}}",
     "instance_type": "{{user `aws_instance_type`}}",
     "vpc_id": "{{user `aws_vpc_id`}}",
     "subnet_id": "{{user `aws_subnet_id`}}",

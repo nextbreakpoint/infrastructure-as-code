@@ -6,12 +6,12 @@
     "aws_secret_key": "",
     "aws_region": "eu-west-1",
     "aws_build_regions" : "",
-    "aws_source_ami": "ami-96383af0",
+    "aws_source_ami": "",
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
     "ami_name_prefix": "zookeeper",
-    "base_version": "1.0"
+    "base_version": ""
   },
   "builders": [{
     "type": "amazon-ebs",

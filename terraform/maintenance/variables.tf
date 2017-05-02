@@ -28,6 +28,22 @@ variable "stream_tag" {
   default = "terraform"
 }
 
+### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "public_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
+}
+
 ###################################################################
 # Maintenance configuration below
 ###################################################################
@@ -38,10 +54,6 @@ variable "amazon_ubuntu_amis" {
   default = {
     eu-west-1 = "ami-98ecb7fe"
   }
-}
-
-variable "maintenance_profile" {
-  default = "maintenance"
 }
 
 variable "elasticsearch_device_name" {

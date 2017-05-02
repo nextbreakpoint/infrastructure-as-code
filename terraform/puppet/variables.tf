@@ -36,6 +36,22 @@ variable "log_stream_name" {
   default = "terraform"
 }
 
+### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "public_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
+}
+
 ###################################################################
 # Puppet configuration below
 ###################################################################
@@ -43,10 +59,6 @@ variable "log_stream_name" {
 ### MANDATORY ###
 variable "puppet_amis" {
   type = "map"
-}
-
-variable "puppet_server_profile" {
-  default = "puppetServer"
 }
 
 ### MANDATORY ###

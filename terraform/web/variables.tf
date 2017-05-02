@@ -48,6 +48,14 @@ variable "public_hosted_zone_name" {
 variable "hosted_zone_name" {
 }
 
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {
+}
+
+### MANDATORY ###
+variable "aws_network_vpc_cidr" {
+}
+
 ###################################################################
 # Services configuration below
 ###################################################################
@@ -55,10 +63,6 @@ variable "hosted_zone_name" {
 ### MANDATORY ###
 variable "nginx_amis" {
   type = "map"
-}
-
-variable "web_server_profile" {
-  default = "webserver"
 }
 
 ### MANDATORY ###
