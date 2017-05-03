@@ -46,11 +46,32 @@ resource "aws_security_group" "backend_service" {
     cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
-  egress {
-    from_port = 5044
-    to_port = 5044
+  ingress {
+    from_port = 0
+    to_port = 65535
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port = 0
+    to_port = 65535
+    protocol = "udp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 65535
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 65535
+    protocol = "udp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -67,32 +88,11 @@ resource "aws_security_group" "backend_service" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  ingress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
   egress {
-    from_port = 0
-    to_port = 65535
+    from_port = 5044
+    to_port = 5044
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {

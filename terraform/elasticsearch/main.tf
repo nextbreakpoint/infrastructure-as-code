@@ -45,7 +45,7 @@ data "terraform_remote_state" "volumes" {
 
 resource "aws_route53_record" "elasticsearch" {
    zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "elasticsearch.${var.public_hosted_zone_name}"
+   name = "elasticsearch.${var.hosted_zone_name}"
    type = "A"
    ttl = "300"
    records = ["${aws_instance.elasticsearch_server_a.private_ip}","${aws_instance.elasticsearch_server_b.private_ip}"]
@@ -96,20 +96,6 @@ resource "aws_security_group" "elasticsearch_server" {
   }
 
   egress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 443
-    to_port = 443
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
     from_port = 0
     to_port = 65535
     protocol = "tcp"
@@ -121,6 +107,20 @@ resource "aws_security_group" "elasticsearch_server" {
     to_port = 65535
     protocol = "udp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  egress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {

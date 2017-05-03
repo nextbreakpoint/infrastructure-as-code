@@ -52,7 +52,7 @@ resource "aws_security_group" "maintenance_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
