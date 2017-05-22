@@ -173,7 +173,6 @@ resource "aws_iam_role_policy" "lambda_role_policy" {
 EOF
 }
 
-
 resource "aws_iam_role_policy" "apigw_role_policy" {
   name = "FractalsAPIGatewayPolicy"
   role = "${aws_iam_role.apigw_role.id}"
