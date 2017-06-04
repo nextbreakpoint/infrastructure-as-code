@@ -167,6 +167,18 @@ resource "aws_iam_role_policy" "lambda_role_policy" {
               "logs:PutLogEvents"
           ],
           "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::fractals-archive/*"
+            ]
         }
     ]
 }
