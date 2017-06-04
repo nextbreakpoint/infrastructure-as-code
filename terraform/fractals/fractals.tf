@@ -65,7 +65,7 @@ resource "aws_api_gateway_integration_response" "integration_response" {
   http_method       = "${aws_api_gateway_method.GetTile.http_method}"
   status_code       = "${aws_api_gateway_method_response.GetTileResponse200.status_code}"
   #response_parameters = { "method.response.header.Content-Type" = "integration.response.header.Content-Type" }
-  response_templates = { "image/png" = "" }
+  response_templates = { "image/png" = "", "application/octet-stream" = "" }
 }
 
 resource "aws_api_gateway_deployment" "deployment_v1" {
