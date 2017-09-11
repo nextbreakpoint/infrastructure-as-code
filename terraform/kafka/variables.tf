@@ -2,10 +2,6 @@
 # AWS configuration below
 ###################################################################
 
-### MANDATORY ###
-variable "aws_shared_credentials_file" {
-}
-
 variable "aws_region" {
   default = "eu-west-1"
 }
@@ -57,8 +53,11 @@ variable "aws_network_vpc_cidr" {
 ###################################################################
 
 ### MANDATORY ###
-variable "kafka_amis" {
-  type = "map"
+variable "kafka_version" {
+}
+
+### MANDATORY ###
+variable "account_id" {
 }
 
 variable "aws_kafka_instance_type" {

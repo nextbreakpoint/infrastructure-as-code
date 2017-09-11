@@ -2,10 +2,6 @@
 # AWS configuration below
 ###################################################################
 
-### MANDATORY ###
-variable "aws_shared_credentials_file" {
-}
-
 variable "aws_region" {
   default = "eu-west-1"
 }
@@ -61,8 +57,11 @@ variable "aws_network_vpc_cidr" {
 ###################################################################
 
 ### MANDATORY ###
-variable "nginx_amis" {
-  type = "map"
+variable "base_version" {
+}
+
+### MANDATORY ###
+variable "account_id" {
 }
 
 ### MANDATORY ###

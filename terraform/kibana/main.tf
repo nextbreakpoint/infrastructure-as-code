@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "kibana.tfstate"
+  }
 }
 
 ##############################################################################
@@ -137,7 +157,7 @@ data "template_file" "kibana_server_user_data" {
 
 resource "aws_iam_instance_profile" "kibana_server_profile" {
     name = "kibana_server_profile"
-    roles = ["${aws_iam_role.kibana_server_role.name}"]
+    role = "${aws_iam_role.kibana_server_role.name}"
 }
 
 resource "aws_iam_role" "kibana_server_role" {
@@ -180,13 +200,28 @@ resource "aws_iam_role_policy" "kibana_server_role_policy" {
 EOF
 }
 
+data "aws_ami" "kibana" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["kibana-${var.kibana_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "kibana_server_a" {
   instance_type = "t2.medium"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.kibana_amis, var.aws_region)}"
+  ami = "${data.aws_ami.kibana.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.kibana_server.id}"]
   key_name = "${var.key_name}"
@@ -221,10 +256,9 @@ resource "aws_instance" "kibana_server_a" {
 resource "aws_instance" "kibana_server_b" {
   instance_type = "t2.medium"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.kibana_amis, var.aws_region)}"
+  ami = "${data.aws_ami.kibana.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.kibana_server.id}"]
   key_name = "${var.key_name}"
@@ -288,7 +322,7 @@ resource "aws_security_group" "kibana_elb" {
 resource "aws_elb" "kibana" {
   name = "kibana-elb"
   security_groups = ["${aws_security_group.kibana_elb.id}"]
-  subnets = ["${data.terraform_remote_state.network.network-private-subnet-a-id}","${data.terraform_remote_state.network.network-private-subnet-b-id}"]
+  subnets = ["${data.terraform_remote_state.vpc.network-private-subnet-a-id}","${data.terraform_remote_state.vpc.network-private-subnet-b-id}"]
 
   listener {
     instance_port = 5601

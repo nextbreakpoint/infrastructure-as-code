@@ -5,7 +5,19 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+    version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "network.tfstate"
+  }
 }
 
 ##############################################################################
@@ -44,51 +56,18 @@ resource "aws_route_table" "network_public" {
   }
 }
 
-resource "aws_subnet" "network_public_a" {
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
-  availability_zone = "${format("%s%s", var.aws_region, "a")}"
-  cidr_block = "${var.aws_network_public_subnet_cidr_a}"
-
-  tags {
-    Name = "public subnet a"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_public_b" {
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
-  availability_zone = "${format("%s%s", var.aws_region, "b")}"
-  cidr_block = "${var.aws_network_public_subnet_cidr_b}"
-
-  tags {
-    Name = "public subnet b"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_public_c" {
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
-  availability_zone = "${format("%s%s", var.aws_region, "c")}"
-  cidr_block = "${var.aws_network_public_subnet_cidr_c}"
-
-  tags {
-    Name = "public subnet c"
-    Stream = "${var.stream_tag}"
-  }
-}
-
 resource "aws_route_table_association" "network_public_a" {
-  subnet_id = "${aws_subnet.network_public_a.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
   route_table_id = "${aws_route_table.network_public.id}"
 }
 
 resource "aws_route_table_association" "network_public_b" {
-  subnet_id = "${aws_subnet.network_public_b.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
   route_table_id = "${aws_route_table.network_public.id}"
 }
 
 resource "aws_route_table_association" "network_public_c" {
-  subnet_id = "${aws_subnet.network_public_c.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-c-id}"
   route_table_id = "${aws_route_table.network_public.id}"
 }
 
@@ -141,7 +120,7 @@ resource "aws_instance" "network_nat_a" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
-  subnet_id = "${aws_subnet.network_public_a.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
@@ -168,7 +147,7 @@ resource "aws_instance" "network_nat_b" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
-  subnet_id = "${aws_subnet.network_public_b.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
@@ -195,7 +174,7 @@ resource "aws_instance" "network_nat_c" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
-  subnet_id = "${aws_subnet.network_public_c.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-c-id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
@@ -228,17 +207,17 @@ resource "aws_eip" "net_eip_c" {
 
 resource "aws_nat_gateway" "net_gateway_a" {
     allocation_id = "${aws_eip.net_eip_a.id}"
-    subnet_id = "${aws_subnet.network_public_a.id}"
+    subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
 }
 
 resource "aws_nat_gateway" "net_gateway_b" {
     allocation_id = "${aws_eip.net_eip_b.id}"
-    subnet_id = "${aws_subnet.network_public_b.id}"
+    subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
 }
 
 resource "aws_nat_gateway" "net_gateway_c" {
     allocation_id = "${aws_eip.net_eip_c.id}"
-    subnet_id = "${aws_subnet.network_public_c.id}"
+    subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-c-id}"
 }
 */
 
@@ -306,50 +285,17 @@ resource "aws_route_table" "network_private_c" {
   }
 }
 
-resource "aws_subnet" "network_private_a" {
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
-  availability_zone = "${format("%s%s", var.aws_region, "a")}"
-  cidr_block = "${var.aws_network_private_subnet_cidr_a}"
-
-  tags {
-    Name = "private subnet a"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_private_b" {
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
-  availability_zone = "${format("%s%s", var.aws_region, "b")}"
-  cidr_block = "${var.aws_network_private_subnet_cidr_b}"
-
-  tags {
-    Name = "private subnet b"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_private_c" {
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
-  availability_zone = "${format("%s%s", var.aws_region, "c")}"
-  cidr_block = "${var.aws_network_private_subnet_cidr_c}"
-
-  tags {
-    Name = "private subnet c"
-    Stream = "${var.stream_tag}"
-  }
-}
-
 resource "aws_route_table_association" "network_private_a" {
-  subnet_id = "${aws_subnet.network_private_a.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   route_table_id = "${aws_route_table.network_private_a.id}"
 }
 
 resource "aws_route_table_association" "network_private_b" {
-  subnet_id = "${aws_subnet.network_private_b.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   route_table_id = "${aws_route_table.network_private_b.id}"
 }
 
 resource "aws_route_table_association" "network_private_c" {
-  subnet_id = "${aws_subnet.network_private_c.id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
   route_table_id = "${aws_route_table.network_private_c.id}"
 }

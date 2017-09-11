@@ -9,11 +9,10 @@
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
-    "ami_name_prefix": "kafka",
+    "ami_name_prefix": "kubernetes",
     "bastion_host": "",
     "bastion_username": "ec2-user",
-    "kafka_version": "",
-    "scala_version": "",
+    "kubernetes_version": "",
     "base_version": ""
   },
   "builders": [{
@@ -21,8 +20,6 @@
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
     "region": "{{user `aws_region`}}",
-    "vpc_id": "{{user `aws_vpc_id`}}",
-    "subnet_id": "{{user `aws_subnet_id`}}",
     "source_ami_filter": {
       "filters": {
         "virtualization-type": "hvm",
@@ -33,7 +30,10 @@
       "most_recent": true
     },
     "instance_type": "{{user `aws_instance_type`}}",
-    "ami_name": "{{user `ami_name_prefix`}}-{{user `kafka_version`}}-{{user `base_version`}}-{{timestamp}}",
+    "vpc_id": "{{user `aws_vpc_id`}}",
+    "subnet_id": "{{user `aws_subnet_id`}}",
+    "ami_name": "{{user `ami_name_prefix`}}-{{user `kubernetes_version`}}-{{user `base_version`}}-{{timestamp}}",
+    "ami_regions": "{{user `aws_build_regions`}}",
     "communicator": "ssh",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
@@ -47,10 +47,9 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "scripts/kafka.sh",
+      "script": "scripts/kubernetes.sh",
       "environment_vars": [
-        "KAFKA_VERSION={{user `kafka_version`}}",
-        "SCALA_VERSION={{user `scala_version`}}"
+        "KUBERNETES_VERSION={{user `kubernetes_version`}}"
       ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }

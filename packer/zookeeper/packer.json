@@ -6,11 +6,12 @@
     "aws_secret_key": "",
     "aws_region": "eu-west-1",
     "aws_build_regions" : "",
-    "aws_source_ami": "",
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
     "ami_name_prefix": "zookeeper",
+    "bastion_host": "",
+    "bastion_username": "ec2-user",
     "base_version": ""
   },
   "builders": [{
@@ -20,14 +21,26 @@
     "region": "{{user `aws_region`}}",
     "vpc_id": "{{user `aws_vpc_id`}}",
     "subnet_id": "{{user `aws_subnet_id`}}",
-    "source_ami": "{{user `aws_source_ami`}}",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "base-{{user `base_version`}}-*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["991512327633"],
+      "most_recent": true
+    },
     "instance_type": "{{user `aws_instance_type`}}",
-    "ami_name": "{{user `ami_name_prefix`}}-base_{{user `base_version`}}-{{timestamp}}",
+    "ami_name": "{{user `ami_name_prefix`}}-{{user `base_version`}}-{{timestamp}}",
+    "communicator": "ssh",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
     "ssh_username": "ubuntu",
     "ssh_keypair_name": "{{user `key_name`}}",
-    "ssh_private_key_file": "{{user `key_path`}}"
+    "ssh_private_key_file": "{{user `key_path`}}",
+    "ssh_bastion_host": "{{user `bastion_host`}}",
+    "ssh_bastion_username": "{{user `bastion_username`}}",
+    "ssh_bastion_private_key_file": "{{user `key_path`}}"
   }],
   "provisioners": [
     {

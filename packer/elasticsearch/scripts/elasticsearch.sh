@@ -2,7 +2,7 @@
 set -e
 
 echo "Fetching Elasticsearch..."
-sudo curl -L -o /tmp/elastic.deb https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTIC_VERSION}.deb
+sudo curl -L -o /tmp/elastic.deb https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTICSEARCH_VERSION}.deb
 
 echo "Installing Elasticsearch..."
 sudo apt-get install -y /tmp/elastic.deb

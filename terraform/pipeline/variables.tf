@@ -2,10 +2,6 @@
 # AWS configuration below
 ###################################################################
 
-### MANDATORY ###
-variable "aws_shared_credentials_file" {
-}
-
 variable "aws_region" {
   default = "eu-west-1"
 }
@@ -61,8 +57,27 @@ variable "aws_network_vpc_cidr" {
 ###################################################################
 
 ### MANDATORY ###
-variable "pipeline_amis" {
-  type = "map"
+variable "pipeline_version" {
+}
+
+### MANDATORY ###
+variable "jenkins_version" {
+}
+
+### MANDATORY ###
+variable "sonarqube_version" {
+}
+
+### MANDATORY ###
+variable "artifactory_version" {
+}
+
+### MANDATORY ###
+variable "mysqlconnector_version" {
+}
+
+### MANDATORY ###
+variable "account_id" {
 }
 
 ### MANDATORY ###

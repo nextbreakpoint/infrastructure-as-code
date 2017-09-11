@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "elasticsearch.tfstate"
+  }
 }
 
 ##############################################################################
@@ -150,7 +170,7 @@ data "template_file" "elasticsearch_server_user_data" {
 
 resource "aws_iam_instance_profile" "elasticsearch_node_profile" {
     name = "elasticsearch_node_profile"
-    roles = ["${aws_iam_role.elasticsearch_node_role.name}"]
+    role = "${aws_iam_role.elasticsearch_node_role.name}"
 }
 
 resource "aws_iam_role" "elasticsearch_node_role" {
@@ -193,13 +213,28 @@ resource "aws_iam_role_policy" "elasticsearch_node_role_policy" {
 EOF
 }
 
+data "aws_ami" "elasticsearch" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["elasticsearch-${var.elasticsearch_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "elasticsearch_server_a" {
   instance_type = "t2.medium"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.elasticsearch_amis, var.aws_region)}"
+  ami = "${data.aws_ami.elasticsearch.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.elasticsearch_server.id}"]
   key_name = "${var.key_name}"
@@ -225,10 +260,9 @@ resource "aws_instance" "elasticsearch_server_a" {
 resource "aws_instance" "elasticsearch_server_b" {
   instance_type = "t2.medium"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.elasticsearch_amis, var.aws_region)}"
+  ami = "${data.aws_ami.elasticsearch.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.elasticsearch_server.id}"]
   key_name = "${var.key_name}"

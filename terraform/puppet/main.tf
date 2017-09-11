@@ -5,7 +5,23 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "puppet.tfstate"
+  }
 }
 
 ##############################################################################
@@ -153,13 +169,28 @@ resource "aws_iam_role_policy" "puppet_server_role_policy" {
 EOF
 }
 
+data "aws_ami" "puppet" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["puppet-${var.base_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "puppet_server" {
   instance_type = "t2.small"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.puppet_amis, var.aws_region)}"
+  ami = "${data.aws_ami.puppet.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-public-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.puppet_server.id}"]
   key_name = "${var.key_name}"
@@ -199,4 +230,3 @@ resource "aws_route53_record" "puppet" {
     evaluate_target_health = true
   }
 }
-

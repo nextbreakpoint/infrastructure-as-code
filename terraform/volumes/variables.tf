@@ -2,10 +2,6 @@
 # AWS configuration below
 ###################################################################
 
-### MANDATORY ###
-variable "aws_shared_credentials_file" {
-}
-
 variable "aws_region" {
   default = "eu-west-1"
 }
@@ -47,4 +43,3 @@ variable "pipeline_volume_size" {
 variable "pipeline_volume_encrypted" {
   default = "false"
 }
-

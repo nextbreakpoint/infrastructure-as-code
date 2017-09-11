@@ -24,7 +24,7 @@ terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
     region = "eu-west-1"
-    key = "services.tfstate"
+    key = "ecs.tfstate"
   }
 }
 
@@ -51,12 +51,12 @@ data "terraform_remote_state" "network" {
 }
 
 ##############################################################################
-# Backend servers
+# ECS
 ##############################################################################
 
-resource "aws_security_group" "backend_service" {
-  name = "backend service"
-  description = "service security group"
+resource "aws_security_group" "cluster_server" {
+  name = "cluster server"
+  description = "cluster server security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -67,30 +67,16 @@ resource "aws_security_group" "backend_service" {
   }
 
   ingress {
-    from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  ingress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
+    from_port = 8080
+    to_port = 8080
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
@@ -108,39 +94,19 @@ resource "aws_security_group" "backend_service" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  egress {
-    from_port = 5044
-    to_port = 5044
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags {
-    Name = "backend service security group"
+    Name = "cluster server security group"
     Stream = "${var.stream_tag}"
   }
 }
 
-data "template_file" "backend_service_user_data" {
-  template = "${file("provision/service.tpl")}"
-
-  vars {
-    aws_region              = "${var.aws_region}"
-    environment             = "${var.environment}"
-    security_groups         = "${aws_security_group.backend_service.id}"
-    consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
-  }
+resource "aws_iam_instance_profile" "cluster_node_profile" {
+    name = "cluster_node_profile"
+    roles = ["${aws_iam_role.cluster_node_role.name}"]
 }
 
-resource "aws_iam_instance_profile" "backend_service_profile" {
-    name = "backend_service_profile"
-    roles = ["${aws_iam_role.backend_service_role.name}"]
-}
-
-resource "aws_iam_role" "backend_service_role" {
-  name = "backend_service_role"
+resource "aws_iam_role" "cluster_node_role" {
+  name = "cluster_node_role"
 
   assume_role_policy = <<EOF
 {
@@ -159,9 +125,9 @@ resource "aws_iam_role" "backend_service_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "backend_service_role_policy" {
-  name = "backend_service_role_policy"
-  role = "${aws_iam_role.backend_service_role.id}"
+resource "aws_iam_role_policy" "cluster_node_role_policy" {
+  name = "cluster_node_role_policy"
+  role = "${aws_iam_role.cluster_node_role.id}"
 
   policy = <<EOF
 {
@@ -169,7 +135,18 @@ resource "aws_iam_role_policy" "backend_service_role_policy" {
   "Statement": [
     {
       "Action": [
-        "ec2:DescribeInstances"
+        "ecs:DeregisterContainerInstance",
+        "ecs:DiscoverPollEndpoint",
+        "ecs:Poll",
+        "ecs:RegisterContainerInstance",
+        "ecs:StartTelemetrySession",
+        "ecs:Submit*",
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -179,82 +156,74 @@ resource "aws_iam_role_policy" "backend_service_role_policy" {
 EOF
 }
 
-data "aws_ami" "services" {
-  most_recent = true
-
-  filter {
-    name = "name"
-    values = ["base-${var.base_version}-*"]
-  }
-
-  filter {
-    name = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["${var.account_id}"]
+resource "aws_ecs_cluster" "services" {
+  name = "services"
 }
 
-resource "aws_instance" "backend_service_a" {
-  instance_type = "t2.small"
+resource "aws_instance" "cluster_node_a" {
+  depends_on = ["aws_ecs_cluster.services"]
+  instance_type = "${var.aws_cluster_instance_type}"
 
-  ami = "${data.aws_ami.services.id}"
+  # Lookup the correct AMI based on the region we specified
+  ami = "${lookup(var.cluster_amis, var.aws_region)}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.backend_service.id}"]
+  security_groups = ["${aws_security_group.cluster_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.backend_service_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cluster_node_profile.name}"
 
   connection {
     # The default username for our AMI
-    user = "ubuntu"
+    user = "ec2-user"
     type = "ssh"
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  tags {
-    Name = "backend_service_a"
-    Stream = "${var.stream_tag}"
+    bastion_host = "bastion.nextbreakpoint.com"
   }
 
   provisioner "remote-exec" {
-    inline = "${data.template_file.backend_service_user_data.rendered}"
+    inline = "echo 'ECS_CLUSTER=services' > /tmp/ecs.config; sudo mv /tmp/ecs.config /etc/ecs/ecs.config"
+  }
+
+  tags {
+    Name = "cluster_server_a"
+    Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_instance" "backend_service_b" {
-  instance_type = "t2.small"
+resource "aws_instance" "cluster_node_b" {
+  depends_on = ["aws_ecs_cluster.services"]
+  instance_type = "${var.aws_cluster_instance_type}"
 
-  ami = "${data.aws_ami.services.id}"
+  # Lookup the correct AMI based on the region we specified
+  ami = "${lookup(var.cluster_amis, var.aws_region)}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.backend_service.id}"]
+  security_groups = ["${aws_security_group.cluster_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.backend_service_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cluster_node_profile.name}"
 
   connection {
     # The default username for our AMI
-    user = "ubuntu"
+    user = "ec2-user"
     type = "ssh"
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
     bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  tags {
-    Name = "backend_service_b"
-    Stream = "${var.stream_tag}"
+    bastion_host = "bastion.nextbreakpoint.com"
   }
 
   provisioner "remote-exec" {
-    inline = "${data.template_file.backend_service_user_data.rendered}"
+    inline = "echo 'ECS_CLUSTER=services' > /tmp/ecs.config; sudo mv /tmp/ecs.config /etc/ecs/ecs.config"
+  }
+
+  tags {
+    Name = "cluster_server_b"
+    Stream = "${var.stream_tag}"
   }
 }

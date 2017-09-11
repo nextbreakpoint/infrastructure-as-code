@@ -5,7 +5,19 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+    version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "vpc.tfstate"
+  }
 }
 
 ##############################################################################
@@ -94,6 +106,76 @@ resource "aws_vpc_peering_connection" "network_to_bastion" {
 
   tags {
     Name = "network to bastion peering"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+##############################################################################
+# Subnets
+##############################################################################
+
+resource "aws_subnet" "network_public_a" {
+  vpc_id = "${aws_vpc.network.id}"
+  availability_zone = "${format("%s%s", var.aws_region, "a")}"
+  cidr_block = "${var.aws_network_public_subnet_cidr_a}"
+
+  tags {
+    Name = "public subnet a"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_public_b" {
+  vpc_id = "${aws_vpc.network.id}"
+  availability_zone = "${format("%s%s", var.aws_region, "b")}"
+  cidr_block = "${var.aws_network_public_subnet_cidr_b}"
+
+  tags {
+    Name = "public subnet b"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_public_c" {
+  vpc_id = "${aws_vpc.network.id}"
+  availability_zone = "${format("%s%s", var.aws_region, "c")}"
+  cidr_block = "${var.aws_network_public_subnet_cidr_c}"
+
+  tags {
+    Name = "public subnet c"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_private_a" {
+  vpc_id = "${aws_vpc.network.id}"
+  availability_zone = "${format("%s%s", var.aws_region, "a")}"
+  cidr_block = "${var.aws_network_private_subnet_cidr_a}"
+
+  tags {
+    Name = "private subnet a"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_private_b" {
+  vpc_id = "${aws_vpc.network.id}"
+  availability_zone = "${format("%s%s", var.aws_region, "b")}"
+  cidr_block = "${var.aws_network_private_subnet_cidr_b}"
+
+  tags {
+    Name = "private subnet b"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_private_c" {
+  vpc_id = "${aws_vpc.network.id}"
+  availability_zone = "${format("%s%s", var.aws_region, "c")}"
+  cidr_block = "${var.aws_network_private_subnet_cidr_c}"
+
+  tags {
+    Name = "private subnet c"
     Stream = "${var.stream_tag}"
   }
 }

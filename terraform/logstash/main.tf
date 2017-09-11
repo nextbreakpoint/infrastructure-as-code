@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "logstash.tfstate"
+  }
 }
 
 ##############################################################################
@@ -200,13 +220,28 @@ resource "aws_iam_role_policy" "logstash_node_role_policy" {
 EOF
 }
 
+data "aws_ami" "logstash" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["logstash-${var.logstash_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "logstash_server_a" {
   instance_type = "t2.small"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.logstash_amis, var.aws_region)}"
+  ami = "${data.aws_ami.logstash.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.logstash_server.id}"]
   key_name = "${var.key_name}"
@@ -236,10 +271,9 @@ resource "aws_instance" "logstash_server_a" {
 resource "aws_instance" "logstash_server_b" {
   instance_type = "t2.small"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.logstash_amis, var.aws_region)}"
+  ami = "${data.aws_ami.logstash.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.logstash_server.id}"]
   key_name = "${var.key_name}"

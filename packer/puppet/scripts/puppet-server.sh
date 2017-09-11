@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Installing Puppet..."
+echo "Installing Puppet server..."
 sudo apt-get install -y puppetserver
 
-echo "Puppet installed."
+echo "Puppet server installed."

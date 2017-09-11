@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-export KIBANA_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
-export ELASTICSEARCH_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
+export KIBANA_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
+export ELASTICSEARCH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
@@ -30,7 +30,7 @@ Environment=GOMAXPROCS=2
 ExecStartPre=/bin/rm -f /var/consul/consul.pid
 ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
 ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="KIBANA_HOST" -node="kibana-KIBANA_HOST" >>${consul_log_file} 2>&1
-ExecReload=/bin/kill -s HUP 
+ExecReload=/bin/kill -s HUP
 KillSignal=SIGINT
 TimeoutStopSec=5
 
@@ -109,7 +109,7 @@ node.ingest: false
 node.name: elasticsearch
 path.logs: ${elasticsearch_logs_dir}
 http.port: 9200
-network.host: _ec2:privateIpv4_ 
+network.host: _ec2:privateIpv4_
 transport.tcp.port: 9300
 discovery.zen.minimum_master_nodes: ${minimum_master_nodes}
 cloud.aws.region: ${aws_region}

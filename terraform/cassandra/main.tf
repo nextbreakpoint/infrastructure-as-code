@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "cassandra.tfstate"
+  }
 }
 
 ##############################################################################
@@ -136,7 +156,7 @@ resource "aws_security_group" "cassandra_server" {
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
-  
+
   egress {
     from_port = 8300
     to_port = 8302
@@ -173,7 +193,7 @@ resource "aws_security_group" "cassandra_server" {
 
 resource "aws_iam_instance_profile" "cassandra_node_profile" {
     name = "cassandra_node_profile"
-    roles = ["${aws_iam_role.cassandra_node_role.name}"]
+    role = "${aws_iam_role.cassandra_node_role.name}"
 }
 
 resource "aws_iam_role" "cassandra_node_role" {
@@ -228,13 +248,28 @@ data "template_file" "cassandra_server_user_data_seed" {
   }
 }
 
+data "aws_ami" "cassandra" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["cassandra-${var.cassandra_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "cassandra_server_a1" {
   instance_type = "${var.aws_cassandra_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.cassandra_amis, var.aws_region)}"
+  ami = "${data.aws_ami.cassandra.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
@@ -267,10 +302,9 @@ resource "aws_instance" "cassandra_server_a1" {
 resource "aws_instance" "cassandra_server_b1" {
   instance_type = "${var.aws_cassandra_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.cassandra_amis, var.aws_region)}"
+  ami = "${data.aws_ami.cassandra.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
@@ -303,10 +337,9 @@ resource "aws_instance" "cassandra_server_b1" {
 resource "aws_instance" "cassandra_server_c1" {
   instance_type = "${var.aws_cassandra_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.cassandra_amis, var.aws_region)}"
+  ami = "${data.aws_ami.cassandra.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
@@ -339,10 +372,9 @@ resource "aws_instance" "cassandra_server_c1" {
 resource "aws_instance" "cassandra_server_a2" {
   instance_type = "${var.aws_cassandra_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.cassandra_amis, var.aws_region)}"
+  ami = "${data.aws_ami.cassandra.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
@@ -358,10 +390,9 @@ resource "aws_instance" "cassandra_server_a2" {
 resource "aws_instance" "cassandra_server_b2" {
   instance_type = "${var.aws_cassandra_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.cassandra_amis, var.aws_region)}"
+  ami = "${data.aws_ami.cassandra.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
@@ -377,10 +408,9 @@ resource "aws_instance" "cassandra_server_b2" {
 resource "aws_instance" "cassandra_server_c2" {
   instance_type = "${var.aws_cassandra_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.cassandra_amis, var.aws_region)}"
+  ami = "${data.aws_ami.cassandra.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"

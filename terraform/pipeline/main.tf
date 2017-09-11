@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "pipeline.tfstate"
+  }
 }
 
 ##############################################################################
@@ -131,13 +151,17 @@ data "template_file" "pipeline_server_user_data" {
     jenkins_host            = "${aws_instance.pipeline_server.private_ip}"
     sonarqube_host          = "${aws_instance.pipeline_server.private_ip}"
     artifactory_host        = "${aws_instance.pipeline_server.private_ip}"
+    jenkins_version         = "${var.jenkins_version}"
+    sonarqube_version       = "${var.sonarqube_version}"
+    artifactory_version     = "${var.artifactory_version}"
+    mysqlconnector_version  = "${var.mysqlconnector_version}"
     pipeline_data_dir       = "/mnt/pipeline"
   }
 }
 
 resource "aws_iam_instance_profile" "pipeline_server_profile" {
     name = "pipeline_server_profile"
-    roles = ["${aws_iam_role.pipeline_server_role.name}"]
+    role = "${aws_iam_role.pipeline_server_role.name}"
 }
 
 resource "aws_iam_role" "pipeline_server_role" {
@@ -180,13 +204,28 @@ resource "aws_iam_role_policy" "pipeline_server_role_policy" {
 EOF
 }
 
+data "aws_ami" "pipeline" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["pipeline-${var.pipeline_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "pipeline_server" {
   instance_type = "t2.medium"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.pipeline_amis, var.aws_region)}"
+  ami = "${data.aws_ami.pipeline.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.pipeline_server.id}"]
   key_name = "${var.key_name}"
@@ -256,5 +295,3 @@ resource "aws_route53_record" "artifactory" {
   ttl = "60"
   records = ["${aws_instance.pipeline_server.*.private_ip}"]
 }
-
-

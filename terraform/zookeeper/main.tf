@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "zookeeper.tfstate"
+  }
 }
 
 ##############################################################################
@@ -145,7 +165,7 @@ resource "aws_security_group" "zookeeper_server" {
 
 resource "aws_iam_instance_profile" "zookeeper_node_profile" {
     name = "zookeeper_node_profile"
-    roles = ["${aws_iam_role.zookeeper_node_role.name}"]
+    role = "${aws_iam_role.zookeeper_node_role.name}"
 }
 
 resource "aws_iam_role" "zookeeper_node_role" {
@@ -188,13 +208,28 @@ resource "aws_iam_role_policy" "zookeeper_node_role_policy" {
 EOF
 }
 
+data "aws_ami" "zookeeper" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["zookeeper-${var.base_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "zookeeper_server_a" {
   instance_type = "${var.aws_zookeeper_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.zookeeper_amis, var.aws_region)}"
+  ami = "${data.aws_ami.zookeeper.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"
@@ -210,10 +245,9 @@ resource "aws_instance" "zookeeper_server_a" {
 resource "aws_instance" "zookeeper_server_b" {
   instance_type = "${var.aws_zookeeper_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.zookeeper_amis, var.aws_region)}"
+  ami = "${data.aws_ami.zookeeper.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"
@@ -229,10 +263,9 @@ resource "aws_instance" "zookeeper_server_b" {
 resource "aws_instance" "zookeeper_server_c" {
   instance_type = "${var.aws_zookeeper_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.zookeeper_amis, var.aws_region)}"
+  ami = "${data.aws_ami.zookeeper.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"

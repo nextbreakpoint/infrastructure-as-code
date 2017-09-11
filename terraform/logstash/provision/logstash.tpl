@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export LOGSTASH_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
+export LOGSTASH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
@@ -29,7 +29,7 @@ Environment=GOMAXPROCS=2
 ExecStartPre=/bin/rm -f /var/consul/consul.pid
 ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
 ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="LOGSTASH_HOST" -node="logstash-LOGSTASH_HOST" >>${consul_log_file} 2>&1
-ExecReload=/bin/kill -s HUP 
+ExecReload=/bin/kill -s HUP
 KillSignal=SIGINT
 TimeoutStopSec=5
 
@@ -77,7 +77,7 @@ path.logs: /var/log/logstash
 http.host: "LOGSTASH_HOST"
 EOF
 sudo sed -ie 's/LOGSTASH_HOST/'$LOGSTASH_HOST'/g' /tmp/logstash.yml
-sudo mv /tmp/logstash.yml /etc/logstash/logstash.yml 
+sudo mv /tmp/logstash.yml /etc/logstash/logstash.yml
 
 sudo cat <<EOF >/tmp/02-beats-input.conf
 input {
@@ -106,7 +106,7 @@ filter {
   }
 }
 EOF
-sudo mv /tmp/10-syslog-filter.conf /etc/logstash/conf.d/10-syslog-filter.conf 
+sudo mv /tmp/10-syslog-filter.conf /etc/logstash/conf.d/10-syslog-filter.conf
 
 sudo cat <<EOF >/tmp/30-elasticsearch-output.conf
 output {
@@ -119,7 +119,7 @@ output {
   }
 }
 EOF
-sudo mv /tmp/30-elasticsearch-output.conf /etc/logstash/conf.d/30-elasticsearch-output.conf 
+sudo mv /tmp/30-elasticsearch-output.conf /etc/logstash/conf.d/30-elasticsearch-output.conf
 
 #sudo update-rc.d logstash defaults 95 10
 sudo service logstash start

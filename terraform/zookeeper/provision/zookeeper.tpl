@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export ZOOKEEPER_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
+export ZOOKEEPER_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
@@ -29,7 +29,7 @@ Environment=GOMAXPROCS=2
 ExecStartPre=/bin/rm -f /var/consul/consul.pid
 ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
 ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="ZOOKEEPER_HOST" -node="zookeeper-ZOOKEEPER_HOST" >>${consul_log_file} 2>&1
-ExecReload=/bin/kill -s HUP 
+ExecReload=/bin/kill -s HUP
 KillSignal=SIGINT
 TimeoutStopSec=5
 

@@ -2,7 +2,7 @@
 set -e
 
 echo "Updating packages..."
-sudo apt-get update
+sudo apt-get update -y
 
 sleep 10
 

@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+    version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "maintenance.tfstate"
+  }
 }
 
 ##############################################################################
@@ -112,7 +132,7 @@ resource "aws_security_group" "maintenance_server" {
 
 resource "aws_iam_instance_profile" "maintenance_server_profile" {
     name = "maintenance_server_profile"
-    roles = ["${aws_iam_role.maintenance_server_role.name}"]
+    role = "${aws_iam_role.maintenance_server_role.name}"
 }
 
 resource "aws_iam_role" "maintenance_server_role" {
@@ -161,7 +181,7 @@ resource "aws_instance" "maintenance_server_a" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_ubuntu_amis, var.aws_region)}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-public-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.maintenance_server.id}"]
   key_name = "${var.key_name}"
@@ -188,7 +208,7 @@ resource "aws_instance" "maintenance_server_b" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_ubuntu_amis, var.aws_region)}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-public-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.maintenance_server.id}"]
   key_name = "${var.key_name}"

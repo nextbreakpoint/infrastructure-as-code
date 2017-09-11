@@ -5,7 +5,23 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "consul.tfstate"
+  }
 }
 
 ##############################################################################
@@ -130,7 +146,7 @@ data "template_file" "consul_server_user_data" {
 
 resource "aws_iam_instance_profile" "consul_node_profile" {
     name = "consul_node_profile"
-    roles = ["${aws_iam_role.consul_node_role.name}"]
+    role = "${aws_iam_role.consul_node_role.name}"
 }
 
 resource "aws_iam_role" "consul_node_role" {
@@ -173,13 +189,29 @@ resource "aws_iam_role_policy" "consul_node_role_policy" {
 EOF
 }
 
+data "aws_ami" "consul" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["base-${var.base_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 module "consul_servers_a" {
   source = "./consul"
 
   name = "consul_server_a"
   region = "${var.aws_region}"
-  ami = "${lookup(var.consul_amis, var.aws_region)}"
-  subnet = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  ami = "${data.aws_ami.consul.id}"
+  subnet = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   instance_type = "t2.micro"
   security_groups = "${aws_security_group.consul_server.id}"
   key_name = "${var.key_name}"
@@ -196,8 +228,8 @@ module "consul_servers_b" {
 
   name = "consul_server_b"
   region = "${var.aws_region}"
-  ami = "${lookup(var.consul_amis, var.aws_region)}"
-  subnet = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
+  ami = "${data.aws_ami.consul.id}"
+  subnet = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   instance_type = "t2.micro"
   security_groups = "${aws_security_group.consul_server.id}"
   key_name = "${var.key_name}"
@@ -214,8 +246,8 @@ module "consul_servers_c" {
 
   name = "consul_server_c"
   region = "${var.aws_region}"
-  ami = "${lookup(var.consul_amis, var.aws_region)}"
-  subnet = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
+  ami = "${data.aws_ami.consul.id}"
+  subnet = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
   instance_type = "t2.micro"
   security_groups = "${aws_security_group.consul_server.id}"
   key_name = "${var.key_name}"
@@ -259,7 +291,7 @@ resource "aws_security_group" "consul_elb" {
 resource "aws_elb" "consul" {
   name = "consul-elb"
   security_groups = ["${aws_security_group.consul_elb.id}"]
-  subnets = ["${data.terraform_remote_state.network.network-private-subnet-a-id}","${data.terraform_remote_state.network.network-private-subnet-b-id}","${data.terraform_remote_state.network.network-private-subnet-c-id}"]
+  subnets = ["${data.terraform_remote_state.vpc.network-private-subnet-a-id}","${data.terraform_remote_state.vpc.network-private-subnet-b-id}","${data.terraform_remote_state.vpc.network-private-subnet-c-id}"]
 
   listener {
     instance_port = 8500

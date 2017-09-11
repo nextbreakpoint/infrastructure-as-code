@@ -2,20 +2,12 @@
 # AWS configuration below
 ###################################################################
 
-### MANDATORY ###
-variable "aws_shared_credentials_file" {
-}
-
 variable "aws_region" {
   default = "eu-west-1"
 }
 
 variable "aws_profile" {
   default = "default"
-}
-
-### MANDATORY ###
-variable "aws_account_id" {
 }
 
 ### MANDATORY ###
@@ -55,6 +47,9 @@ variable "aws_network_vpc_cidr" {
 ### MANDATORY ###
 variable "cluster_amis" {
   type = "map"
+  default = {
+    eu-west-1 = "ami-809f84e6"
+  }
 }
 
 variable "aws_cluster_instance_type" {

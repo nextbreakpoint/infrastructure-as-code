@@ -2,7 +2,7 @@
 set -e
 
 echo "Fetching Jenkins..."
-sudo curl -L -o /tmp/jenkins.deb http://mirrors.jenkins-ci.org/debian/jenkins_2.58_all.deb
+sudo curl -L -o /tmp/jenkins.deb http://mirrors.jenkins-ci.org/debian/jenkins_${JENKINS_VERSION}_all.deb
 
 echo "Installing Jenkins..."
 sudo apt-get install -y /tmp/jenkins.deb

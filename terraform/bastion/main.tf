@@ -5,7 +5,19 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "bastion.tfstate"
+  }
 }
 
 ##############################################################################
@@ -30,8 +42,18 @@ resource "aws_route53_record" "bastion" {
    name = "bastion.${var.public_hosted_zone_name}"
    type = "A"
    ttl = "300"
-   records = ["${module.bastion_servers_a.public-ips}","${module.bastion_servers_b.public-ips}"]
+   records = ["${module.bastion_servers_a.public-ips}"]
 }
+
+/*
+resource "aws_route53_record" "bastion_2" {
+   zone_id = "${var.public_hosted_zone_id}"
+   name = "bastion2.${var.public_hosted_zone_name}"
+   type = "A"
+   ttl = "300"
+   records = ["${module.bastion_servers_b.public-ips}"]
+}
+*/
 
 ##############################################################################
 # Public Subnets
@@ -39,7 +61,7 @@ resource "aws_route53_record" "bastion" {
 
 resource "aws_security_group" "bastion" {
   name = "bastion"
-  description = "Allow access from allowed_network to SSH, and NAT internal traffic"
+  description = "Allow access from SSH"
   vpc_id = "${data.terraform_remote_state.vpc.bastion-vpc-id}"
 
   ingress = {
@@ -93,6 +115,7 @@ resource "aws_subnet" "bastion_a" {
   }
 }
 
+/*
 resource "aws_subnet" "bastion_b" {
   vpc_id = "${data.terraform_remote_state.vpc.bastion-vpc-id}"
   availability_zone = "${format("%s%s", var.aws_region, "b")}"
@@ -103,16 +126,19 @@ resource "aws_subnet" "bastion_b" {
     Stream = "${var.stream_tag}"
   }
 }
+*/
 
 resource "aws_route_table_association" "bastion_a" {
   subnet_id = "${aws_subnet.bastion_a.id}"
   route_table_id = "${aws_route_table.bastion.id}"
 }
 
+/*
 resource "aws_route_table_association" "bastion_b" {
   subnet_id = "${aws_subnet.bastion_b.id}"
   route_table_id = "${aws_route_table.bastion.id}"
 }
+*/
 
 ##############################################################################
 # Bastion Servers
@@ -121,7 +147,7 @@ resource "aws_route_table_association" "bastion_b" {
 module "bastion_servers_a" {
   source = "./bastion"
 
-  name = "bastion_server_a"
+  name = "bastion_server"
   stream_tag = "${var.stream_tag}"
   ami = "${lookup(var.amazon_nat_amis, var.aws_region)}"
   instance_type = "t2.micro"
@@ -131,10 +157,11 @@ module "bastion_servers_a" {
   subnet_id = "${aws_subnet.bastion_a.id}"
 }
 
+/*
 module "bastion_servers_b" {
   source = "./bastion"
 
-  name = "bastion_server_b"
+  name = "bastion_server2"
   stream_tag = "${var.stream_tag}"
   ami = "${lookup(var.amazon_nat_amis, var.aws_region)}"
   instance_type = "t2.micro"
@@ -143,3 +170,4 @@ module "bastion_servers_b" {
   security_groups = "${aws_security_group.bastion.id}"
   subnet_id = "${aws_subnet.bastion_b.id}"
 }
+*/

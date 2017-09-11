@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "web.tfstate"
+  }
 }
 
 ##############################################################################
@@ -155,7 +175,7 @@ data "template_file" "web_server_user_data_b" {
 
 resource "aws_iam_instance_profile" "web_server_profile" {
     name = "web_server_profile"
-    roles = ["${aws_iam_role.web_server_role.name}"]
+    role = "${aws_iam_role.web_server_role.name}"
 }
 
 resource "aws_iam_role" "web_server_role" {
@@ -199,13 +219,28 @@ resource "aws_iam_role_policy" "web_server_role_policy" {
 EOF
 }
 
+data "aws_ami" "web_server" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["nginx-${var.base_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "web_server_a" {
   instance_type = "t2.small"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.nginx_amis, var.aws_region)}"
+  ami = "${data.aws_ami.web_server.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-public-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.web_server.id}"]
   key_name = "${var.key_name}"
@@ -221,10 +256,9 @@ resource "aws_instance" "web_server_a" {
 resource "aws_instance" "web_server_b" {
   instance_type = "t2.small"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.nginx_amis, var.aws_region)}"
+  ami = "${data.aws_ami.web_server.id}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-public-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.web_server.id}"]
   key_name = "${var.key_name}"
@@ -318,7 +352,7 @@ resource "aws_security_group" "web_elb" {
 resource "aws_elb" "web" {
   name = "web-elb"
   security_groups = ["${aws_security_group.web_elb.id}"]
-  subnets = ["${data.terraform_remote_state.network.network-public-subnet-a-id}","${data.terraform_remote_state.network.network-public-subnet-b-id}"]
+  subnets = ["${data.terraform_remote_state.vpc.network-public-subnet-a-id}","${data.terraform_remote_state.vpc.network-public-subnet-b-id}"]
 
   listener {
     instance_port = 80

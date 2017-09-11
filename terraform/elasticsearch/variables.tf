@@ -2,10 +2,6 @@
 # AWS configuration below
 ###################################################################
 
-### MANDATORY ###
-variable "aws_shared_credentials_file" {
-}
-
 variable "aws_region" {
   default = "eu-west-1"
 }
@@ -61,8 +57,15 @@ variable "aws_network_vpc_cidr" {
 ###################################################################
 
 ### MANDATORY ###
-variable "elasticsearch_amis" {
-  type = "map"
+variable "elasticsearch_version" {
+}
+
+### MANDATORY ###
+variable "base_version" {
+}
+
+### MANDATORY ###
+variable "account_id" {
 }
 
 variable "es_instance_type" {

@@ -5,7 +5,27 @@
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  shared_credentials_file = "${var.aws_shared_credentials_file}"
+  version = "~> 0.1"
+}
+
+provider "terraform" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
+provider "null" {
+  version = "~> 0.1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nextbreakpoint-terraform-state"
+    region = "eu-west-1"
+    key = "kafka.tfstate"
+  }
 }
 
 ##############################################################################
@@ -138,6 +158,8 @@ data "template_file" "kafka_server_user_data" {
     aws_region              = "${var.aws_region}"
     security_groups         = "${aws_security_group.kafka_server.id}"
     consul_log_file         = "${var.consul_log_file}"
+    kafka_verion            = "${var.kafka_version}"
+    scala_verion            = "${var.scala_verion}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
     zookeeper_nodes         = "${data.terraform_remote_state.zookeeper.zookeeper-server-a-private-ip}:2181,${data.terraform_remote_state.zookeeper.zookeeper-server-b-private-ip}:2181,${data.terraform_remote_state.zookeeper.zookeeper-server-c-private-ip}:2181"
@@ -146,7 +168,7 @@ data "template_file" "kafka_server_user_data" {
 
 resource "aws_iam_instance_profile" "kafka_node_profile" {
     name = "kafka_node_profile"
-    roles = ["${aws_iam_role.kafka_node_role.name}"]
+    role = "${aws_iam_role.kafka_node_role.name}"
 }
 
 resource "aws_iam_role" "kafka_node_role" {
@@ -189,13 +211,28 @@ resource "aws_iam_role_policy" "kafka_node_role_policy" {
 EOF
 }
 
+data "aws_ami" "kafka" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["kafka-${var.kafka_version}-*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["${var.account_id}"]
+}
+
 resource "aws_instance" "kafka_server_a" {
   instance_type = "${var.aws_kafka_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.kafka_amis, var.aws_region)}"
+  ami = "${data.aws_ami.kafka.id}}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"
@@ -229,10 +266,9 @@ resource "aws_instance" "kafka_server_a" {
 resource "aws_instance" "kafka_server_b" {
   instance_type = "${var.aws_kafka_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.kafka_amis, var.aws_region)}"
+  ami = "${data.aws_ami.kafka.id}}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"
@@ -266,10 +302,9 @@ resource "aws_instance" "kafka_server_b" {
 resource "aws_instance" "kafka_server_c" {
   instance_type = "${var.aws_kafka_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.kafka_amis, var.aws_region)}"
+  ami = "${data.aws_ami.kafka.id}}"
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"

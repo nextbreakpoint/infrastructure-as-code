@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export CASSANDRA_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
+export CASSANDRA_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
@@ -29,7 +29,7 @@ Environment=GOMAXPROCS=2
 ExecStartPre=/bin/rm -f /var/consul/consul.pid
 ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
 ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="CASSANDRA_HOST" -node="cassandra-CASSANDRA_HOST" >>${consul_log_file} 2>&1
-ExecReload=/bin/kill -s HUP 
+ExecReload=/bin/kill -s HUP
 KillSignal=SIGINT
 TimeoutStopSec=5
 
@@ -73,7 +73,7 @@ sudo mv /tmp/cassandra-consul.json /etc/consul.d/cassandra.json
 sudo service cassandra stop
 
 sudo cat <<EOF >/tmp/cassandra.yaml
-# Cassandra storage config YAML 
+# Cassandra storage config YAML
 cluster_name: 'CassandraCluster'
 num_tokens: 256
 hinted_handoff_enabled: true
@@ -140,7 +140,7 @@ sstable_preemptive_open_interval_in_mb: 50
 request_timeout_in_ms: 10000
 cross_node_timeout: false
 endpoint_snitch: Ec2Snitch
-dynamic_snitch_update_interval_in_ms: 100 
+dynamic_snitch_update_interval_in_ms: 100
 dynamic_snitch_reset_interval_in_ms: 600000
 dynamic_snitch_badness_threshold: 0.1
 request_scheduler: org.apache.cassandra.scheduler.NoScheduler
@@ -167,9 +167,9 @@ transparent_data_encryption_options:
     chunk_length_kb: 64
     cipher: AES/CBC/PKCS5Padding
     key_alias: testing:1
-    key_provider: 
+    key_provider:
       - class_name: org.apache.cassandra.security.JKSKeyProvider
-        parameters: 
+        parameters:
           - keystore: conf/.keystore
             keystore_password: cassandra
             store_type: JCEKS
@@ -190,7 +190,7 @@ sudo cat <<EOF >/tmp/cassandra-rackdc.properties
 dc=DC1
 rack=RAC1
 EOF
-sudo mv /tmp/cassandra-rackdc.properties /etc/cassandra/cassandra-rackdc.properties 
+sudo mv /tmp/cassandra-rackdc.properties /etc/cassandra/cassandra-rackdc.properties
 
 sudo sed -i 's/127.0.0.1 .*$/127.0.0.1 localhost '$(hostname)'/g' /etc/hosts
 

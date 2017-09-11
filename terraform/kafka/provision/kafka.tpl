@@ -2,7 +2,7 @@
 set -e
 
 export BROKER_ID=`cat /tmp/brokerid`
-export KAFKA_HOST=`ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }'`
+export KAFKA_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
@@ -30,7 +30,7 @@ Environment=GOMAXPROCS=2
 ExecStartPre=/bin/rm -f /var/consul/consul.pid
 ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
 ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="KAFKA_HOST" -node="kafka-KAFKA_HOST" >>${consul_log_file} 2>&1
-ExecReload=/bin/kill -s HUP 
+ExecReload=/bin/kill -s HUP
 KillSignal=SIGINT
 TimeoutStopSec=5
 
@@ -120,11 +120,11 @@ broker.id=BROKER_ID
 zookeeper.connect=${zookeeper_nodes}
 EOF
 sudo sed -i -e 's/BROKER_ID/'$BROKER_ID'/g' /tmp/server.properties
-sudo mv /tmp/server.properties /opt/kafka_2.12-0.10.2.0/config/server.properties
+sudo mv /tmp/server.properties /opt/kafka_${scala_version}-${kafka_version}/config/server.properties
 
 sudo sed -i 's/127.0.0.1 .*$/127.0.0.1 localhost '$(hostname)'/g' /etc/hosts
 
-sudo nohup /opt/kafka_2.12-0.10.2.0/bin/kafka-server-start.sh -daemon /opt/kafka_2.12-0.10.2.0/config/server.properties
+sudo nohup /opt/kafka_${scala_version}-${kafka_version}/bin/kafka-server-start.sh -daemon /opt/kafka_${scala_version}-${kafka_version}/config/server.properties
 
 sudo service consul start
 

@@ -34,7 +34,7 @@ sudo chown -R mysql:mysql /var/lib/mysql
 cat <<EOF >/tmp/alias
 alias /var/lib/mysql/ -> /mnt/pipeline/mysql/data,
 EOF
-sudo cp /tmp/alias /etc/apparmor.d/tunables/alias 
+sudo cp /tmp/alias /etc/apparmor.d/tunables/alias
 sudo service apparmor restart
 
 sudo service mysql start
@@ -56,12 +56,12 @@ cat <<EOF >/tmp/sonar
 # Short-Description: SonarQube system (www.sonarsource.org)
 # Description: SonarQube system (www.sonarsource.org)
 ### END INIT INFO
- 
+
 /usr/bin/sonar \$*
 EOF
 sudo cp /tmp/sonar /etc/init.d/sonar
 
-sudo cp /opt/sonarqube-6.3/conf/sonar.properties /opt/sonarqube-6.3/conf/sonar.properties.bak
+sudo cp /opt/sonarqube-${sonarqube_version}/conf/sonar.properties /opt/sonarqube-${sonarqube_version}/conf/sonar.properties.bak
 
 cat <<EOF >/tmp/sonar.properties
 sonar.jdbc.username=sonar
@@ -70,9 +70,9 @@ sonar.jdbc.url=jdbc:mysql://localhost:3306/sonar?useUnicode=true&characterEncodi
 sonar.path.data=${pipeline_data_dir}/sonarqube/data
 sonar.path.temp=${pipeline_data_dir}/sonarqube/temp
 EOF
-sudo cp /tmp/sonar.properties /opt/sonarqube-6.3/conf/sonar.properties 
+sudo cp /tmp/sonar.properties /opt/sonarqube-${sonarqube_version}/conf/sonar.properties
 
-sudo ln -s /opt/sonarqube-6.3/bin/linux-x86-64/sonar.sh /usr/bin/sonar
+sudo ln -s /opt/sonarqube-${sonarqube_version}/bin/linux-x86-64/sonar.sh /usr/bin/sonar
 sudo chmod 755 /etc/init.d/sonar
 sudo update-rc.d sonar defaults
 sudo service sonar start
@@ -83,12 +83,13 @@ sudo sed -i 's/127.0.0.1 .*$/127.0.0.1 localhost '$(hostname)'/g' /etc/hosts
 #echo "CREATE DATABASE artdb CHARACTER SET utf8 COLLATE utf8_bin;" >>script.sql
 #echo "GRANT ALL ON artdb.* TO 'artifactory'@'localhost' IDENTIFIED BY 'artifactory';" >>script.sql
 #echo "FLUSH PRIVILEGES;" >>script.sql
-#mysql -uroot -p < script.sql
+#mysql -u root -p < script.sql
 
-sudo unzip jfrog-artifactory-oss-5.2.0.zip -d /opt
-sudo /opt/artifactory-oss-5.2.0/bin/installService.sh 
+sudo unzip jfrog-artifactory-oss-${artifactory_version}.zip -d /opt
+sudo /opt/artifactory-oss-${artifactory_version}/bin/installService.sh
 sudo chown -R artifactory:artifactory ${pipeline_data_dir}/artifactory
-sudo update-rc.d artifactory defaults 95 10
+#sudo systemctl start artifactory.service
+#sudo update-rc.d artifactory defaults 95 10
 
 cat <<EOF >/tmp/binarystore.xml
 <config version="1">
@@ -98,7 +99,7 @@ cat <<EOF >/tmp/binarystore.xml
     </provider>
 </config>
 EOF
-sudo cp /tmp/binarystore.xml /opt/artifactory-oss-5.2.0/etc/binarystore.xml
+sudo cp /tmp/binarystore.xml /opt/artifactory-oss-${artifactory_version}/etc/binarystore.xml
 
 #cat <<EOF >/tmp/db.properties
 #type=mysql
@@ -107,13 +108,13 @@ sudo cp /tmp/binarystore.xml /opt/artifactory-oss-5.2.0/etc/binarystore.xml
 #username=artifactory
 #password=artifactory
 #EOF
-#sudo mv /tmp/db.properties /opt/artifactory-oss-5.2.0/etc/db.properties
+#sudo mv /tmp/db.properties /opt/artifactory-oss-${artifactory_version}/etc/db.properties
 
-#sudo chown artifactory:artifactory /opt/artifactory-oss-5.2.0/etc/db.properties
-sudo chown artifactory:artifactory /opt/artifactory-oss-5.2.0/etc/binarystore.xml
+#sudo chown artifactory:artifactory /opt/artifactory-oss-${artifactory_version}/etc/db.properties
+sudo chown artifactory:artifactory /opt/artifactory-oss-${artifactory_version}/etc/binarystore.xml
 
-#sudo cp mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar /opt/artifactory-oss-5.2.0/tomcat/lib/
-#sudo chown artifactory:artifactory /opt/artifactory-oss-5.2.0/tomcat/lib/mysql-connector-java-5.1.41-bin.jar
+#sudo cp mysql-connector-java-${mysqlconnector_version}/mysql-connector-java-${mysqlconnector_version}-bin.jar /opt/artifactory-oss-${artifactory_version}/tomcat/lib/
+#sudo chown artifactory:artifactory /opt/artifactory-oss-${artifactory_version}/tomcat/lib/mysql-connector-java-${mysqlconnector_version}-bin.jar
 
 cat <<EOF >/tmp/my.cnf
 [mysqld]
@@ -133,11 +134,11 @@ sudo mv /tmp/my.cnf /etc/mysql/conf.d/mysql.cnf
 
 sudo service mysql restart
 
-sudo service artifactory start
+sudo service artifactory restart
 
 sleep 20s
 
-curl -L -X GET "http://localhost:8081/artifactory/" 
+curl -L -X GET "http://localhost:8081/artifactory/"
 
 curl -u admin:password -X POST "http://localhost:8081/artifactory/api/import/system" -H "Content-Type: application/json" -d '{"importPath" : "/mnt/pipeline/artifactory/export/20170421.120339", "includeMetadata" : true, "verbose" : false, "failOnError" : true, "failIfEmpty" : true}'
 
