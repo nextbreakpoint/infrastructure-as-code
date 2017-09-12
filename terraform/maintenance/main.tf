@@ -236,20 +236,26 @@ resource "aws_volume_attachment" "elasticsearch_volume_attachment_b" {
   skip_destroy = true
 }
 
-data "template_file" "maintenance_server_user_data_elasticsearch" {
+data "template_file" "create_elasticsearch_partition" {
   template = "${file("provision/create_single_partition.tpl")}"
 
   vars {
-    aws_region                = "${var.aws_region}"
     device_name               = "${var.elasticsearch_device_name}"
   }
 }
 
-data "template_file" "maintenance_server_user_data_pipeline" {
+data "template_file" "create_pipeline_partition" {
   template = "${file("provision/create_single_partition.tpl")}"
 
   vars {
-    aws_region                = "${var.aws_region}"
+    device_name               = "${var.pipeline_device_name}"
+  }
+}
+
+data "template_file" "copy_pipeline_data" {
+  template = "${file("provision/copy_mysql_data.tpl")}"
+
+  vars {
     device_name               = "${var.pipeline_device_name}"
   }
 }
@@ -271,13 +277,26 @@ resource "null_resource" "maintenance_server_a" {
   }
 
   provisioner "file" {
-      content = "${data.template_file.maintenance_server_user_data_elasticsearch.rendered}"
-      destination = "/tmp/elasticsearch.sh"
+      content = "${data.template_file.create_elasticsearch_partition.rendered}"
+      destination = "/tmp/create_elasticsearch_partition.sh"
   }
 
   provisioner "file" {
-      content = "${data.template_file.maintenance_server_user_data_pipeline.rendered}"
-      destination = "/tmp/pipeline.sh"
+      content = "${data.template_file.create_pipeline_partition.rendered}"
+      destination = "/tmp/create_pipeline_partition.sh"
+  }
+
+  provisioner "file" {
+      content = "${data.template_file.copy_pipeline_data.rendered}"
+      destination = "/tmp/copy_pipeline_data.sh"
+  }
+
+  provisioner "remote-exec" {
+      inline = [
+        "sudo sh /tmp/create_elasticsearch_partition.sh",
+        "sudo sh /tmp/create_pipeline_partition.sh",
+        "sudo sh /tmp/copy_pipeline_data.sh"
+      ]
   }
 }
 
@@ -298,7 +317,13 @@ resource "null_resource" "maintenance_server_b" {
   }
 
   provisioner "file" {
-      content = "${data.template_file.maintenance_server_user_data_elasticsearch.rendered}"
-      destination = "/tmp/elasticsearch.sh"
+      content = "${data.template_file.create_elasticsearch_partition.rendered}"
+      destination = "/tmp/create_elasticsearch_partition.sh"
+  }
+
+  provisioner "remote-exec" {
+      inline = [
+        "sudo sh /tmp/create_elasticsearch_partition.sh"
+      ]
   }
 }

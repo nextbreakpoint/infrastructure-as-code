@@ -10,7 +10,7 @@ sudo mkdir -p ${pipeline_data_dir}/jenkins
 sudo mkdir -p ${pipeline_data_dir}/sonarqube
 sudo mkdir -p ${pipeline_data_dir}/sonarqube/data
 sudo mkdir -p ${pipeline_data_dir}/sonarqube/temp
-sudo mkdir -p ${pipeline_data_dir}/mysql/data
+sudo mkdir -p ${pipeline_data_dir}/mysql
 sudo mkdir -p ${pipeline_data_dir}/artifactory/filestore
 
 sudo service jenkins stop
@@ -27,12 +27,12 @@ sudo service jenkins start
 sudo service mysql stop
 
 sudo rm -fR /var/lib/mysql
-sudo sudo ln -s ${pipeline_data_dir}/mysql/data /var/lib/mysql
-sudo chown -R mysql:mysql ${pipeline_data_dir}/mysql/data
+sudo sudo ln -s ${pipeline_data_dir}/mysql /var/lib/mysql
+sudo chown -R mysql:mysql ${pipeline_data_dir}/mysql
 sudo chown -R mysql:mysql /var/lib/mysql
 
 cat <<EOF >/tmp/alias
-alias /var/lib/mysql/ -> /mnt/pipeline/mysql/data,
+alias /var/lib/mysql/ -> /mnt/pipeline/mysql,
 EOF
 sudo cp /tmp/alias /etc/apparmor.d/tunables/alias
 sudo service apparmor restart

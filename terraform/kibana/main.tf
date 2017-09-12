@@ -284,8 +284,8 @@ resource "aws_security_group" "kibana_elb" {
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
-    from_port = 5601
-    to_port = 5601
+    from_port = 80
+    to_port = 80
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }

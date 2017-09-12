@@ -4,5 +4,4 @@
 packer_vars.json
 *.pem
 *.pub
-
 *.tfvars

@@ -250,7 +250,7 @@ resource "aws_volume_attachment" "pipeline_volume_attachment_a" {
   skip_destroy = true
 }
 
-resource "null_resource" "pipeline_server" {
+resource "null_resource" "pipeline_server_a" {
   depends_on = ["aws_volume_attachment.pipeline_volume_attachment_a"]
 
   triggers {

@@ -4,7 +4,7 @@ source bash_alias
 
 rm deployer_key.*
 
-ssh-keygen -b 2048 -t rsa -N password -f deployer_key.pem
+ssh-keygen -b 2048 -t rsa -N "" -f deployer_key.pem
 
 chmod 600 deployer_key.pem
 
