@@ -295,7 +295,7 @@ resource "aws_elb" "consul" {
   listener {
     instance_port = 8500
     instance_protocol = "http"
-    lb_port = 8500
+    lb_port = 80
     lb_protocol = "http"
   }
 

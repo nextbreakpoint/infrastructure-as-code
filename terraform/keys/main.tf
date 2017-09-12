@@ -12,6 +12,10 @@ provider "terraform" {
   version = "~> 0.1"
 }
 
+provider "template" {
+  version = "~> 0.1"
+}
+
 ##############################################################################
 # Remote state
 ##############################################################################
@@ -28,7 +32,11 @@ terraform {
 # Keys
 ##############################################################################
 
+data "template_file" "public_key" {
+  template = "${file("${var.key_path}.pub")}"
+}
+
 resource "aws_key_pair" "terraform" {
-  key_name   = "terraform"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDR+pPsmd6Nxb0ToxkbH2kT3K+uQaRdMCbUSqAnbmloI/p41/qvqay6ZB1QuoLQkir7D4VDn99W7WJTMeUcLfpPA9M0o4I4XTpSH/nyvlZQVaZziTRievPNQeQD7DSuHiYNWQh6OxAtxm2885mEQ327FPmDC0UnSY1hlHqStEzfbQ== andrea@MacBook-di-Andrea.local"
+  key_name   = "${var.key_name}"
+  public_key = "${data.template_file.public_key.rendered}"
 }

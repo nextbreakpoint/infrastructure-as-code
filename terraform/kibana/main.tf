@@ -317,7 +317,7 @@ resource "aws_elb" "kibana" {
   listener {
     instance_port = 5601
     instance_protocol = "http"
-    lb_port = 5601
+    lb_port = 80
     lb_protocol = "http"
   }
 
@@ -359,4 +359,16 @@ resource "aws_route53_record" "kibana_elb" {
     zone_id = "${aws_elb.kibana.zone_id}"
     evaluate_target_health = true
   }
+}
+
+resource "aws_route53_record" "kibana_dns" {
+  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+  name = "kibana.${var.hosted_zone_name}"
+  type = "A"
+  ttl = "60"
+
+  records = [
+    "${aws_instance.kibana_server_a.private-ips}",
+    "${aws_instance.kibana_server_b.private-ips}"
+  ]
 }

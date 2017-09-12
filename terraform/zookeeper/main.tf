@@ -344,3 +344,20 @@ resource "null_resource" "zookeeper_server_c" {
     inline = "${data.template_file.zookeeper_server_user_data.rendered}"
   }
 }
+
+##############################################################################
+# Route 53
+##############################################################################
+
+resource "aws_route53_record" "zookeeper" {
+   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+   name = "zookeeper.${var.hosted_zone_name}"
+   type = "A"
+   ttl = "300"
+
+   records = [
+     "${aws_instance.zookeeper_server_a.private_ip}",
+     "${aws_instance.zookeeper_server_b.private_ip}",
+     "${aws_instance.zookeeper_server_c.private_ip}"
+   ]
+}

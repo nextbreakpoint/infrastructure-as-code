@@ -282,5 +282,9 @@ resource "aws_route53_record" "logstash" {
    name = "logstash.${var.hosted_zone_name}"
    type = "A"
    ttl = "300"
-   records = ["${aws_instance.logstash_server_a.private_ip}","${aws_instance.logstash_server_b.private_ip}"]
+
+   records = [
+     "${aws_instance.logstash_server_a.private_ip}",
+     "${aws_instance.logstash_server_b.private_ip}"
+   ]
 }

@@ -466,3 +466,23 @@ resource "null_resource" "cassandra_server_c2" {
     ]
   }
 }
+
+##############################################################################
+# Route 53
+##############################################################################
+
+resource "aws_route53_record" "cassandra" {
+   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+   name = "cassandra.${var.hosted_zone_name}"
+   type = "A"
+   ttl = "300"
+
+   records = [
+     "${aws_instance.cassandra_server_a1.private_ip}",
+     "${aws_instance.cassandra_server_b1.private_ip}",
+     "${aws_instance.cassandra_server_c1.private_ip}",
+     "${aws_instance.cassandra_server_a2.private_ip}",
+     "${aws_instance.cassandra_server_b2.private_ip}",
+     "${aws_instance.cassandra_server_c2.private_ip}"
+   ]
+}
