@@ -51,7 +51,7 @@ resource "aws_route_table" "network_public" {
   }
 
   tags {
-    Name = "public route table"
+    Name = "public-route-table"
     Stream = "${var.stream_tag}"
   }
 }
@@ -109,7 +109,6 @@ resource "aws_security_group" "network_nat" {
   }
 
   tags {
-    Name = "NAT security group"
     Stream = "${var.stream_tag}"
   }
 }
@@ -237,7 +236,7 @@ resource "aws_route_table" "network_private_a" {
   }
 
   tags {
-    Name = "private route table a"
+    Name = "private-route-table-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -257,7 +256,7 @@ resource "aws_route_table" "network_private_b" {
   }
 
   tags {
-    Name = "private route table b"
+    Name = "private-route-table-b"
     Stream = "${var.stream_tag}"
   }
 }
@@ -277,7 +276,7 @@ resource "aws_route_table" "network_private_c" {
   }
 
   tags {
-    Name = "private route table c"
+    Name = "private-route-table-c"
     Stream = "${var.stream_tag}"
   }
 }

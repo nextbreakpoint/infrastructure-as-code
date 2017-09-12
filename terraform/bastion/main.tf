@@ -58,7 +58,6 @@ resource "aws_security_group" "bastion" {
   }
 
   tags = {
-    Name = "bastion security group"
     Stream = "${var.stream_tag}"
   }
 }
@@ -77,7 +76,7 @@ resource "aws_route_table" "bastion" {
   }
 
   tags {
-    Name = "bastion route table"
+    Name = "bastion-route-table"
     Stream = "${var.stream_tag}"
   }
 }
@@ -88,7 +87,7 @@ resource "aws_subnet" "bastion_a" {
   cidr_block = "${var.aws_bastion_subnet_cidr_a}"
 
   tags {
-    Name = "bastion subnet a"
+    Name = "bastion-subnet-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -100,7 +99,7 @@ resource "aws_subnet" "bastion_b" {
   cidr_block = "${var.aws_bastion_subnet_cidr_b}"
 
   tags {
-    Name = "bastion subnet b"
+    Name = "bastion-subnet-b"
     Stream = "${var.stream_tag}"
   }
 }

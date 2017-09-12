@@ -20,6 +20,10 @@ provider "null" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -27,10 +31,6 @@ terraform {
     key = "kafka.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -64,8 +64,8 @@ data "terraform_remote_state" "zookeeper" {
 ##############################################################################
 
 resource "aws_security_group" "kafka_server" {
-  name = "kafka server"
-  description = "kafka server security group"
+  name = "kafka-security-group"
+  description = "Kafka security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -146,7 +146,6 @@ resource "aws_security_group" "kafka_server" {
   }
 
   tags {
-    Name = "kafka server security group"
     Stream = "${var.stream_tag}"
   }
 }
@@ -166,13 +165,13 @@ data "template_file" "kafka_server_user_data" {
   }
 }
 
-resource "aws_iam_instance_profile" "kafka_node_profile" {
-    name = "kafka_node_profile"
-    role = "${aws_iam_role.kafka_node_role.name}"
+resource "aws_iam_instance_profile" "kafka_server_profile" {
+    name = "kafka-server-profile"
+    role = "${aws_iam_role.kafka_server_role.name}"
 }
 
-resource "aws_iam_role" "kafka_node_role" {
-  name = "kafka_node_role"
+resource "aws_iam_role" "kafka_server_role" {
+  name = "kafka-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -191,9 +190,9 @@ resource "aws_iam_role" "kafka_node_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "kafka_node_role_policy" {
-  name = "kafka_node_role_policy"
-  role = "${aws_iam_role.kafka_node_role.id}"
+resource "aws_iam_role_policy" "kafka_server_role_policy" {
+  name = "kafka-server-role-policy"
+  role = "${aws_iam_role.kafka_server_role.id}"
 
   policy = <<EOF
 {
@@ -237,7 +236,7 @@ resource "aws_instance" "kafka_server_a" {
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.kafka_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -250,7 +249,7 @@ resource "aws_instance" "kafka_server_a" {
   }
 
   tags {
-    Name = "kafka_server_a"
+    Name = "kafka-server-a"
     Stream = "${var.stream_tag}"
   }
 
@@ -273,7 +272,7 @@ resource "aws_instance" "kafka_server_b" {
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.kafka_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -286,7 +285,7 @@ resource "aws_instance" "kafka_server_b" {
   }
 
   tags {
-    Name = "kafka_server_b"
+    Name = "kafka-server-b"
     Stream = "${var.stream_tag}"
   }
 
@@ -309,7 +308,7 @@ resource "aws_instance" "kafka_server_c" {
   security_groups = ["${aws_security_group.kafka_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.kafka_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -322,7 +321,7 @@ resource "aws_instance" "kafka_server_c" {
   }
 
   tags {
-    Name = "kafka_server_c"
+    Name = "kafka-server-c"
     Stream = "${var.stream_tag}"
   }
 

@@ -9,9 +9,10 @@
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
-    "ami_name_prefix": "puppet",
+    "ami_name_prefix": "docker",
     "bastion_host": "",
     "bastion_username": "ec2-user",
+    "docker_version": "",
     "base_version": ""
   },
   "builders": [{
@@ -19,8 +20,6 @@
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
     "region": "{{user `aws_region`}}",
-    "vpc_id": "{{user `aws_vpc_id`}}",
-    "subnet_id": "{{user `aws_subnet_id`}}",
     "source_ami_filter": {
       "filters": {
         "virtualization-type": "hvm",
@@ -31,7 +30,10 @@
       "most_recent": true
     },
     "instance_type": "{{user `aws_instance_type`}}",
-    "ami_name": "{{user `ami_name_prefix`}}-{{user `base_version`}}-{{timestamp}}",
+    "vpc_id": "{{user `aws_vpc_id`}}",
+    "subnet_id": "{{user `aws_subnet_id`}}",
+    "ami_name": "{{user `ami_name_prefix`}}-{{user `docker_version`}}-{{user `base_version`}}-{{timestamp}}",
+    "ami_regions": "{{user `aws_build_regions`}}",
     "communicator": "ssh",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
@@ -45,17 +47,7 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "scripts/puppet.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/puppet-agent.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/puppet-server.sh",
+      "script": "scripts/docker.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]

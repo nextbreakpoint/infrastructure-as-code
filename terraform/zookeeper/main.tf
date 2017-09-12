@@ -20,6 +20,10 @@ provider "null" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -27,10 +31,6 @@ terraform {
     key = "zookeeper.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -55,8 +55,8 @@ data "terraform_remote_state" "network" {
 ##############################################################################
 
 resource "aws_security_group" "zookeeper_server" {
-  name = "zookeeper server"
-  description = "zookeeper server security group"
+  name = "zookeeper-security-group"
+  description = "Zookeeper security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -158,18 +158,17 @@ resource "aws_security_group" "zookeeper_server" {
   }
 
   tags {
-    Name = "zookeeper server security group"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_iam_instance_profile" "zookeeper_node_profile" {
-    name = "zookeeper_node_profile"
-    role = "${aws_iam_role.zookeeper_node_role.name}"
+resource "aws_iam_instance_profile" "zookeeper_server_profile" {
+    name = "zookeeper-server-profile"
+    role = "${aws_iam_role.zookeeper_server_role.name}"
 }
 
-resource "aws_iam_role" "zookeeper_node_role" {
-  name = "zookeeper_node_role"
+resource "aws_iam_role" "zookeeper_server_role" {
+  name = "zookeeper-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -188,9 +187,9 @@ resource "aws_iam_role" "zookeeper_node_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "zookeeper_node_role_policy" {
-  name = "zookeeper_node_role_policy"
-  role = "${aws_iam_role.zookeeper_node_role.id}"
+resource "aws_iam_role_policy" "zookeeper_server_role_policy" {
+  name = "zookeeper-server-role-policy"
+  role = "${aws_iam_role.zookeeper_server_role.id}"
 
   policy = <<EOF
 {
@@ -234,10 +233,10 @@ resource "aws_instance" "zookeeper_server_a" {
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.name}"
 
   tags {
-    Name = "zookeeper_server_a"
+    Name = "zookeeper-server-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -252,10 +251,10 @@ resource "aws_instance" "zookeeper_server_b" {
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.name}"
 
   tags {
-    Name = "zookeeper_server_b"
+    Name = "zookeeper-server-b"
     Stream = "${var.stream_tag}"
   }
 }
@@ -270,10 +269,10 @@ resource "aws_instance" "zookeeper_server_c" {
   security_groups = ["${aws_security_group.zookeeper_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.name}"
 
   tags {
-    Name = "zookeeper_server_c"
+    Name = "zookeeper-server-c"
     Stream = "${var.stream_tag}"
   }
 }

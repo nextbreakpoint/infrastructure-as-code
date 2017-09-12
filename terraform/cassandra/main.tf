@@ -20,6 +20,10 @@ provider "null" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -27,10 +31,6 @@ terraform {
     key = "cassandra.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -55,8 +55,8 @@ data "terraform_remote_state" "network" {
 ##############################################################################
 
 resource "aws_security_group" "cassandra_server" {
-  name = "cassandra server"
-  description = "cassandra server security group"
+  name = "cassandra-security-groupr"
+  description = "Cassandra security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -186,18 +186,17 @@ resource "aws_security_group" "cassandra_server" {
   }
 
   tags {
-    Name = "cassandra server security group"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_iam_instance_profile" "cassandra_node_profile" {
-    name = "cassandra_node_profile"
-    role = "${aws_iam_role.cassandra_node_role.name}"
+resource "aws_iam_instance_profile" "cassandra_server_profile" {
+    name = "cassandra-server-profile"
+    role = "${aws_iam_role.cassandra_server_role.name}"
 }
 
-resource "aws_iam_role" "cassandra_node_role" {
-  name = "cassandra_node_role"
+resource "aws_iam_role" "cassandra_server_role" {
+  name = "cassandra-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -216,9 +215,9 @@ resource "aws_iam_role" "cassandra_node_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "cassandra_node_role_policy" {
-  name = "cassandra_node_role_policy"
-  role = "${aws_iam_role.cassandra_node_role.id}"
+resource "aws_iam_role_policy" "cassandra_server_role_policy" {
+  name = "cassandra-server-role-policy"
+  role = "${aws_iam_role.cassandra_server_role.id}"
 
   policy = <<EOF
 {
@@ -274,7 +273,7 @@ resource "aws_instance" "cassandra_server_a1" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
   connection {
     #host = "${element(aws_instance.cassandra_server_a1.*.private_ip, 0)}"
@@ -294,7 +293,7 @@ resource "aws_instance" "cassandra_server_a1" {
   }
 
   tags {
-    Name = "cassandra_server_a1"
+    Name = "cassandra-server-a1"
     Stream = "${var.stream_tag}"
   }
 }
@@ -309,7 +308,7 @@ resource "aws_instance" "cassandra_server_b1" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
   connection {
     #host = "${element(aws_instance.cassandra_server_b1.*.private_ip, 0)}"
@@ -329,7 +328,7 @@ resource "aws_instance" "cassandra_server_b1" {
   }
 
   tags {
-    Name = "cassandra_server_b1"
+    Name = "cassandra-server-b1"
     Stream = "${var.stream_tag}"
   }
 }
@@ -344,7 +343,7 @@ resource "aws_instance" "cassandra_server_c1" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
   connection {
     #host = "${element(aws_instance.cassandra_server_c1.*.private_ip, 0)}"
@@ -364,7 +363,7 @@ resource "aws_instance" "cassandra_server_c1" {
   }
 
   tags {
-    Name = "cassandra_server_c1"
+    Name = "cassandra-server-c1"
     Stream = "${var.stream_tag}"
   }
 }
@@ -379,10 +378,10 @@ resource "aws_instance" "cassandra_server_a2" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
   tags {
-    Name = "cassandra_server_a2"
+    Name = "cassandra-server-a2"
     Stream = "${var.stream_tag}"
   }
 }
@@ -397,10 +396,10 @@ resource "aws_instance" "cassandra_server_b2" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
   tags {
-    Name = "cassandra_server_b2"
+    Name = "cassandra-server-b2"
     Stream = "${var.stream_tag}"
   }
 }
@@ -415,10 +414,10 @@ resource "aws_instance" "cassandra_server_c2" {
   security_groups = ["${aws_security_group.cassandra_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cassandra_node_profile.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
   tags {
-    Name = "cassandra_server_c2"
+    Name = "cassandra-server-c2"
     Stream = "${var.stream_tag}"
   }
 }

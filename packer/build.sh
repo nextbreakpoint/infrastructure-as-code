@@ -1,16 +1,18 @@
 #!/bin/bash
-
 DIR=$(pwd)
 source ../alias.sh
 
 # Create base image
 
-cd $DIR/base && pk_create
+cd $DIR/base && pk_create 
 
 # Create other images in parallel
 
 cd $DIR/pipeline && pk_create &
 pipeline_pid=$!
+
+cd $DIR/docker && pk_create &
+docker_pid=$!
 
 cd $DIR/puppet && pk_create &
 puppet_pid=$!
@@ -41,6 +43,7 @@ kubernetes_pid=$!
 
 # Await termination
 wait $pipeline_pid
+wait $docker_pid
 wait $puppet_pid
 wait $nginx_pid
 wait $elasticsearch_pid
