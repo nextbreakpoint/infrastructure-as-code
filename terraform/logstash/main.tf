@@ -74,15 +74,15 @@ resource "aws_security_group" "logstash_server" {
   }
 
   ingress {
-    from_port = 8300
-    to_port = 8302
+    from_port = 8301
+    to_port = 8301
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8300
-    to_port = 8302
+    from_port = 8301
+    to_port = 8301
     protocol = "udp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }

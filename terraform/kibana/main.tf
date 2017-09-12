@@ -67,15 +67,15 @@ resource "aws_security_group" "kibana_server" {
   }
 
   ingress {
-    from_port = 8300
-    to_port = 8302
+    from_port = 8301
+    to_port = 8301
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8300
-    to_port = 8302
+    from_port = 8301
+    to_port = 8301
     protocol = "udp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
@@ -349,7 +349,7 @@ resource "aws_elb" "kibana" {
 # Route 53
 ##############################################################################
 
-resource "aws_route53_record" "kibana" {
+resource "aws_route53_record" "kibana_elb" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "kibana.${var.public_hosted_zone_name}"
   type = "A"

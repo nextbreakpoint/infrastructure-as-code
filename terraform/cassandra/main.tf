@@ -102,72 +102,23 @@ resource "aws_security_group" "cassandra_server" {
   }
 
   ingress {
-    from_port = 8300
-    to_port = 8302
+    from_port = 8301
+    to_port = 8301
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8300
-    to_port = 8302
+    from_port = 8301
+    to_port = 8301
     protocol = "udp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 7000
-    to_port = 7001
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 7199
-    to_port = 7199
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 9042
-    to_port = 9042
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 9142
-    to_port = 9142
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 9160
-    to_port = 9160
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 8300
-    to_port = 8302
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 8300
-    to_port = 8302
-    protocol = "udp"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 

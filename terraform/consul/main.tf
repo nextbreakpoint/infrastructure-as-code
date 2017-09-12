@@ -64,13 +64,20 @@ resource "aws_security_group" "consul_server" {
 
   ingress {
     from_port = 8300
+    to_port = 8300
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port = 8301
     to_port = 8302
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8300
+    from_port = 8301
     to_port = 8302
     protocol = "udp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
@@ -321,7 +328,7 @@ resource "aws_elb" "consul" {
 # Route 53
 ##############################################################################
 
-resource "aws_route53_record" "consul" {
+resource "aws_route53_record" "consul_elb" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "consul.${var.public_hosted_zone_name}"
   type = "A"

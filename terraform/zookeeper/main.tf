@@ -88,58 +88,23 @@ resource "aws_security_group" "zookeeper_server" {
   }
 
   ingress {
-    from_port = 8300
-    to_port = 8302
+    from_port = 8301
+    to_port = 8301
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8300
-    to_port = 8302
+    from_port = 8301
+    to_port = 8301
     protocol = "udp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 2181
-    to_port = 2181
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 2888
-    to_port = 2888
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 3888
-    to_port = 3888
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 8300
-    to_port = 8302
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 8300
-    to_port = 8302
-    protocol = "udp"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
