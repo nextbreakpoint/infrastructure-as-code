@@ -79,12 +79,6 @@ sudo service sonar start
 
 sudo sed -i 's/127.0.0.1 .*$/127.0.0.1 localhost '$(hostname)'/g' /etc/hosts
 
-#echo "DROP DATABASE artdb;" >script.sql
-#echo "CREATE DATABASE artdb CHARACTER SET utf8 COLLATE utf8_bin;" >>script.sql
-#echo "GRANT ALL ON artdb.* TO 'artifactory'@'localhost' IDENTIFIED BY 'artifactory';" >>script.sql
-#echo "FLUSH PRIVILEGES;" >>script.sql
-#mysql -u root -p < script.sql
-
 sudo unzip jfrog-artifactory-oss-${artifactory_version}.zip -d /opt
 sudo /opt/artifactory-oss-${artifactory_version}/bin/installService.sh
 sudo chown -R artifactory:artifactory ${pipeline_data_dir}/artifactory
@@ -101,20 +95,20 @@ cat <<EOF >/tmp/binarystore.xml
 EOF
 sudo cp /tmp/binarystore.xml /opt/artifactory-oss-${artifactory_version}/etc/binarystore.xml
 
-#cat <<EOF >/tmp/db.properties
-#type=mysql
-#driver=com.mysql.jdbc.Driver
-#url=jdbc:mysql://localhost:3306/artdb?characterEncoding=UTF-8&elideSetAutoCommits=true&useSSL=false
-#username=artifactory
-#password=artifactory
-#EOF
-#sudo mv /tmp/db.properties /opt/artifactory-oss-${artifactory_version}/etc/db.properties
+cat <<EOF >/tmp/db.properties
+type=mysql
+driver=com.mysql.jdbc.Driver
+url=jdbc:mysql://localhost:3306/artifactory?characterEncoding=UTF-8&elideSetAutoCommits=true&useSSL=false
+username=artifactory
+password=artifactory
+EOF
+sudo mv /tmp/db.properties /opt/artifactory-oss-${artifactory_version}/etc/db.properties
 
-#sudo chown artifactory:artifactory /opt/artifactory-oss-${artifactory_version}/etc/db.properties
+sudo chown artifactory:artifactory /opt/artifactory-oss-${artifactory_version}/etc/db.properties
 sudo chown artifactory:artifactory /opt/artifactory-oss-${artifactory_version}/etc/binarystore.xml
 
-#sudo cp mysql-connector-java-${mysqlconnector_version}/mysql-connector-java-${mysqlconnector_version}-bin.jar /opt/artifactory-oss-${artifactory_version}/tomcat/lib/
-#sudo chown artifactory:artifactory /opt/artifactory-oss-${artifactory_version}/tomcat/lib/mysql-connector-java-${mysqlconnector_version}-bin.jar
+sudo cp mysql-connector-java-${mysqlconnector_version}/mysql-connector-java-${mysqlconnector_version}-bin.jar /opt/artifactory-oss-${artifactory_version}/tomcat/lib/
+sudo chown artifactory:artifactory /opt/artifactory-oss-${artifactory_version}/tomcat/lib/mysql-connector-java-${mysqlconnector_version}-bin.jar
 
 cat <<EOF >/tmp/my.cnf
 [mysqld]
@@ -223,5 +217,7 @@ EOF
 sudo mv /tmp/nginx.conf /etc/nginx/nginx.conf
 
 sudo service nginx restart
+
+sudo cat /var/log/jenkins/jenkins.log
 
 echo "Done"
