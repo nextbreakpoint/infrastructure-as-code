@@ -230,7 +230,7 @@ data "aws_ami" "elasticsearch" {
 }
 
 resource "aws_instance" "elasticsearch_server_a" {
-  instance_type = "${var.aws_elasticsearch_instance_type}"
+  instance_type = "${var.elasticsearch_instance_type}"
 
   ami = "${data.aws_ami.elasticsearch.id}"
 
@@ -258,7 +258,7 @@ resource "aws_instance" "elasticsearch_server_a" {
 }
 
 resource "aws_instance" "elasticsearch_server_b" {
-  instance_type = "${var.aws_elasticsearch_instance_type}"
+  instance_type = "${var.elasticsearch_instance_type}"
 
   ami = "${data.aws_ami.elasticsearch.id}"
 
