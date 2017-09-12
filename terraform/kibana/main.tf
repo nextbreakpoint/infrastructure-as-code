@@ -20,6 +20,10 @@ provider "null" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -27,10 +31,6 @@ terraform {
     key = "kibana.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -55,8 +55,8 @@ data "terraform_remote_state" "network" {
 ##############################################################################
 
 resource "aws_security_group" "kibana_server" {
-  name = "kibana server"
-  description = "kibana server security group"
+  name = "kibana-security-group"
+  description = "Kibana server security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -96,22 +96,8 @@ resource "aws_security_group" "kibana_server" {
 
   egress {
     from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
@@ -130,7 +116,6 @@ resource "aws_security_group" "kibana_server" {
   }
 
   tags {
-    Name = "kibana server security group"
     Stream = "${var.stream_tag}"
   }
 }
@@ -156,12 +141,12 @@ data "template_file" "kibana_server_user_data" {
 }
 
 resource "aws_iam_instance_profile" "kibana_server_profile" {
-    name = "kibana_server_profile"
+    name = "kibana-server-profile"
     role = "${aws_iam_role.kibana_server_role.name}"
 }
 
 resource "aws_iam_role" "kibana_server_role" {
-  name = "kibana_server_role"
+  name = "kibana-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -181,7 +166,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "kibana_server_role_policy" {
-  name = "kibana_server_role_policy"
+  name = "kibana-server-role-policy"
   role = "${aws_iam_role.kibana_server_role.id}"
 
   policy = <<EOF
@@ -239,7 +224,7 @@ resource "aws_instance" "kibana_server_a" {
   }
 
   tags {
-    Name = "kibana_server_a"
+    Name = "kibana-server-a"
     Stream = "${var.stream_tag}"
   }
 
@@ -276,7 +261,7 @@ resource "aws_instance" "kibana_server_b" {
   }
 
   tags {
-    Name = "kibana_server_b"
+    Name = "kibana-server-b"
     Stream = "${var.stream_tag}"
   }
 
@@ -295,8 +280,7 @@ resource "aws_instance" "kibana_server_b" {
 ##############################################################################
 
 resource "aws_security_group" "kibana_elb" {
-  name = "kibana elb"
-  description = "kibana load balacer"
+  name = "kibana-elb-security-group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -314,15 +298,21 @@ resource "aws_security_group" "kibana_elb" {
   }
 
   tags {
-    Name = "kibana elb security group"
     stream = "${var.stream_tag}"
   }
 }
 
 resource "aws_elb" "kibana" {
   name = "kibana-elb"
+
+  depends_on = ["aws_security_group.kibana_elb"]
+
   security_groups = ["${aws_security_group.kibana_elb.id}"]
-  subnets = ["${data.terraform_remote_state.vpc.network-private-subnet-a-id}","${data.terraform_remote_state.vpc.network-private-subnet-b-id}"]
+
+  subnets = [
+    "${data.terraform_remote_state.vpc.network-public-subnet-a-id}",
+    "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
+  ]
 
   listener {
     instance_port = 5601
@@ -339,15 +329,18 @@ resource "aws_elb" "kibana" {
     interval = 30
   }
 
-  instances = ["${aws_instance.kibana_server_a.id}", "${aws_instance.kibana_server_b.id}"]
+  instances = [
+    "${aws_instance.kibana_server_a.id}",
+    "${aws_instance.kibana_server_b.id}"
+  ]
+
   cross_zone_load_balancing = true
   idle_timeout = 400
   connection_draining = true
   connection_draining_timeout = 400
-  internal = true
+  internal = false
 
   tags {
-    Name = "kibana elb"
     stream = "${var.stream_tag}"
   }
 }
@@ -357,8 +350,8 @@ resource "aws_elb" "kibana" {
 ##############################################################################
 
 resource "aws_route53_record" "kibana" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "kibana.${var.hosted_zone_name}"
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "kibana.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {

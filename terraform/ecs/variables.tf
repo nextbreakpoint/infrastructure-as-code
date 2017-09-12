@@ -54,5 +54,5 @@ variable "cluster_amis" {
 
 variable "cluster_instance_type" {
   description = "cluster instance type."
-  default  = "m4.large"
+  default  = "t2.medium"
 }

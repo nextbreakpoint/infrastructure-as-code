@@ -20,6 +20,10 @@ provider "null" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -27,10 +31,6 @@ terraform {
     key = "ecs.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -55,8 +55,8 @@ data "terraform_remote_state" "network" {
 ##############################################################################
 
 resource "aws_security_group" "cluster_server" {
-  name = "cluster server"
-  description = "cluster server security group"
+  name = "cluster-security-group"
+  description = "ECS security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -95,18 +95,17 @@ resource "aws_security_group" "cluster_server" {
   }
 
   tags {
-    Name = "cluster server security group"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_iam_instance_profile" "cluster_node_profile" {
-    name = "ecs_node_profile"
-    role = "${aws_iam_role.cluster_node_role.name}"
+resource "aws_iam_instance_profile" "cluster_server_profile" {
+    name = "ecs-server-profile"
+    role = "${aws_iam_role.cluster_server_role.name}"
 }
 
-resource "aws_iam_role" "cluster_node_role" {
-  name = "cluster_node_role"
+resource "aws_iam_role" "cluster_server_role" {
+  name = "cluster-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -125,9 +124,9 @@ resource "aws_iam_role" "cluster_node_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "cluster_node_role_policy" {
-  name = "cluster_node_role_policy"
-  role = "${aws_iam_role.cluster_node_role.id}"
+resource "aws_iam_role_policy" "cluster_server_role_policy" {
+  name = "cluster-server-role-policy"
+  role = "${aws_iam_role.cluster_server_role.id}"
 
   policy = <<EOF
 {
@@ -160,7 +159,7 @@ resource "aws_ecs_cluster" "services" {
   name = "services"
 }
 
-resource "aws_instance" "cluster_node_a" {
+resource "aws_instance" "cluster_server_a" {
   depends_on = ["aws_ecs_cluster.services"]
   instance_type = "${var.cluster_instance_type}"
 
@@ -172,7 +171,7 @@ resource "aws_instance" "cluster_node_a" {
   security_groups = ["${aws_security_group.cluster_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cluster_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.cluster_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -189,12 +188,12 @@ resource "aws_instance" "cluster_node_a" {
   }
 
   tags {
-    Name = "cluster_server_a"
+    Name = "cluster-server-a"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_instance" "cluster_node_b" {
+resource "aws_instance" "cluster_server_b" {
   depends_on = ["aws_ecs_cluster.services"]
   instance_type = "${var.cluster_instance_type}"
 
@@ -206,7 +205,7 @@ resource "aws_instance" "cluster_node_b" {
   security_groups = ["${aws_security_group.cluster_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cluster_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.cluster_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -223,7 +222,7 @@ resource "aws_instance" "cluster_node_b" {
   }
 
   tags {
-    Name = "cluster_server_b"
+    Name = "cluster-server-b"
     Stream = "${var.stream_tag}"
   }
 }

@@ -64,7 +64,7 @@ data "terraform_remote_state" "volumes" {
 ##############################################################################
 
 resource "aws_security_group" "maintenance_server" {
-  name = "maintenance server"
+  name = "maintenance-security-group"
   description = "maintenance security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -125,18 +125,18 @@ resource "aws_security_group" "maintenance_server" {
   }
 
   tags {
-    Name = "maintenance security group"
+    Name = "maintenance-security-group"
     Stream = "${var.stream_tag}"
   }
 }
 
 resource "aws_iam_instance_profile" "maintenance_server_profile" {
-    name = "maintenance_server_profile"
+    name = "maintenance-server-profile"
     role = "${aws_iam_role.maintenance_server_role.name}"
 }
 
 resource "aws_iam_role" "maintenance_server_role" {
-  name = "maintenance_server_role"
+  name = "maintenance-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -156,7 +156,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "maintenance_server_role_policy" {
-  name = "maintenance_server_role_policy"
+  name = "maintenance-server-role-policy"
   role = "${aws_iam_role.maintenance_server_role.id}"
 
   policy = <<EOF
@@ -197,7 +197,7 @@ resource "aws_instance" "maintenance_server_a" {
   }
 
   tags {
-    Name = "maintenance_server_a"
+    Name = "maintenance-server-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -224,7 +224,7 @@ resource "aws_instance" "maintenance_server_b" {
   }
 
   tags {
-    Name = "maintenance_server_b"
+    Name = "maintenance-server-b"
     Stream = "${var.stream_tag}"
   }
 }

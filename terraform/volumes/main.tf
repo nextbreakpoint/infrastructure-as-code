@@ -12,6 +12,10 @@ provider "terraform" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -31,7 +35,7 @@ resource "aws_ebs_volume" "elasticsearch_volume_a" {
   type = "gp2"
 
   tags {
-    Name = "elasticsearch_volume_a"
+    Name = "elasticsearch-volume-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -43,7 +47,7 @@ resource "aws_ebs_volume" "elasticsearch_volume_b" {
   type = "gp2"
 
   tags {
-    Name = "elasticsearch_volume_b"
+    Name = "elasticsearch-volume-b"
     Stream = "${var.stream_tag}"
   }
 }
@@ -55,7 +59,7 @@ resource "aws_ebs_volume" "pipeline_volume_a" {
   type = "gp2"
 
   tags {
-    Name = "pipeline_volume_a"
+    Name = "pipeline-volume-a"
     Stream = "${var.stream_tag}"
   }
 }

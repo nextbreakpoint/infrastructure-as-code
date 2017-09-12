@@ -142,4 +142,86 @@ curl -L -X GET "http://localhost:8081/artifactory/"
 
 curl -u admin:password -X POST "http://localhost:8081/artifactory/api/import/system" -H "Content-Type: application/json" -d '{"importPath" : "/mnt/pipeline/artifactory/export/20170421.120339", "includeMetadata" : true, "verbose" : false, "failOnError" : true, "failIfEmpty" : true}'
 
+sudo apt-get install -y nginx apache2-utils
+
+sudo cat <<EOF >/tmp/filebeat.yml
+filebeat:
+  prospectors:
+    -
+      paths:
+        - /var/log/auth.log
+        - /var/log/syslog
+        - /var/log/nginx/access.log
+        - /var/log/nginx/error.log
+
+      input_type: log
+
+      document_type: syslog
+
+  registry_file: /var/lib/filebeat/registry
+
+output:
+  logstash:
+    hosts: ["logstash.${hosted_zone_name}:5044"]
+    bulk_max_size: 1024
+    ssl.enabled: false
+
+shipper:
+
+logging:
+  files:
+    rotateeverybytes: 10485760 # = 10MB
+EOF
+sudo mv /tmp/filebeat.yml /etc/filebeat/filebeat.yml
+
+sudo update-rc.d filebeat defaults 95 10
+sudo service filebeat start
+
+sudo cat <<EOF >/tmp/nginx.conf
+user www-data www-data;
+
+worker_processes 5;
+worker_rlimit_nofile 8192;
+
+events {
+  worker_connections 4096;
+}
+
+http {
+  server {
+    listen 80;
+
+    server_name jenkins.nextbreakpoint.com;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_redirect http://localhost:8080 http://jenkins.${public_hosted_zone_name};
+    }
+  }
+  server {
+    listen 80;
+
+    server_name sonarqube.nextbreakpoint.com;
+
+    location / {
+        proxy_pass http://localhost:9000;
+        proxy_redirect http://localhost:9000 http://sonarqube.${public_hosted_zone_name};
+    }
+  }
+  server {
+    listen 80;
+
+    server_name artifactory.nextbreakpoint.com;
+
+    location / {
+        proxy_pass http://localhost:8081;
+        proxy_redirect http://localhost:8081 http://artifactory.${public_hosted_zone_name};
+    }
+  }
+}
+EOF
+sudo mv /tmp/nginx.conf /etc/nginx/nginx.conf
+
+sudo service nginx restart
+
 echo "Done"

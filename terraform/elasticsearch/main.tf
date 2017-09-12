@@ -20,6 +20,10 @@ provider "null" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -27,10 +31,6 @@ terraform {
     key = "elasticsearch.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -60,24 +60,12 @@ data "terraform_remote_state" "volumes" {
 }
 
 ##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "elasticsearch" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "elasticsearch.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-   records = ["${aws_instance.elasticsearch_server_a.private_ip}","${aws_instance.elasticsearch_server_b.private_ip}"]
-}
-
-##############################################################################
 # Elasticsearch servers
 ##############################################################################
 
 resource "aws_security_group" "elasticsearch_server" {
-  name = "search server"
-  description = "search server security group"
+  name = "elasticsearch-security-group"
+  description = "Elasticsearch security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -109,23 +97,9 @@ resource "aws_security_group" "elasticsearch_server" {
   }
 
   egress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
     from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
@@ -144,7 +118,6 @@ resource "aws_security_group" "elasticsearch_server" {
   }
 
   tags {
-    Name = "search server security group"
     Stream = "${var.stream_tag}"
   }
 }
@@ -168,13 +141,13 @@ data "template_file" "elasticsearch_server_user_data" {
   }
 }
 
-resource "aws_iam_instance_profile" "elasticsearch_node_profile" {
-    name = "elasticsearch_node_profile"
-    role = "${aws_iam_role.elasticsearch_node_role.name}"
+resource "aws_iam_instance_profile" "elasticsearch_server_profile" {
+    name = "elasticsearch-server-profile"
+    role = "${aws_iam_role.elasticsearch_server_role.name}"
 }
 
-resource "aws_iam_role" "elasticsearch_node_role" {
-  name = "elasticsearch_node_role"
+resource "aws_iam_role" "elasticsearch_server_role" {
+  name = "elasticsearch-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -193,9 +166,9 @@ resource "aws_iam_role" "elasticsearch_node_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "elasticsearch_node_role_policy" {
-  name = "elasticsearch_node_role_policy"
-  role = "${aws_iam_role.elasticsearch_node_role.id}"
+resource "aws_iam_role_policy" "elasticsearch_server_role_policy" {
+  name = "elasticsearch-server-role-policy"
+  role = "${aws_iam_role.elasticsearch_server_role.id}"
 
   policy = <<EOF
 {
@@ -239,7 +212,7 @@ resource "aws_instance" "elasticsearch_server_a" {
   security_groups = ["${aws_security_group.elasticsearch_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -252,7 +225,7 @@ resource "aws_instance" "elasticsearch_server_a" {
   }
 
   tags {
-    Name = "elasticsearch_server_a"
+    Name = "elasticsearch-server-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -267,7 +240,7 @@ resource "aws_instance" "elasticsearch_server_b" {
   security_groups = ["${aws_security_group.elasticsearch_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -280,7 +253,7 @@ resource "aws_instance" "elasticsearch_server_b" {
   }
 
   tags {
-    Name = "elasticsearch_server_b"
+    Name = "elasticsearch-server-b"
     Stream = "${var.stream_tag}"
   }
 }
@@ -343,4 +316,16 @@ resource "null_resource" "elasticsearch_server_b" {
   provisioner "remote-exec" {
     inline = "${data.template_file.elasticsearch_server_user_data.rendered}"
   }
+}
+
+##############################################################################
+# Route 53
+##############################################################################
+
+resource "aws_route53_record" "elasticsearch" {
+   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+   name = "elasticsearch.${var.hosted_zone_name}"
+   type = "A"
+   ttl = "300"
+   records = ["${aws_instance.elasticsearch_server_a.private_ip}","${aws_instance.elasticsearch_server_b.private_ip}"]
 }

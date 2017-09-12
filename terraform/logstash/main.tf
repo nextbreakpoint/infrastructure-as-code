@@ -20,6 +20,10 @@ provider "null" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -27,10 +31,6 @@ terraform {
     key = "logstash.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -51,24 +51,12 @@ data "terraform_remote_state" "network" {
 }
 
 ##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "logstash" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "logstash.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-   records = ["${aws_instance.logstash_server_a.private_ip}","${aws_instance.logstash_server_b.private_ip}"]
-}
-
-##############################################################################
 # Logstash servers
 ##############################################################################
 
 resource "aws_security_group" "logstash_server" {
-  name = "logstash server"
-  description = "logstash server security group"
+  name = "logstash-security-group"
+  description = "Logstash server security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -107,23 +95,9 @@ resource "aws_security_group" "logstash_server" {
   }
 
   egress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
     from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
@@ -142,7 +116,6 @@ resource "aws_security_group" "logstash_server" {
   }
 
   tags {
-    Name = "logstash server security group"
     Stream = "${var.stream_tag}"
   }
 }
@@ -175,13 +148,13 @@ data "template_file" "logstash_server_user_data_b" {
   }
 }
 
-resource "aws_iam_instance_profile" "logstash_node_profile" {
-    name = "logstash_node_profile"
-    role = "${aws_iam_role.logstash_node_role.name}"
+resource "aws_iam_instance_profile" "logstash_server_profile" {
+    name = "logstash-server-profile"
+    role = "${aws_iam_role.logstash_server_role.name}"
 }
 
-resource "aws_iam_role" "logstash_node_role" {
-  name = "logstash_node_role"
+resource "aws_iam_role" "logstash_server_role" {
+  name = "logstash-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -200,9 +173,9 @@ resource "aws_iam_role" "logstash_node_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "logstash_node_role_policy" {
-  name = "logstash_node_role_policy"
-  role = "${aws_iam_role.logstash_node_role.id}"
+resource "aws_iam_role_policy" "logstash_server_role_policy" {
+  name = "logstash-server-role-policy"
+  role = "${aws_iam_role.logstash_server_role.id}"
 
   policy = <<EOF
 {
@@ -246,7 +219,7 @@ resource "aws_instance" "logstash_server_a" {
   security_groups = ["${aws_security_group.logstash_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.logstash_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.logstash_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -259,7 +232,7 @@ resource "aws_instance" "logstash_server_a" {
   }
 
   tags {
-    Name = "logstash_server_a"
+    Name = "logstash-server-a"
     Stream = "${var.stream_tag}"
   }
 
@@ -278,7 +251,7 @@ resource "aws_instance" "logstash_server_b" {
   security_groups = ["${aws_security_group.logstash_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.logstash_node_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.logstash_server_profile.name}"
 
   connection {
     # The default username for our AMI
@@ -291,11 +264,23 @@ resource "aws_instance" "logstash_server_b" {
   }
 
   tags {
-    Name = "logstash_server_b"
+    Name = "logstash-server-b"
     Stream = "${var.stream_tag}"
   }
 
   provisioner "remote-exec" {
     inline = "${data.template_file.logstash_server_user_data_b.rendered}"
   }
+}
+
+##############################################################################
+# Route 53
+##############################################################################
+
+resource "aws_route53_record" "logstash" {
+   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+   name = "logstash.${var.hosted_zone_name}"
+   type = "A"
+   ttl = "300"
+   records = ["${aws_instance.logstash_server_a.private_ip}","${aws_instance.logstash_server_b.private_ip}"]
 }

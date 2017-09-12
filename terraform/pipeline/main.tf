@@ -20,6 +20,10 @@ provider "null" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -27,10 +31,6 @@ terraform {
     key = "pipeline.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -64,9 +64,16 @@ data "terraform_remote_state" "volumes" {
 ##############################################################################
 
 resource "aws_security_group" "pipeline_server" {
-  name = "pipeline server"
-  description = "pipeline server security group"
+  name = "pipeline-security-group"
+  description = "Pipeline security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   ingress {
     from_port = 22
@@ -98,22 +105,8 @@ resource "aws_security_group" "pipeline_server" {
 
   egress {
     from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
@@ -132,7 +125,6 @@ resource "aws_security_group" "pipeline_server" {
   }
 
   tags {
-    Name = "pipeline server security group"
     Stream = "${var.stream_tag}"
   }
 }
@@ -148,24 +140,23 @@ data "template_file" "pipeline_server_user_data" {
     volume_name             = "${var.volume_name}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    jenkins_host            = "${aws_instance.pipeline_server.private_ip}"
-    sonarqube_host          = "${aws_instance.pipeline_server.private_ip}"
-    artifactory_host        = "${aws_instance.pipeline_server.private_ip}"
+    pipeline_data_dir       = "/mnt/pipeline"
     jenkins_version         = "${var.jenkins_version}"
     sonarqube_version       = "${var.sonarqube_version}"
     artifactory_version     = "${var.artifactory_version}"
     mysqlconnector_version  = "${var.mysqlconnector_version}"
-    pipeline_data_dir       = "/mnt/pipeline"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
   }
 }
 
 resource "aws_iam_instance_profile" "pipeline_server_profile" {
-    name = "pipeline_server_profile"
+    name = "pipeline-server-profile"
     role = "${aws_iam_role.pipeline_server_role.name}"
 }
 
 resource "aws_iam_role" "pipeline_server_role" {
-  name = "pipeline_server_role"
+  name = "pipeline-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -185,7 +176,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "pipeline_server_role_policy" {
-  name = "pipeline_server_role_policy"
+  name = "pipeline-server-role-policy"
   role = "${aws_iam_role.pipeline_server_role.id}"
 
   policy = <<EOF
@@ -220,20 +211,20 @@ data "aws_ami" "pipeline" {
   owners = ["${var.account_id}"]
 }
 
-resource "aws_instance" "pipeline_server" {
+resource "aws_instance" "pipeline_server_a" {
   instance_type = "t2.medium"
 
   ami = "${data.aws_ami.pipeline.id}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
-  associate_public_ip_address = "false"
+  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
+  associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.pipeline_server.id}"]
   key_name = "${var.key_name}"
 
   iam_instance_profile = "${aws_iam_instance_profile.pipeline_server_profile.id}"
 
   tags {
-    Name = "pipeline_server"
+    Name = "pipeline-server-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -241,7 +232,7 @@ resource "aws_instance" "pipeline_server" {
 resource "aws_volume_attachment" "pipeline_volume_attachment_a" {
   device_name = "${var.volume_name}"
   volume_id = "${data.terraform_remote_state.volumes.pipeline-volume-a-id}"
-  instance_id = "${aws_instance.pipeline_server.id}"
+  instance_id = "${aws_instance.pipeline_server_a.id}"
   skip_destroy = true
 }
 
@@ -249,11 +240,11 @@ resource "null_resource" "pipeline_server" {
   depends_on = ["aws_volume_attachment.pipeline_volume_attachment_a"]
 
   triggers {
-    cluster_instance_ids = "${join(",", aws_instance.pipeline_server.*.id)}"
+    cluster_instance_ids = "${join(",", aws_instance.pipeline_server_a.*.id)}"
   }
 
   connection {
-    host = "${element(aws_instance.pipeline_server.*.private_ip, 0)}"
+    host = "${element(aws_instance.pipeline_server_a.*.private_ip, 0)}"
     # The default username for our AMI
     user = "ubuntu"
     type = "ssh"
@@ -272,12 +263,36 @@ resource "null_resource" "pipeline_server" {
 # Route 53
 ##############################################################################
 
+resource "aws_route53_record" "public_jenkins" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "jenkins.${var.public_hosted_zone_name}"
+  type = "A"
+  ttl = "60"
+  records = ["${aws_instance.pipeline_server_a.*.public_ip}"]
+}
+
+resource "aws_route53_record" "public_sonarqube" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "sonarqube.${var.public_hosted_zone_name}"
+  type = "A"
+  ttl = "60"
+  records = ["${aws_instance.pipeline_server_a.*.public_ip}"]
+}
+
+resource "aws_route53_record" "public_artifactory" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "artifactory.${var.public_hosted_zone_name}"
+  type = "A"
+  ttl = "60"
+  records = ["${aws_instance.pipeline_server_a.*.public_ip}"]
+}
+
 resource "aws_route53_record" "jenkins" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
   name = "jenkins.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
-  records = ["${aws_instance.pipeline_server.*.private_ip}"]
+  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
 }
 
 resource "aws_route53_record" "sonarqube" {
@@ -285,7 +300,7 @@ resource "aws_route53_record" "sonarqube" {
   name = "sonarqube.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
-  records = ["${aws_instance.pipeline_server.*.private_ip}"]
+  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
 }
 
 resource "aws_route53_record" "artifactory" {
@@ -293,5 +308,5 @@ resource "aws_route53_record" "artifactory" {
   name = "artifactory.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
-  records = ["${aws_instance.pipeline_server.*.private_ip}"]
+  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
 }

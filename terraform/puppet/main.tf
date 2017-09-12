@@ -16,6 +16,10 @@ provider "template" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -23,10 +27,6 @@ terraform {
     key = "puppet.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -51,8 +51,8 @@ data "terraform_remote_state" "network" {
 ##############################################################################
 
 resource "aws_security_group" "puppet_server" {
-  name = "pupper server"
-  description = "puppet server security group"
+  name = "puppet-security-group"
+  description = "Puppet security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -64,29 +64,15 @@ resource "aws_security_group" "puppet_server" {
 
   ingress {
     from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  ingress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
     from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
@@ -105,7 +91,6 @@ resource "aws_security_group" "puppet_server" {
   }
 
   tags {
-    Name = "web server security group"
     Stream = "${var.stream_tag}"
   }
 }
@@ -125,12 +110,12 @@ data "template_file" "puppet_server_user_data" {
 }
 
 resource "aws_iam_instance_profile" "puppet_server_profile" {
-    name = "puppet_server_profile"
+    name = "puppet-server-profile"
     roles = ["${aws_iam_role.puppet_server_role.name}"]
 }
 
 resource "aws_iam_role" "puppet_server_role" {
-  name = "puppet_server_role"
+  name = "puppet-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -150,7 +135,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "puppet_server_role_policy" {
-  name = "puppet_server_role_policy"
+  name = "puppet-server-role-policy"
   role = "${aws_iam_role.puppet_server_role.id}"
 
   policy = <<EOF
@@ -206,7 +191,7 @@ resource "aws_instance" "puppet_server" {
   }
 
   tags {
-    Name = "puppet_server"
+    Name = "puppet-server-a"
     Stream = "${var.stream_tag}"
   }
 

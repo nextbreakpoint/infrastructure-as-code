@@ -16,6 +16,10 @@ provider "template" {
   version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -23,10 +27,6 @@ terraform {
     key = "consul.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -51,7 +51,7 @@ data "terraform_remote_state" "network" {
 ##############################################################################
 
 resource "aws_security_group" "consul_server" {
-  name = "consul server"
+  name = "consul-security-group"
   description = "Consul server, UI and maintenance"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -106,27 +106,12 @@ resource "aws_security_group" "consul_server" {
 
   egress {
     from_port = 0
-    to_port = 65535
-    protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
-  egress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   tags {
-    Name = "consul server security group"
     stream = "${var.stream_tag}"
   }
 }
@@ -144,13 +129,13 @@ data "template_file" "consul_server_user_data" {
   }
 }
 
-resource "aws_iam_instance_profile" "consul_node_profile" {
-    name = "consul_node_profile"
-    role = "${aws_iam_role.consul_node_role.name}"
+resource "aws_iam_instance_profile" "consul_server_profile" {
+    name = "consul-server-profile"
+    role = "${aws_iam_role.consul_server_role.name}"
 }
 
-resource "aws_iam_role" "consul_node_role" {
-  name = "consul_node_role"
+resource "aws_iam_role" "consul_server_role" {
+  name = "consul-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -169,9 +154,9 @@ resource "aws_iam_role" "consul_node_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "consul_node_role_policy" {
-  name = "consul_node_role_policy"
-  role = "${aws_iam_role.consul_node_role.id}"
+resource "aws_iam_role_policy" "consul_server_role_policy" {
+  name = "consul-server-role-policy"
+  role = "${aws_iam_role.consul_server_role.id}"
 
   policy = <<EOF
 {
@@ -208,7 +193,7 @@ data "aws_ami" "consul" {
 module "consul_servers_a" {
   source = "./consul"
 
-  name = "consul_server_a"
+  name = "consul-server-a"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
   subnet = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
@@ -220,13 +205,13 @@ module "consul_servers_a" {
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
-  instance_profile = "${aws_iam_instance_profile.consul_node_profile.name}"
+  instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
 }
 
 module "consul_servers_b" {
   source = "./consul"
 
-  name = "consul_server_b"
+  name = "consul-server-b"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
   subnet = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
@@ -238,13 +223,13 @@ module "consul_servers_b" {
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
-  instance_profile = "${aws_iam_instance_profile.consul_node_profile.name}"
+  instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
 }
 
 module "consul_servers_c" {
   source = "./consul"
 
-  name = "consul_server_c"
+  name = "consul-server-c"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
   subnet = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
@@ -256,7 +241,7 @@ module "consul_servers_c" {
   user_data = "${data.template_file.consul_server_user_data.rendered}"
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
-  instance_profile = "${aws_iam_instance_profile.consul_node_profile.name}"
+  instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
 }
 
 ##############################################################################
@@ -264,7 +249,7 @@ module "consul_servers_c" {
 ##############################################################################
 
 resource "aws_security_group" "consul_elb" {
-  name = "consul elb"
+  name = "consul-elb-security-group"
   description = "consul load balacer"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -283,15 +268,22 @@ resource "aws_security_group" "consul_elb" {
   }
 
   tags {
-    Name = "consul elb security group"
     stream = "${var.stream_tag}"
   }
 }
 
 resource "aws_elb" "consul" {
   name = "consul-elb"
+
+  depends_on = ["aws_security_group.consul_elb"]
+
   security_groups = ["${aws_security_group.consul_elb.id}"]
-  subnets = ["${data.terraform_remote_state.vpc.network-public-subnet-a-id}","${data.terraform_remote_state.vpc.network-public-subnet-b-id}","${data.terraform_remote_state.vpc.network-public-subnet-c-id}"]
+
+  subnets = [
+    "${data.terraform_remote_state.vpc.network-public-subnet-a-id}",
+    "${data.terraform_remote_state.vpc.network-public-subnet-b-id}",
+    "${data.terraform_remote_state.vpc.network-public-subnet-c-id}"
+  ]
 
   listener {
     instance_port = 8500
@@ -308,7 +300,12 @@ resource "aws_elb" "consul" {
     interval = 30
   }
 
-  instances = ["${module.consul_servers_a.ids}", "${module.consul_servers_b.ids}", "${module.consul_servers_c.ids}"]
+  instances = [
+    "${module.consul_servers_a.ids}",
+    "${module.consul_servers_b.ids}",
+    "${module.consul_servers_c.ids}"
+  ]
+
   cross_zone_load_balancing = true
   idle_timeout = 400
   connection_draining = true
@@ -316,7 +313,6 @@ resource "aws_elb" "consul" {
   internal = false
 
   tags {
-    Name = "consul elb"
     stream = "${var.stream_tag}"
   }
 }
@@ -339,8 +335,13 @@ resource "aws_route53_record" "consul" {
 
 resource "aws_route53_record" "consul_dns" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "consul-dns.${var.hosted_zone_name}"
+  name = "consul.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
-  records = ["${module.consul_servers_a.private-ips}", "${module.consul_servers_b.private-ips}", "${module.consul_servers_c.private-ips}"]
+
+  records = [
+    "${module.consul_servers_a.private-ips}",
+    "${module.consul_servers_b.private-ips}",
+    "${module.consul_servers_c.private-ips}"
+  ]
 }

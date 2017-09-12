@@ -12,6 +12,10 @@ provider "terraform" {
     version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -31,7 +35,7 @@ resource "aws_vpc" "network" {
   enable_dns_hostnames = "true"
 
   tags {
-    Name = "network"
+    Name = "network-vpc"
     Stream = "${var.stream_tag}"
   }
 }
@@ -43,7 +47,7 @@ resource "aws_vpc" "bastion" {
   enable_dns_hostnames = "true"
 
   tags {
-    Name = "bastion"
+    Name = "bastion-vpc"
     Stream = "${var.stream_tag}"
   }
 }
@@ -52,7 +56,7 @@ resource "aws_internet_gateway" "network" {
   vpc_id = "${aws_vpc.network.id}"
 
   tags {
-    Name = "network internet gateway"
+    Name = "network-internet-gateway"
     Stream = "${var.stream_tag}"
   }
 }
@@ -61,7 +65,7 @@ resource "aws_internet_gateway" "bastion" {
   vpc_id = "${aws_vpc.bastion.id}"
 
   tags {
-      Name = "bastion internet gateway"
+      Name = "bastion-internet-gateway"
       Stream = "${var.stream_tag}"
   }
 }
@@ -71,7 +75,7 @@ resource "aws_vpc_dhcp_options" "network" {
   domain_name_servers = ["AmazonProvidedDNS"]
 
   tags {
-    Name = "network internal"
+    Name = "network-internal"
     Stream = "${var.stream_tag}"
   }
 }
@@ -90,7 +94,7 @@ resource "aws_route53_zone" "network" {
   vpc_id = "${aws_vpc.network.id}"
 
   tags {
-    Name = "network private zone"
+    Name = "network-private-zone"
     Stream = "${var.stream_tag}"
   }
 }
@@ -105,7 +109,7 @@ resource "aws_vpc_peering_connection" "network_to_bastion" {
   auto_accept = true
 
   tags {
-    Name = "network to bastion peering"
+    Name = "network-to-bastion-peering"
     Stream = "${var.stream_tag}"
   }
 }
@@ -120,7 +124,7 @@ resource "aws_subnet" "network_public_a" {
   cidr_block = "${var.aws_network_public_subnet_cidr_a}"
 
   tags {
-    Name = "public subnet a"
+    Name = "public-subnet-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -131,7 +135,7 @@ resource "aws_subnet" "network_public_b" {
   cidr_block = "${var.aws_network_public_subnet_cidr_b}"
 
   tags {
-    Name = "public subnet b"
+    Name = "public-subnet-b"
     Stream = "${var.stream_tag}"
   }
 }
@@ -142,7 +146,7 @@ resource "aws_subnet" "network_public_c" {
   cidr_block = "${var.aws_network_public_subnet_cidr_c}"
 
   tags {
-    Name = "public subnet c"
+    Name = "public-subnet-c"
     Stream = "${var.stream_tag}"
   }
 }
@@ -153,7 +157,7 @@ resource "aws_subnet" "network_private_a" {
   cidr_block = "${var.aws_network_private_subnet_cidr_a}"
 
   tags {
-    Name = "private subnet a"
+    Name = "private-subnet-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -164,7 +168,7 @@ resource "aws_subnet" "network_private_b" {
   cidr_block = "${var.aws_network_private_subnet_cidr_b}"
 
   tags {
-    Name = "private subnet b"
+    Name = "private-subnet-b"
     Stream = "${var.stream_tag}"
   }
 }
@@ -175,7 +179,7 @@ resource "aws_subnet" "network_private_c" {
   cidr_block = "${var.aws_network_private_subnet_cidr_c}"
 
   tags {
-    Name = "private subnet c"
+    Name = "private-subnet-c"
     Stream = "${var.stream_tag}"
   }
 }

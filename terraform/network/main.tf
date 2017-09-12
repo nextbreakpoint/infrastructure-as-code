@@ -12,6 +12,10 @@ provider "terraform" {
     version = "~> 0.1"
 }
 
+##############################################################################
+# Remote state
+##############################################################################
+
 terraform {
   backend "s3" {
     bucket = "nextbreakpoint-terraform-state"
@@ -19,10 +23,6 @@ terraform {
     key = "network.tfstate"
   }
 }
-
-##############################################################################
-# Remote state
-##############################################################################
 
 data "terraform_remote_state" "vpc" {
     backend = "s3"
@@ -76,7 +76,7 @@ resource "aws_route_table_association" "network_public_c" {
 ##############################################################################
 
 resource "aws_security_group" "network_nat" {
-  name = "NAT private"
+  name = "NAT-security-group"
   description = "NAT security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -115,7 +115,7 @@ resource "aws_security_group" "network_nat" {
 }
 
 resource "aws_instance" "network_nat_a" {
-  instance_type = "t2.micro"
+  instance_type = "${var.nat_instance_type}"
 
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
@@ -124,7 +124,6 @@ resource "aws_instance" "network_nat_a" {
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
-  count = "1"
 
   source_dest_check = false
 
@@ -136,13 +135,13 @@ resource "aws_instance" "network_nat_a" {
   }
 
   tags {
-    Name = "nat_box_a"
+    Name = "nat-box-a"
     Stream = "${var.stream_tag}"
   }
 }
 
 resource "aws_instance" "network_nat_b" {
-  instance_type = "t2.micro"
+  instance_type = "${var.nat_instance_type}"
 
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
@@ -151,7 +150,6 @@ resource "aws_instance" "network_nat_b" {
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
-  count = "1"
 
   source_dest_check = false
 
@@ -163,13 +161,13 @@ resource "aws_instance" "network_nat_b" {
   }
 
   tags {
-    Name = "nat_box_b"
+    Name = "nat-box-b"
     Stream = "${var.stream_tag}"
   }
 }
 
 resource "aws_instance" "network_nat_c" {
-  instance_type = "t2.micro"
+  instance_type = "${var.nat_instance_type}"
 
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
@@ -178,7 +176,6 @@ resource "aws_instance" "network_nat_c" {
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
-  count = "1"
 
   source_dest_check = false
 
@@ -190,7 +187,7 @@ resource "aws_instance" "network_nat_c" {
   }
 
   tags {
-    Name = "nat_box_c"
+    Name = "nat-box-c"
     Stream = "${var.stream_tag}"
   }
 }

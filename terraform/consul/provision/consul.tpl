@@ -24,7 +24,7 @@ sudo cat <<EOF >/tmp/consul.json
   "ui": true,
   "server": true,
   "bootstrap_expect": ${bootstrap_expect},
-  "retry_join": ["consul-dns.internal"]
+  "retry_join": ["consul.internal"]
 }
 EOF
 sudo sed -i -e 's/CONSUL_HOST/'$CONSUL_HOST'/g' /tmp/consul.json

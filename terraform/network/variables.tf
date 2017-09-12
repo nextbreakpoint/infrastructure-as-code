@@ -29,3 +29,7 @@ variable "amazon_nat_ami" {
     eu-west-1 = "ami-47ecb121"
   }
 }
+
+variable "nat_instance_type" {
+  default = "t2.micro"
+}

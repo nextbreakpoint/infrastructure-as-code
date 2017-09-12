@@ -41,6 +41,10 @@ variable "hosted_zone_name" {
 }
 
 ### MANDATORY ###
+variable "public_hosted_zone_id" {
+}
+
+### MANDATORY ###
 variable "public_hosted_zone_name" {
 }
 

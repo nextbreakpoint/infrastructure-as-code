@@ -1,3 +1,3 @@
-output "pipeline-server-private-ip" {
-  value = "${aws_instance.pipeline_server.private_ip}"
+output "pipeline-server-a-private-ip" {
+  value = "${aws_instance.pipeline_server_a.private_ip}"
 }
