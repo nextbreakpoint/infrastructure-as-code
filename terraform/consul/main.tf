@@ -291,7 +291,7 @@ resource "aws_security_group" "consul_elb" {
 resource "aws_elb" "consul" {
   name = "consul-elb"
   security_groups = ["${aws_security_group.consul_elb.id}"]
-  subnets = ["${data.terraform_remote_state.vpc.network-private-subnet-a-id}","${data.terraform_remote_state.vpc.network-private-subnet-b-id}","${data.terraform_remote_state.vpc.network-private-subnet-c-id}"]
+  subnets = ["${data.terraform_remote_state.vpc.network-public-subnet-a-id}","${data.terraform_remote_state.vpc.network-public-subnet-b-id}","${data.terraform_remote_state.vpc.network-public-subnet-c-id}"]
 
   listener {
     instance_port = 8500
@@ -313,7 +313,7 @@ resource "aws_elb" "consul" {
   idle_timeout = 400
   connection_draining = true
   connection_draining_timeout = 400
-  internal = true
+  internal = false
 
   tags {
     Name = "consul elb"
@@ -326,8 +326,8 @@ resource "aws_elb" "consul" {
 ##############################################################################
 
 resource "aws_route53_record" "consul" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "consul.${var.hosted_zone_name}"
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "consul.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {
@@ -335,4 +335,12 @@ resource "aws_route53_record" "consul" {
     zone_id = "${aws_elb.consul.zone_id}"
     evaluate_target_health = true
   }
+}
+
+resource "aws_route53_record" "consul_dns" {
+  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+  name = "consul-dns.${var.hosted_zone_name}"
+  type = "A"
+  ttl = "60"
+  records = ["${module.consul_servers_a.private-ips}", "${module.consul_servers_b.private-ips}", "${module.consul_servers_c.private-ips}"]
 }

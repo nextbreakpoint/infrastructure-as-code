@@ -225,7 +225,7 @@ data "aws_ami" "zookeeper" {
 }
 
 resource "aws_instance" "zookeeper_server_a" {
-  instance_type = "${var.aws_zookeeper_instance_type}"
+  instance_type = "${var.zookeeper_instance_type}"
 
   ami = "${data.aws_ami.zookeeper.id}"
 
@@ -243,7 +243,7 @@ resource "aws_instance" "zookeeper_server_a" {
 }
 
 resource "aws_instance" "zookeeper_server_b" {
-  instance_type = "${var.aws_zookeeper_instance_type}"
+  instance_type = "${var.zookeeper_instance_type}"
 
   ami = "${data.aws_ami.zookeeper.id}"
 
@@ -261,7 +261,7 @@ resource "aws_instance" "zookeeper_server_b" {
 }
 
 resource "aws_instance" "zookeeper_server_c" {
-  instance_type = "${var.aws_zookeeper_instance_type}"
+  instance_type = "${var.zookeeper_instance_type}"
 
   ami = "${data.aws_ami.zookeeper.id}"
 

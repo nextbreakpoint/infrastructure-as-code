@@ -162,7 +162,7 @@ resource "aws_ecs_cluster" "services" {
 
 resource "aws_instance" "cluster_node_a" {
   depends_on = ["aws_ecs_cluster.services"]
-  instance_type = "${var.aws_cluster_instance_type}"
+  instance_type = "${var.cluster_instance_type}"
 
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.cluster_amis, var.aws_region)}"
@@ -196,7 +196,7 @@ resource "aws_instance" "cluster_node_a" {
 
 resource "aws_instance" "cluster_node_b" {
   depends_on = ["aws_ecs_cluster.services"]
-  instance_type = "${var.aws_cluster_instance_type}"
+  instance_type = "${var.cluster_instance_type}"
 
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.cluster_amis, var.aws_region)}"

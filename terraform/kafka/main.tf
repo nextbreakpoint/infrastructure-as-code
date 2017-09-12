@@ -228,7 +228,7 @@ data "aws_ami" "kafka" {
 }
 
 resource "aws_instance" "kafka_server_a" {
-  instance_type = "${var.aws_kafka_instance_type}"
+  instance_type = "${var.kafka_instance_type}"
 
   ami = "${data.aws_ami.kafka.id}"
 
@@ -264,7 +264,7 @@ resource "aws_instance" "kafka_server_a" {
 }
 
 resource "aws_instance" "kafka_server_b" {
-  instance_type = "${var.aws_kafka_instance_type}"
+  instance_type = "${var.kafka_instance_type}"
 
   ami = "${data.aws_ami.kafka.id}"
 
@@ -300,7 +300,7 @@ resource "aws_instance" "kafka_server_b" {
 }
 
 resource "aws_instance" "kafka_server_c" {
-  instance_type = "${var.aws_kafka_instance_type}"
+  instance_type = "${var.kafka_instance_type}"
 
   ami = "${data.aws_ami.kafka.id}"
 

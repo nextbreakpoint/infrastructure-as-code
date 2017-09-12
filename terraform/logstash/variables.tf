@@ -60,7 +60,7 @@ variable "logstash_version" {
 variable "account_id" {
 }
 
-variable "aws_logstash_instance_type" {
+variable "logstash_instance_type" {
   description = "Logstash instance type."
   default = "t2.small"
 }

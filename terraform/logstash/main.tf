@@ -237,7 +237,7 @@ data "aws_ami" "logstash" {
 }
 
 resource "aws_instance" "logstash_server_a" {
-  instance_type = "${var.aws_logstash_instance_type}"
+  instance_type = "${var.logstash_instance_type}"
 
   ami = "${data.aws_ami.logstash.id}"
 
@@ -269,7 +269,7 @@ resource "aws_instance" "logstash_server_a" {
 }
 
 resource "aws_instance" "logstash_server_b" {
-  instance_type = "${var.aws_logstash_instance_type}"
+  instance_type = "${var.logstash_instance_type}"
 
   ami = "${data.aws_ami.logstash.id}"
 

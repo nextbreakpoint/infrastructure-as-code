@@ -265,7 +265,7 @@ data "aws_ami" "cassandra" {
 }
 
 resource "aws_instance" "cassandra_server_a1" {
-  instance_type = "${var.aws_cassandra_instance_type}"
+  instance_type = "${var.cassandra_instance_type}"
 
   ami = "${data.aws_ami.cassandra.id}"
 
@@ -300,7 +300,7 @@ resource "aws_instance" "cassandra_server_a1" {
 }
 
 resource "aws_instance" "cassandra_server_b1" {
-  instance_type = "${var.aws_cassandra_instance_type}"
+  instance_type = "${var.cassandra_instance_type}"
 
   ami = "${data.aws_ami.cassandra.id}"
 
@@ -335,7 +335,7 @@ resource "aws_instance" "cassandra_server_b1" {
 }
 
 resource "aws_instance" "cassandra_server_c1" {
-  instance_type = "${var.aws_cassandra_instance_type}"
+  instance_type = "${var.cassandra_instance_type}"
 
   ami = "${data.aws_ami.cassandra.id}"
 
@@ -370,7 +370,7 @@ resource "aws_instance" "cassandra_server_c1" {
 }
 
 resource "aws_instance" "cassandra_server_a2" {
-  instance_type = "${var.aws_cassandra_instance_type}"
+  instance_type = "${var.cassandra_instance_type}"
 
   ami = "${data.aws_ami.cassandra.id}"
 
@@ -388,7 +388,7 @@ resource "aws_instance" "cassandra_server_a2" {
 }
 
 resource "aws_instance" "cassandra_server_b2" {
-  instance_type = "${var.aws_cassandra_instance_type}"
+  instance_type = "${var.cassandra_instance_type}"
 
   ami = "${data.aws_ami.cassandra.id}"
 
@@ -406,7 +406,7 @@ resource "aws_instance" "cassandra_server_b2" {
 }
 
 resource "aws_instance" "cassandra_server_c2" {
-  instance_type = "${var.aws_cassandra_instance_type}"
+  instance_type = "${var.cassandra_instance_type}"
 
   ami = "${data.aws_ami.cassandra.id}"
 

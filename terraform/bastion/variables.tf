@@ -42,7 +42,7 @@ variable "public_hosted_zone_name" {
 # Bastion configuration below
 ###################################################################
 
-variable "aws_bastion_instance_type" {
+variable "bastion_instance_type" {
   description = "bastion instance type."
   default  = "t2.micro"
 }

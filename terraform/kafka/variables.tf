@@ -64,7 +64,7 @@ variable "scala_version" {
 variable "account_id" {
 }
 
-variable "aws_kafka_instance_type" {
+variable "kafka_instance_type" {
   description = "kafka instance type."
   default  = "t2.medium"
 }

@@ -60,7 +60,7 @@ variable "kibana_version" {
 variable "account_id" {
 }
 
-variable "aws_kibana_instance_type" {
+variable "kibana_instance_type" {
   description = "Kibana instance type."
   default  = "t2.medium"
 }

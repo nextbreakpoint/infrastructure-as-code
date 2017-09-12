@@ -24,11 +24,7 @@ sudo cat <<EOF >/tmp/consul.json
   "ui": true,
   "server": true,
   "bootstrap_expect": ${bootstrap_expect},
-  "retry_join_ec2": {
-  		"region": "${aws_region}",
-      "tag_key": "stream",
-      "tag_value": "terraform"
-  }
+  "retry_join": ["consul-dns.internal"]
 }
 EOF
 sudo sed -i -e 's/CONSUL_HOST/'$CONSUL_HOST'/g' /tmp/consul.json

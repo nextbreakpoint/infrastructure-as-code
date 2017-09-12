@@ -60,7 +60,7 @@ variable "cassandra_version" {
 variable "account_id" {
 }
 
-variable "aws_cassandra_instance_type" {
+variable "cassandra_instance_type" {
   description = "cassandra instance type."
   default  = "t2.medium"
 }

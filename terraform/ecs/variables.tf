@@ -52,7 +52,7 @@ variable "cluster_amis" {
   }
 }
 
-variable "aws_cluster_instance_type" {
+variable "cluster_instance_type" {
   description = "cluster instance type."
   default  = "m4.large"
 }

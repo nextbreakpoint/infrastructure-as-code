@@ -60,7 +60,7 @@ variable "base_version" {
 variable "account_id" {
 }
 
-variable "aws_zookeeper_instance_type" {
+variable "zookeeper_instance_type" {
   description = "zookeeper instance type."
   default  = "t2.small"
 }
