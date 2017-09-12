@@ -25,7 +25,7 @@ filebeat:
         - /var/log/nginx/error.log
 
       input_type: log
-      
+
       document_type: syslog
 
   registry_file: /var/lib/filebeat/registry
@@ -72,8 +72,8 @@ http {
     server_name consul.nextbreakpoint.com;
 
     location / {
-        #proxy_pass http://${consul_host}:8500;
-        #proxy_redirect http://${consul_host}:8500 http://consul.nextbreakpoint.com;
+        proxy_pass http://${consul_host}:8500;
+        proxy_redirect http://${consul_host}:8500 http://consul.nextbreakpoint.com;
     }
   }
   server {
@@ -82,8 +82,8 @@ http {
     server_name kibana.nextbreakpoint.com;
 
     location / {
-        #proxy_pass http://${kibana_host}:5601;
-        #proxy_redirect http://${kibana_host}:5601 http://kibana.nextbreakpoint.com;
+        proxy_pass http://${kibana_host}:5601;
+        proxy_redirect http://${kibana_host}:5601 http://kibana.nextbreakpoint.com;
     }
   }
   server {

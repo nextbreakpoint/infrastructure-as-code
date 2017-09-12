@@ -57,10 +57,6 @@ variable "logstash_version" {
 }
 
 ### MANDATORY ###
-variable "base_version" {
-}
-
-### MANDATORY ###
 variable "account_id" {
 }
 

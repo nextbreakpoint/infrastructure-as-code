@@ -64,6 +64,11 @@ variable "base_version" {
 variable "account_id" {
 }
 
+variable "web_instance_type" {
+  description = "Nginx instance type."
+  default = "t2.small"
+}
+
 ### MANDATORY ###
 variable "environment" {
   default = "terraform"

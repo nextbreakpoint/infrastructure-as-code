@@ -57,16 +57,12 @@ variable "kibana_version" {
 }
 
 ### MANDATORY ###
-variable "base_version" {
-}
-
-### MANDATORY ###
 variable "account_id" {
 }
 
 variable "aws_kibana_instance_type" {
   description = "Kibana instance type."
-  default  = "t2.small"
+  default  = "t2.medium"
 }
 
 ### MANDATORY ###

@@ -158,8 +158,8 @@ data "template_file" "kafka_server_user_data" {
     aws_region              = "${var.aws_region}"
     security_groups         = "${aws_security_group.kafka_server.id}"
     consul_log_file         = "${var.consul_log_file}"
-    kafka_verion            = "${var.kafka_version}"
-    scala_verion            = "${var.scala_verion}"
+    kafka_version           = "${var.kafka_version}"
+    scala_version           = "${var.scala_version}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
     zookeeper_nodes         = "${data.terraform_remote_state.zookeeper.zookeeper-server-a-private-ip}:2181,${data.terraform_remote_state.zookeeper.zookeeper-server-b-private-ip}:2181,${data.terraform_remote_state.zookeeper.zookeeper-server-c-private-ip}:2181"
@@ -230,7 +230,7 @@ data "aws_ami" "kafka" {
 resource "aws_instance" "kafka_server_a" {
   instance_type = "${var.aws_kafka_instance_type}"
 
-  ami = "${data.aws_ami.kafka.id}}"
+  ami = "${data.aws_ami.kafka.id}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
@@ -266,7 +266,7 @@ resource "aws_instance" "kafka_server_a" {
 resource "aws_instance" "kafka_server_b" {
   instance_type = "${var.aws_kafka_instance_type}"
 
-  ami = "${data.aws_ami.kafka.id}}"
+  ami = "${data.aws_ami.kafka.id}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
@@ -302,7 +302,7 @@ resource "aws_instance" "kafka_server_b" {
 resource "aws_instance" "kafka_server_c" {
   instance_type = "${var.aws_kafka_instance_type}"
 
-  ami = "${data.aws_ami.kafka.id}}"
+  ami = "${data.aws_ami.kafka.id}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
   associate_public_ip_address = "false"

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export CASSANDRA_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
+export CASSANDRA_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]

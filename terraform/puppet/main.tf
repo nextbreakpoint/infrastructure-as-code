@@ -186,7 +186,7 @@ data "aws_ami" "puppet" {
 }
 
 resource "aws_instance" "puppet_server" {
-  instance_type = "t2.small"
+  instance_type = "${var.puppet_instance_type}"
 
   ami = "${data.aws_ami.puppet.id}"
 

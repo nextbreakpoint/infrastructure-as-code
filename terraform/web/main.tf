@@ -236,7 +236,7 @@ data "aws_ami" "web_server" {
 }
 
 resource "aws_instance" "web_server_a" {
-  instance_type = "t2.small"
+  instance_type = "${var.web_instance_type}"
 
   ami = "${data.aws_ami.web_server.id}"
 
@@ -254,7 +254,7 @@ resource "aws_instance" "web_server_a" {
 }
 
 resource "aws_instance" "web_server_b" {
-  instance_type = "t2.small"
+  instance_type = "${var.web_instance_type}"
 
   ami = "${data.aws_ami.web_server.id}"
 

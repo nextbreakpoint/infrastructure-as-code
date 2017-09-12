@@ -57,6 +57,10 @@ variable "kafka_version" {
 }
 
 ### MANDATORY ###
+variable "scala_version" {
+}
+
+### MANDATORY ###
 variable "account_id" {
 }
 

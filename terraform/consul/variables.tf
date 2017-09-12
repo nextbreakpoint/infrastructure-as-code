@@ -53,15 +53,16 @@ variable "aws_network_vpc_cidr" {
 ###################################################################
 
 ### MANDATORY ###
-variable "consul_version" {
-}
-
-### MANDATORY ###
 variable "base_version" {
 }
 
 ### MANDATORY ###
 variable "account_id" {
+}
+
+variable "consul_instance_type" {
+  description = "Consul instance type."
+  default = "t2.micro"
 }
 
 variable "allowed_cidr_blocks" {
@@ -74,6 +75,5 @@ variable "consul_log_file" {
 
 ### MANDATORY ###
 variable "environment" {
-  description = "Elastic environment tag for auto discovery"
   default = "terraform"
 }

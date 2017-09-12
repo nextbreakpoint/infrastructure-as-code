@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export ELASTICSEARCH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
+export ELASTICSEARCH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
@@ -74,7 +74,7 @@ sudo cat <<EOF >/tmp/elasticsearch-consul.json
             "id": "1",
             "name": "Elasticsearch HTTP",
             "notes": "Use curl to check the web service every 10 seconds",
-            "script": "curl `ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }'`:9200 >/dev/null 2>&1",
+            "script": "curl `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'`:9200 >/dev/null 2>&1",
             "interval": "10s"
         } ],
         "leave_on_terminate": true
@@ -89,7 +89,7 @@ sudo cat <<EOF >/tmp/elasticsearch-consul.json
             "id": "1",
             "name": "Elasticsearch TCP",
             "notes": "Use nc to check the tcp port every 10 seconds",
-            "script": "nc -zv `ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }'` 9300 >/dev/null 2>&1 ",
+            "script": "nc -zv `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 9300 >/dev/null 2>&1 ",
             "interval": "10s"
         }],
         "leave_on_terminate": true

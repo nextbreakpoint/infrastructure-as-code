@@ -101,8 +101,8 @@ resource "aws_security_group" "cluster_server" {
 }
 
 resource "aws_iam_instance_profile" "cluster_node_profile" {
-    name = "cluster_node_profile"
-    roles = ["${aws_iam_role.cluster_node_role.name}"]
+    name = "ecs_node_profile"
+    role = "${aws_iam_role.cluster_node_role.name}"
 }
 
 resource "aws_iam_role" "cluster_node_role" {

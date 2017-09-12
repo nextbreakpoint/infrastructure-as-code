@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export ZOOKEEPER_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
+export ZOOKEEPER_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
@@ -61,7 +61,7 @@ sudo cat <<EOF >/tmp/zookeeper-consul.json
             "id": "1",
             "name": "zookeeper TCP",
             "notes": "Use nc to check the service every 10 seconds",
-            "script": "echo stat | nc `ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }'` 2181 >/dev/null 2>&1",
+            "script": "echo stat | nc `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 2181 >/dev/null 2>&1",
             "interval": "10s"
         } ],
         "leave_on_terminate": true

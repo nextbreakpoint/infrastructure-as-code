@@ -177,7 +177,7 @@ data "template_file" "logstash_server_user_data_b" {
 
 resource "aws_iam_instance_profile" "logstash_node_profile" {
     name = "logstash_node_profile"
-    roles = ["${aws_iam_role.logstash_node_role.name}"]
+    role = "${aws_iam_role.logstash_node_role.name}"
 }
 
 resource "aws_iam_role" "logstash_node_role" {
@@ -237,7 +237,7 @@ data "aws_ami" "logstash" {
 }
 
 resource "aws_instance" "logstash_server_a" {
-  instance_type = "t2.small"
+  instance_type = "${var.aws_logstash_instance_type}"
 
   ami = "${data.aws_ami.logstash.id}"
 
@@ -269,7 +269,7 @@ resource "aws_instance" "logstash_server_a" {
 }
 
 resource "aws_instance" "logstash_server_b" {
-  instance_type = "t2.small"
+  instance_type = "${var.aws_logstash_instance_type}"
 
   ami = "${data.aws_ami.logstash.id}"
 

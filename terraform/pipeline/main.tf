@@ -209,7 +209,7 @@ data "aws_ami" "pipeline" {
 
   filter {
     name = "name"
-    values = ["pipeline-${var.pipeline_version}-*"]
+    values = ["pipeline-${var.base_version}-*"]
   }
 
   filter {

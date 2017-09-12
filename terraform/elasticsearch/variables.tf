@@ -61,14 +61,10 @@ variable "elasticsearch_version" {
 }
 
 ### MANDATORY ###
-variable "base_version" {
-}
-
-### MANDATORY ###
 variable "account_id" {
 }
 
-variable "es_instance_type" {
+variable "elasticsearch_instance_type" {
   description = "Elasticsearch instance type."
   default = "t2.medium"
 }

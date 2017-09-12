@@ -57,10 +57,6 @@ variable "cassandra_version" {
 }
 
 ### MANDATORY ###
-variable "base_version" {
-}
-
-### MANDATORY ###
 variable "account_id" {
 }
 

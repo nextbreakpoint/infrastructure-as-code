@@ -56,6 +56,11 @@ variable "aws_network_vpc_cidr" {
 variable "base_version" {
 }
 
+variable "puppet_instance_type" {
+  description = "Puppet instance type."
+  default = "t2.small"
+}
+
 ### MANDATORY ###
 variable "account_id" {
 }

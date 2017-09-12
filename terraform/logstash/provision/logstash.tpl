@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export LOGSTASH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print $2 }'`
+export LOGSTASH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
 
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
@@ -61,7 +61,7 @@ sudo cat <<EOF >/tmp/kibana-consul.json
             "id": "1",
             "name": "Logstash TCP",
             "notes": "Use nc to check the tcp port every 10 seconds",
-            "script": "nc -zv `ifconfig eth0 | grep 'inet addr' | awk '{ print substr($2,6) }'` 5044 >/dev/null 2>&1 ",
+            "script": "nc -zv `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 5044 >/dev/null 2>&1 ",
             "interval": "10s"
         }],
         "leave_on_terminate": true

@@ -57,10 +57,6 @@ variable "aws_network_vpc_cidr" {
 ###################################################################
 
 ### MANDATORY ###
-variable "pipeline_version" {
-}
-
-### MANDATORY ###
 variable "jenkins_version" {
 }
 
@@ -74,6 +70,10 @@ variable "artifactory_version" {
 
 ### MANDATORY ###
 variable "mysqlconnector_version" {
+}
+
+### MANDATORY ###
+variable "base_version" {
 }
 
 ### MANDATORY ###
