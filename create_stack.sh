@@ -1,6 +1,6 @@
 #!/bin/bash
 DIR=$(pwd)
-source alias.sh
+source bash_alias
 
 cd $DIR/terraform/consul && tf_init && tf_apply
 

@@ -36,7 +36,7 @@ data "template_file" "public_key" {
   template = "${file("${var.key_path}.pub")}"
 }
 
-resource "aws_key_pair" "terraform" {
+resource "aws_key_pair" "deployer_key" {
   key_name   = "${var.key_name}"
   public_key = "${data.template_file.public_key.rendered}"
 }

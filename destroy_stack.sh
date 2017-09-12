@@ -1,6 +1,6 @@
 #!/bin/bash
 DIR=$(pwd)
-source alias.sh
+source bash_alias
 
 #cd $DIR/terraform/kafka && tf_destroy -force
 #cd $DIR/terraform/cassandra && tf_destroy -force

@@ -1,5 +1,5 @@
 #!/bin/bash
 DIR=$(pwd)
-source alias.sh
+source bash_alias
 
 cd $DIR/terraform/keys && tf_destroy -force

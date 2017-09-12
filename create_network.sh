@@ -1,6 +1,6 @@
 #!/bin/bash
 DIR=$(pwd)
-source alias.sh
+source bash_alias
 
 # Create VPC and subnets
 cd $DIR/terraform/vpc && tf_init && tf_apply
