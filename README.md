@@ -2,8 +2,8 @@
 
 THIS PROJECT IS WORK IN PROGRESS
 
-This repository contains scripts for creating a production grade
-cloud based infrastructure which can be used to run micro services.
+This repository contains scripts for creating a production-ready
+cloud-based infrastructure which can be used to run micro services.
 
 The scripts are based on Terraform and Packer and they target AWS.
 
@@ -21,7 +21,9 @@ The infrastructure provides key components such like:
 
 ## How to create the infrastructure
 
-The scripts provided in this repository aim to simplify a process which involves many steps and it requires a basic understanding of AWS platform and tools such like Terraform and Packer.
+The scripts provided in this repository aim to simplify a process which involves
+many steps and it requires some understanding of AWS platform and tools such
+like Terraform and Packer.
 
 ### Prepare environment
 
