@@ -25,7 +25,7 @@ The scripts provided in this repository aim to simplify a process which involves
 many steps and it requires some understanding of AWS platform and tools such
 like Terraform and Packer.
 
-### Prepare environment
+### Install tools and prepare environment
 
 Before you start, you need to prepare your environment.
 
