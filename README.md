@@ -155,13 +155,13 @@ Images can be removed when they are not required anymore.
 
 You can list all your private images using command:
 
-  aws ec2 describe-images --filters Name=owner-id,Values=your_account --query 'Images[*].{ID:ImageId}' | jq '.[]' | jq -r '.ID'
+    aws ec2 describe-images --filters Name=owner-id,Values=your_account --query 'Images[*].{ID:ImageId}' | jq '.[]' | jq -r '.ID'
 
 You can deregister all your private images using commands:
 
-  export AMIS=$(aws ec2 describe-images --filters Name=owner-id,Values=your_account --query 'Images[*].{ID:ImageId}' | jq '.[]' | jq -r '.ID')
+    export AMIS=$(aws ec2 describe-images --filters Name=owner-id,Values=your_account --query 'Images[*].{ID:ImageId}' | jq '.[]' | jq -r '.ID')
 
-  for ami in $AMIS; do aws ec2 deregister-image --image-id $ami; done;
+    for ami in $AMIS; do aws ec2 deregister-image --image-id $ami; done;
 
 ### Create stack
 
@@ -207,7 +207,7 @@ Integrate your build pipeline with Artifactory and manage your artifacts:
 
 Deploy your application in ECS or EC2. You can manually deploy your application or create your own scripts.
 Your application might use ZooKeeper, Kafka, Cassandra clusters or it might use any other resource reachable
-from a subnet. 
+from a subnet.
 
 ZooKeeper, Kafka and Cassandra are reachable using the private hostname:
 
