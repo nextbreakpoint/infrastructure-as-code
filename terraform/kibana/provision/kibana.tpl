@@ -46,11 +46,8 @@ sudo cat <<EOF >/tmp/kibana-consul.json
     "datacenter": "terraform",
     "data_dir": "/mnt/consul",
     "log_level": "TRACE",
-    "retry_join_ec2": {
-      "region": "${aws_region}",
-      "tag_key": "stream",
-      "tag_value": "terraform"
-    },
+    "retry_join": ["consul.internal"],
+    "enable_script_checks": true,
     "leave_on_terminate": true,
     "services": [{
         "name": "kibana",
@@ -61,9 +58,9 @@ sudo cat <<EOF >/tmp/kibana-consul.json
         "checks": [{
             "id": "1",
             "name": "kibana HTTP",
-            "notes": "Use curl to check the web service every 10 seconds",
+            "notes": "Use curl to check the web service every 60 seconds",
             "script": "curl `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'`:5601 >/dev/null 2>&1",
-            "interval": "10s"
+            "interval": "60s"
         } ],
         "leave_on_terminate": true
     },
@@ -76,9 +73,9 @@ sudo cat <<EOF >/tmp/kibana-consul.json
         "checks": [{
             "id": "1",
             "name": "Elasticsearch HTTP",
-            "notes": "Use curl to check the web service every 10 seconds",
+            "notes": "Use curl to check the web service every 60 seconds",
             "script": "curl `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'`:9200 >/dev/null 2>&1",
-            "interval": "10s"
+            "interval": "60s"
         } ],
         "leave_on_terminate": true
     },
@@ -91,9 +88,9 @@ sudo cat <<EOF >/tmp/kibana-consul.json
         "checks": [{
             "id": "1",
             "name": "Elasticsearch TCP",
-            "notes": "Use nc to check the tcp port every 10 seconds",
+            "notes": "Use nc to check the tcp port every 60 seconds",
             "script": "nc -zv `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 9300 >/dev/null 2>&1 ",
-            "interval": "10s"
+            "interval": "60s"
         }],
         "leave_on_terminate": true
     }]

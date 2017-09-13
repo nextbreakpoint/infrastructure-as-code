@@ -133,6 +133,7 @@ data "template_file" "kafka_server_user_data" {
     scala_version           = "${var.scala_version}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
     zookeeper_nodes         = "${data.terraform_remote_state.zookeeper.zookeeper-server-a-private-ip}:2181,${data.terraform_remote_state.zookeeper.zookeeper-server-b-private-ip}:2181,${data.terraform_remote_state.zookeeper.zookeeper-server-c-private-ip}:2181"
   }
 }

@@ -15,9 +15,9 @@ The infrastructure provides key components such like:
 
 - Jenkins, SonarQube and Artifactory for creating a continuous delivery pipeline
 
-- Consul for monitoring servers and
+- Consul for monitoring servers and services
 
-- Kubernetes for orchestrating Docker containers
+- Kubernetes and ECS for orchestrating Docker containers
 
 ## How to create the infrastructure
 
@@ -25,20 +25,32 @@ The scripts provided in this repository aim to simplify a process which involves
 
 ### Prepare environment
 
-The user must have a valid AWS account. Credentials must be configured according to AWS CLI documentation.
-
-Before you start, check you have valid credentials in file ~/.aws/credentials and remember to export your active profile:
-
-    export AWS_PROFILE=default
+Before you start, you need to prepare your environment.
 
 Prepare your environment installing Terraform and Packer.
 
 Install the command line tool jq required to manipulate json.
 
-Create a file terraform.tfvars like this:
+Install the AWS command line tools. Follow instruction here https://aws.amazon.com/cli.
+
+You must have a valid AWS account. You can create a new account here https://aws.amazon.com.
+
+Configure your credentials according to AWS CLI documentation.
+
+Check you have valid credentials in file ~/.aws/credentials:
+
+    [default]
+    aws_access_key_id = ???
+    aws_secret_access_key = ???
+
+Export your active profile:
+
+    export AWS_PROFILE=default
+
+Create a file config.tfvars like this:
 
     # AWS Account
-    account_id="???"
+    account_id="your_account"
 
     # Region
     aws_region="eu-west-1"
@@ -49,73 +61,24 @@ Create a file terraform.tfvars like this:
 
     # Hosted zones
     public_hosted_zone_name="yourdomain.com"
-    public_hosted_zone_id="???"
+    public_hosted_zone_id="your_public_zone_id"
     hosted_zone_name="internal"
-
-    # VPC and subnets
-    aws_bastion_vpc_cidr="172.33.0.0/16"
-    aws_bastion_subnet_cidr_a="172.33.0.0/24"
-    aws_bastion_subnet_cidr_b="172.33.1.0/24"
-
-    aws_network_vpc_cidr="172.32.0.0/16"
-    aws_network_public_subnet_cidr_a="172.32.0.0/24"
-    aws_network_public_subnet_cidr_b="172.32.2.0/24"
-    aws_network_public_subnet_cidr_c="172.32.4.0/24"
-    aws_network_private_subnet_cidr_a="172.32.1.0/24"
-    aws_network_private_subnet_cidr_b="172.32.3.0/24"
-    aws_network_private_subnet_cidr_c="172.32.5.0/24"
-
-    aws_network_dev_public_subnet_cidr_a="172.32.6.0/24"
-    aws_network_dev_private_subnet_cidr_a="172.32.7.0/24"
-
-    # Base AMI version
-    base_version="1.0"
-
-    # Software versions
-    jenkins_version="2.78"
-    sonarqube_version="6.5"
-    artifactory_version="5.4.6"
-    mysqlconnector_version="5.1.44"
-    elasticsearch_version="5.5.2"
-    filebeat_version="5.5.2"
-    logstash_version="5.5.2"
-    kibana_version="5.5.2"
-    topbeat_version="1.3.1"
-    consul_version="0.9.3"
-    kafka_version="0.11.0.0"
-    scala_version="2.12"
-    kubernetes_version="1.7.5"
-    cassandra_version="311"
 
     # Other
     es_cluster="logs"
     es_environment="logs"
 
-Create a file packer_vars.json like this:
+Create a file config_vars.json like this:
 
     {
       "aws_region": "eu-west-1",
       "key_name": "deployer_key",
       "key_path": "../../deployer_key.pem",
-      "bastion_host": "bastion.yourdomain.com",
-      "base_version": "1.0",
-      "jenkins_version": "2.78",
-      "sonarqube_version": "6.5",
-      "artifactory_version": "5.4.6",
-      "mysqlconnector_version": "5.1.44",
-      "elasticsearch_version": "5.5.2",
-      "filebeat_version": "5.5.2",
-      "logstash_version": "5.5.2",
-      "kibana_version": "5.5.2",
-      "topbeat_version": "1.3.1",
-      "consul_version": "0.9.3",
-      "kafka_version": "0.11.0.0",
-      "scala_version": "2.12",
-      "kubernetes_version": "1.7.5",
-      "cassandra_version": "311"
+      "bastion_host": "bastion.yourdomain.com"
     }
 
-The domain yourdomain.com must be a valid domain hosted in a Route53 public zone.
+The domain yourdomain.com must be a domain hosted in a Route53 public zone.
+Create a new public zone and register a new domain if you don't have one already.
 
 ### Generate deployer key
 
@@ -162,7 +125,7 @@ Destroy VPCs and subnets using the script:
 
 ESB volumes are required to store persistent data which can survive after
 a restart of a EC2 instance or in case we need to recreate a EC2 instance.
-ESB volumes need to be initialized with at least one partition before
+ESB volumes need to be initialised with at least one partition before
 they can be used. We use a temporary EC2 instance to mount the volumes
 and create an empty partition.
 
@@ -190,7 +153,15 @@ Create AMIs using the script:
 
 Images can be removed when they are not required anymore.
 
-Use the AWS console to deregister the AMIs.
+You can list all your private images using command:
+
+  aws ec2 describe-images --filters Name=owner-id,Values=your_account --query 'Images[*].{ID:ImageId}' | jq '.[]' | jq -r '.ID'
+
+You can deregister all your private images using commands:
+
+  export AMIS=$(aws ec2 describe-images --filters Name=owner-id,Values=your_account --query 'Images[*].{ID:ImageId}' | jq '.[]' | jq -r '.ID')
+
+  for ami in $AMIS; do aws ec2 deregister-image --image-id $ami; done;
 
 ### Create stack
 

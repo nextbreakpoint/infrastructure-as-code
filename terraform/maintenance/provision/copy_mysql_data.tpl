@@ -15,14 +15,14 @@ sudo mount ${device_name}1 /mnt/pipeline
 
 sudo mysqladmin -u root -p'admin' password ''
 
-sudo rm script.sql
+sudo rm -f script.sql
 
-echo "DROP DATABASE artifactory;" >> script.sql
+echo "DROP DATABASE IF EXISTS artifactory;" >> script.sql
 echo "CREATE DATABASE artifactory CHARACTER SET utf8 COLLATE utf8_bin;" >> script.sql
 echo "CREATE USER IF NOT EXISTS 'artifactory' IDENTIFIED BY 'artifactory' PASSWORD EXPIRE NEVER;" >> script.sql
 echo "GRANT ALL ON artifactory.* TO 'artifactory';" >> script.sql
 
-echo "DROP DATABASE sonar;" >> script.sql
+echo "DROP DATABASE IF EXISTS sonar;" >> script.sql
 echo "CREATE DATABASE sonar CHARACTER SET utf8 COLLATE utf8_bin;" >> script.sql
 echo "CREATE USER IF NOT EXISTS 'sonar' IDENTIFIED BY 'sonar' PASSWORD EXPIRE NEVER;" >> script.sql
 echo "GRANT ALL ON sonar.* TO 'sonar';" >> script.sql

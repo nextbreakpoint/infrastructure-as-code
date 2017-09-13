@@ -55,7 +55,7 @@ data "terraform_remote_state" "network" {
 ##############################################################################
 
 resource "aws_security_group" "cassandra_server" {
-  name = "cassandra-security-groupr"
+  name = "cassandra-security-group"
   description = "Cassandra security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -195,6 +195,7 @@ data "template_file" "cassandra_server_user_data_seed" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
   }
 }
 
@@ -382,6 +383,7 @@ data "template_file" "cassandra_server_user_data_node" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
     cassandra_seeds         = "${aws_instance.cassandra_server_a1.private_ip},${aws_instance.cassandra_server_b1.private_ip},${aws_instance.cassandra_server_c1.private_ip}"
   }
 }

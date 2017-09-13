@@ -45,11 +45,8 @@ sudo cat <<EOF >/tmp/kibana-consul.json
     "datacenter": "terraform",
     "data_dir": "/mnt/consul",
     "log_level": "TRACE",
-    "retry_join_ec2": {
-      "region": "${aws_region}",
-      "tag_key": "stream",
-      "tag_value": "terraform"
-    },
+    "retry_join": ["consul.internal"],
+    "enable_script_checks": true,
     "leave_on_terminate": true,
     "services": [{
         "name": "logstash",
@@ -60,9 +57,9 @@ sudo cat <<EOF >/tmp/kibana-consul.json
         "checks": [{
             "id": "1",
             "name": "Logstash TCP",
-            "notes": "Use nc to check the tcp port every 10 seconds",
+            "notes": "Use nc to check the tcp port every 60 seconds",
             "script": "nc -zv `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 5044 >/dev/null 2>&1 ",
-            "interval": "10s"
+            "interval": "60s"
         }],
         "leave_on_terminate": true
     }]

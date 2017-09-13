@@ -45,11 +45,8 @@ sudo cat <<EOF >/tmp/zookeeper-consul.json
     "datacenter": "terraform",
     "data_dir": "/mnt/consul",
     "log_level": "TRACE",
-    "retry_join_ec2": {
-      "region": "${aws_region}",
-      "tag_key": "stream",
-      "tag_value": "terraform"
-    },
+    "retry_join": ["consul.internal"],
+    "enable_script_checks": true,
     "leave_on_terminate": true,
     "services": [{
         "name": "zookeeper",
@@ -60,15 +57,49 @@ sudo cat <<EOF >/tmp/zookeeper-consul.json
         "checks": [{
             "id": "1",
             "name": "zookeeper TCP",
-            "notes": "Use nc to check the service every 10 seconds",
+            "notes": "Use nc to check the service every 30 seconds",
             "script": "echo stat | nc `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 2181 >/dev/null 2>&1",
-            "interval": "10s"
+            "interval": "30s"
         } ],
         "leave_on_terminate": true
     }]
 }
 EOF
 sudo mv /tmp/zookeeper-consul.json /etc/consul.d/zookeeper.json
+
+sudo cat <<EOF >/tmp/filebeat.yml
+filebeat:
+  prospectors:
+    -
+      paths:
+        - /var/log/auth.log
+        - /var/log/syslog
+        - /var/log/zookeeper/zookeeper.log
+
+      input_type: log
+
+      document_type: syslog
+
+  registry_file: /var/lib/filebeat/registry
+
+output:
+  logstash:
+    hosts: ["logstash.${hosted_zone_name}:5044"]
+    bulk_max_size: 1024
+    ssl.enabled: false
+
+shipper:
+
+logging:
+  files:
+    rotateeverybytes: 10485760 # = 10MB
+EOF
+sudo mv /tmp/filebeat.yml /etc/filebeat/filebeat.yml
+sudo chown root.root /etc/filebeat/filebeat.yml
+sudo chmod go-w /etc/filebeat/filebeat.yml
+
+sudo update-rc.d filebeat defaults 95 10
+sudo service filebeat start
 
 cat <<EOF >/tmp/zoo.cfg
 tickTime=2000

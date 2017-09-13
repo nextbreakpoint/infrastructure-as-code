@@ -368,7 +368,7 @@ resource "aws_route53_record" "kibana_dns" {
   ttl = "60"
 
   records = [
-    "${aws_instance.kibana_server_a.private-ips}",
-    "${aws_instance.kibana_server_b.private-ips}"
+    "${aws_instance.kibana_server_a.private_ip}",
+    "${aws_instance.kibana_server_b.private_ip}"
   ]
 }

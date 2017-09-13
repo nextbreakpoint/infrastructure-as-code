@@ -3,6 +3,8 @@ set -e
 
 export CASSANDRA_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
 
+sudo service cassandra stop
+
 #sudo cat <<EOF >/tmp/cloudwatch.cfg
 #[general]
 #state_file = /var/awslogs/state/agent-state
@@ -45,11 +47,8 @@ sudo cat <<EOF >/tmp/cassandra-consul.json
     "datacenter": "terraform",
     "data_dir": "/mnt/consul",
     "log_level": "TRACE",
-    "retry_join_ec2": {
-      "region": "${aws_region}",
-      "tag_key": "stream",
-      "tag_value": "terraform"
-    },
+    "retry_join": ["consul.internal"],
+    "enable_script_checks": true,
     "leave_on_terminate": true,
     "services": [{
         "name": "cassandra",
@@ -60,9 +59,9 @@ sudo cat <<EOF >/tmp/cassandra-consul.json
         "checks": [{
             "id": "1",
             "name": "cassandra TCP",
-            "notes": "Use nodetools to check the service every 30 seconds",
+            "notes": "Use nodetools to check the service every 60 seconds",
             "script": "nodetool status >/dev/null 2>&1",
-            "interval": "30s"
+            "interval": "60s"
         } ],
         "leave_on_terminate": true
     }]
@@ -70,7 +69,39 @@ sudo cat <<EOF >/tmp/cassandra-consul.json
 EOF
 sudo mv /tmp/cassandra-consul.json /etc/consul.d/cassandra.json
 
-sudo service cassandra stop
+sudo cat <<EOF >/tmp/filebeat.yml
+filebeat:
+  prospectors:
+    -
+      paths:
+        - /var/log/auth.log
+        - /var/log/syslog
+        - /var/log/cassandra/system.log
+
+      input_type: log
+
+      document_type: syslog
+
+  registry_file: /var/lib/filebeat/registry
+
+output:
+  logstash:
+    hosts: ["logstash.${hosted_zone_name}:5044"]
+    bulk_max_size: 1024
+    ssl.enabled: false
+
+shipper:
+
+logging:
+  files:
+    rotateeverybytes: 10485760 # = 10MB
+EOF
+sudo mv /tmp/filebeat.yml /etc/filebeat/filebeat.yml
+sudo chown root.root /etc/filebeat/filebeat.yml
+sudo chmod go-w /etc/filebeat/filebeat.yml
+
+sudo update-rc.d filebeat defaults 95 10
+sudo service filebeat start
 
 sudo cat <<EOF >/tmp/cassandra.yaml
 # Cassandra storage config YAML

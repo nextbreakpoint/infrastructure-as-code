@@ -251,6 +251,7 @@ data "template_file" "zookeeper_server_user_data" {
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
     zookeeper_nodes         = "${aws_instance.zookeeper_server_a.private_ip},${aws_instance.zookeeper_server_b.private_ip},${aws_instance.zookeeper_server_c.private_ip}"
   }
 }

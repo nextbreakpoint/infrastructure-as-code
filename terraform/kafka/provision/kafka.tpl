@@ -46,11 +46,8 @@ sudo cat <<EOF >/tmp/kafka-consul.json
     "datacenter": "terraform",
     "data_dir": "/mnt/consul",
     "log_level": "TRACE",
-    "retry_join_ec2": {
-      "region": "${aws_region}",
-      "tag_key": "stream",
-      "tag_value": "terraform"
-    },
+    "retry_join": ["consul.internal"],
+    "enable_script_checks": true,
     "leave_on_terminate": true,
     "services": [{
         "name": "kafka",
@@ -61,15 +58,53 @@ sudo cat <<EOF >/tmp/kafka-consul.json
         "checks": [{
             "id": "1",
             "name": "kafka TCP",
-            "notes": "Use netstat to check the service every 10 seconds",
+            "notes": "Use netstat to check the service every 60 seconds",
             "script": "netstat -tulpn | grep 9092 >/dev/null 2>&1",
-            "interval": "10s"
+            "interval": "60s"
         } ],
         "leave_on_terminate": true
     }]
 }
 EOF
 sudo mv /tmp/kafka-consul.json /etc/consul.d/kafka.json
+
+sudo cat <<EOF >/tmp/filebeat.yml
+filebeat:
+  prospectors:
+    -
+      paths:
+        - /var/log/auth.log
+        - /var/log/syslog
+        - /opt/kafka_${scala_version}-${kafka_version}/logs/server.log
+        - /opt/kafka_${scala_version}-${kafka_version}/logs/controller.log
+        - /opt/kafka_${scala_version}-${kafka_version}/logs/log-cleaner.log
+        - /opt/kafka_${scala_version}-${kafka_version}/logs/state-change.log
+        - /opt/kafka_${scala_version}-${kafka_version}/logs/kafka-request.log
+
+      input_type: log
+
+      document_type: syslog
+
+  registry_file: /var/lib/filebeat/registry
+
+output:
+  logstash:
+    hosts: ["logstash.${hosted_zone_name}:5044"]
+    bulk_max_size: 1024
+    ssl.enabled: false
+
+shipper:
+
+logging:
+  files:
+    rotateeverybytes: 10485760 # = 10MB
+EOF
+sudo mv /tmp/filebeat.yml /etc/filebeat/filebeat.yml
+sudo chown root.root /etc/filebeat/filebeat.yml
+sudo chmod go-w /etc/filebeat/filebeat.yml
+
+sudo update-rc.d filebeat defaults 95 10
+sudo service filebeat start
 
 sudo cat <<EOF >/tmp/server.properties
 # Replication configurations

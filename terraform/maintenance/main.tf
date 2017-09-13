@@ -60,7 +60,7 @@ data "terraform_remote_state" "volumes" {
 }
 
 ##############################################################################
-# Backend servers
+# Maintenance servers
 ##############################################################################
 
 resource "aws_security_group" "maintenance_server" {
@@ -103,15 +103,7 @@ resource "aws_security_group" "maintenance_server" {
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
-  ingress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
-  }
-
   tags {
-    Name = "maintenance-security-group"
     Stream = "${var.stream_tag}"
   }
 }

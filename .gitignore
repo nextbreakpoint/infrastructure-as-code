@@ -1,7 +1,7 @@
 # Compiled files
 *.tfstate
 *.tfstate.backup
-packer_vars.json
 *.pem
 *.pub
-*.tfvars
+config_vars.json
+config.tfvars
