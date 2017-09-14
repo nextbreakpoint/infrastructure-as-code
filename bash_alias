@@ -3,3 +3,4 @@ alias tf_init='terraform init -var-file=../../config.tfvars -var-file=../../othe
 alias tf_plan='terraform plan -var-file=../../config.tfvars -var-file=../../other.tfvars -var-file=../../network.tfvars -var-file=../../version.tfvars'
 alias tf_apply='terraform apply -var-file=../../config.tfvars -var-file=../../other.tfvars -var-file=../../network.tfvars -var-file=../../version.tfvars'
 alias tf_destroy='terraform destroy -var-file=../../config.tfvars -var-file=../../other.tfvars -var-file=../../network.tfvars -var-file=../../version.tfvars'
+alias tf_refresh='terraform refresh -var-file=../../config.tfvars -var-file=../../other.tfvars -var-file=../../network.tfvars -var-file=../../version.tfvars'
