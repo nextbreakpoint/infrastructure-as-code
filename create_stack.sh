@@ -4,16 +4,37 @@ source bash_alias
 
 cd $DIR/terraform/consul && tf_init && tf_apply
 
-cd $DIR/terraform/pipeline && tf_init && tf_apply
+cd $DIR/terraform/pipeline && tf_init && tf_apply &
+pipeline_pid=$!
 
-cd $DIR/terraform/elasticsearch && tf_init && tf_apply
+cd $DIR/terraform/elasticsearch && tf_init && tf_apply &
+elasticsearch_pid=$!
 
-cd $DIR/terraform/logstash && tf_init && tf_apply
+wait $pipeline_pid
 
-cd $DIR/terraform/kibana && tf_init && tf_apply
+wait $elasticsearch_pid
 
-cd $DIR/terraform/zookeeper && tf_init && tf_apply
+cd $DIR/terraform/logstash && tf_init && tf_apply &
+logstash_pid=$!
 
-cd $DIR/terraform/cassandra && tf_init && tf_apply
+cd $DIR/terraform/kibana && tf_init && tf_apply &
+kibana_pid=$!
 
-cd $DIR/terraform/kafka && tf_init && tf_apply
+cd $DIR/terraform/zookeeper && tf_init && tf_apply &
+zookeeper_pid=$!
+
+wait $logstash_pid
+
+wait $kibana_pid
+
+wait $zookeeper_pid
+
+cd $DIR/terraform/cassandra && tf_init && tf_apply &
+cassandra_pid=$!
+
+cd $DIR/terraform/kafka && tf_init && tf_apply &
+kafka_pid=$!
+
+wait $cassandra_pid
+
+wait $kafka_pid

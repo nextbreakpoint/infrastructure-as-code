@@ -1,5 +1,6 @@
 #!/bin/bash
 DIR=$(pwd)
+source bash_alias
 
 pushd .
 export VPC=$(cd terraform/vpc && terraform output -json network-vpc-id | jq -r '.value')
