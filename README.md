@@ -54,26 +54,17 @@ Create a file config.tfvars like this:
     # AWS Account
     account_id="your_account"
 
-    # Region
-    aws_region="eu-west-1"
-
     # SSH key
     key_name="deployer_key"
     key_path="../../deployer_key.pem"
 
-    # Hosted zones
+    # Public Hosted Zone
     public_hosted_zone_name="yourdomain.com"
     public_hosted_zone_id="your_public_zone_id"
-    hosted_zone_name="internal"
-
-    # Other
-    es_cluster="logs"
-    es_environment="logs"
 
 Create a file config_vars.json like this:
 
     {
-      "aws_region": "eu-west-1",
       "key_name": "deployer_key",
       "key_path": "../../deployer_key.pem",
       "bastion_host": "bastion.yourdomain.com"
@@ -155,15 +146,9 @@ Create AMIs using the script:
 
 Images can be removed when they are not required anymore.
 
-You can list all your private images using command:
+Remove all your images using the script:
 
-    aws ec2 describe-images --filters Name=owner-id,Values=your_account --query 'Images[*].{ID:ImageId}' | jq '.[]' | jq -r '.ID'
-
-You can deregister all your private images using commands:
-
-    export AMIS=$(aws ec2 describe-images --filters Name=owner-id,Values=your_account --query 'Images[*].{ID:ImageId}' | jq '.[]' | jq -r '.ID')
-
-    for ami in $AMIS; do aws ec2 deregister-image --image-id $ami; done;
+  sh delete_images.sh
 
 ### Create stack
 

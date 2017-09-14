@@ -16,7 +16,8 @@
     "filebeat_version": "",
     "topbeat_version": "",
     "consul_version": "",
-    "base_version": ""
+    "base_version": "",
+    "stream_tag": ""
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -46,7 +47,10 @@
     "ssh_private_key_file": "{{user `key_path`}}",
     "ssh_bastion_host": "{{user `bastion_host`}}",
     "ssh_bastion_username": "{{user `bastion_username`}}",
-    "ssh_bastion_private_key_file": "{{user `key_path`}}"
+    "ssh_bastion_private_key_file": "{{user `key_path`}}",
+    "tags": {
+      "stream": "{{user `stream_tag`}}"
+    }
   }],
   "provisioners": [
     {
