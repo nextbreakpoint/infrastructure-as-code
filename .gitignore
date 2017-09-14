@@ -7,3 +7,4 @@ config_vars.json
 config.tfvars
 terraform.tfstate*
 .terraform
+network_vars.json
