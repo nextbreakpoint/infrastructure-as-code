@@ -29,6 +29,10 @@ variable "hosted_zone_name" {
 }
 
 ### MANDATORY ###
+variable "public_hosted_zone_id" {
+}
+
+### MANDATORY ###
 variable "public_hosted_zone_name" {
 }
 
@@ -43,14 +47,6 @@ variable "aws_network_vpc_cidr" {
 ###################################################################
 # Cluster configuration below
 ###################################################################
-
-### MANDATORY ###
-variable "cluster_amis" {
-  type = "map"
-  default = {
-    eu-west-1 = "ami-809f84e6"
-  }
-}
 
 variable "cluster_instance_type" {
   description = "cluster instance type."

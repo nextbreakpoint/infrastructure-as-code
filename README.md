@@ -73,6 +73,16 @@ Create a file config_vars.json like this:
 The domain yourdomain.com must be a domain hosted in a Route53 public zone.
 Create a new public zone and register a new domain if you don't have one already.
 
+### Create S3 Bucket
+
+Terraform requires a S3 Bucket to store remote state.
+
+Create a bucket with command:
+
+    aws s3api create-bucket --bucket nextbreakpoint-terraform-state --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1
+
+The bucket needs to be created once. You can delete the bucket when you don't need it anymore.
+
 ### Generate deployer key
 
 A keypair is required in order to access EC2 instances.

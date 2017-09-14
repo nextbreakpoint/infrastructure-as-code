@@ -67,8 +67,8 @@ resource "aws_security_group" "cluster_server" {
   }
 
   ingress {
-    from_port = 8080
-    to_port = 8080
+    from_port = 80
+    to_port = 80
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
@@ -159,12 +159,33 @@ resource "aws_ecs_cluster" "services" {
   name = "services"
 }
 
+data "template_file" "cluster_launch_user_data" {
+  template = "${file("provision/cluster.sh")}"
+
+  vars {
+    cluster_name = "${aws_ecs_cluster.services.name}"
+  }
+}
+
+data "aws_ami" "ecs_cluster" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["amzn-ami-2017.03.f-amazon-ecs-optimized"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 resource "aws_instance" "cluster_server_a" {
   depends_on = ["aws_ecs_cluster.services"]
   instance_type = "${var.cluster_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.cluster_amis, var.aws_region)}"
+  ami = "${data.aws_ami.ecs_cluster.id}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
@@ -173,19 +194,7 @@ resource "aws_instance" "cluster_server_a" {
 
   iam_instance_profile = "${aws_iam_instance_profile.cluster_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ec2-user"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
-  }
-
-  provisioner "remote-exec" {
-    inline = "echo 'ECS_CLUSTER=services' > /tmp/ecs.config; sudo mv /tmp/ecs.config /etc/ecs/ecs.config"
-  }
+  user_data = "${data.template_file.cluster_launch_user_data.rendered}"
 
   tags {
     Name = "cluster-server-a"
@@ -197,8 +206,7 @@ resource "aws_instance" "cluster_server_b" {
   depends_on = ["aws_ecs_cluster.services"]
   instance_type = "${var.cluster_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.cluster_amis, var.aws_region)}"
+  ami = "${data.aws_ami.ecs_cluster.id}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
@@ -207,22 +215,206 @@ resource "aws_instance" "cluster_server_b" {
 
   iam_instance_profile = "${aws_iam_instance_profile.cluster_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ec2-user"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
-  }
-
-  provisioner "remote-exec" {
-    inline = "echo 'ECS_CLUSTER=services' > /tmp/ecs.config; sudo mv /tmp/ecs.config /etc/ecs/ecs.config"
-  }
+  user_data = "${data.template_file.cluster_launch_user_data.rendered}"
 
   tags {
     Name = "cluster-server-b"
     Stream = "${var.stream_tag}"
   }
+}
+
+resource "aws_launch_configuration" "cluster_launch_configuration" {
+  depends_on = ["aws_ecs_cluster.services"]
+  name_prefix   = "cluster-"
+  instance_type = "${var.cluster_instance_type}"
+
+  image_id = "${data.aws_ami.ecs_cluster.id}"
+
+  associate_public_ip_address = "false"
+  security_groups = ["${aws_security_group.cluster_server.id}"]
+  key_name = "${var.key_name}"
+
+  iam_instance_profile = "${aws_iam_instance_profile.cluster_server_profile.name}"
+
+  user_data = "${data.template_file.cluster_launch_user_data.rendered}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_autoscaling_group" "cluster_asg_a" {
+  depends_on = ["aws_ecs_cluster.services"]
+  name                      = "cluster-asg-a"
+  max_size                  = 4
+  min_size                  = 0
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  desired_capacity          = 1
+  force_delete              = true
+  launch_configuration      = "${aws_launch_configuration.cluster_launch_configuration.name}"
+
+  vpc_zone_identifier = [
+    "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+  ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tag {
+    key                 = "stream"
+    value               = "${var.stream_tag}"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "cluster-server-a"
+    propagate_at_launch = true
+  }
+
+  timeouts {
+    delete = "15m"
+  }
+}
+
+resource "aws_autoscaling_group" "cluster_asg_b" {
+  depends_on = ["aws_ecs_cluster.services"]
+  name                      = "cluster-asg-b"
+  max_size                  = 4
+  min_size                  = 0
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  desired_capacity          = 1
+  force_delete              = true
+  launch_configuration      = "${aws_launch_configuration.cluster_launch_configuration.name}"
+
+  vpc_zone_identifier = [
+    "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+  ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tag {
+    key                 = "stream"
+    value               = "${var.stream_tag}"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "cluster-server-b"
+    propagate_at_launch = true
+  }
+
+  timeouts {
+    delete = "15m"
+  }
+}
+
+resource "aws_security_group" "cluster_elb" {
+  name = "ecs-cluster-elb-security-group"
+  description = "ECS Cluster ELB security group"
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_elb" "cluster_elb" {
+  name               = "cluster-elb"
+
+  security_groups = ["${aws_security_group.cluster_elb.id}"]
+
+  subnets = [
+    "${data.terraform_remote_state.vpc.network-public-subnet-a-id}",
+    "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
+  ]
+
+  listener {
+    instance_port     = 80
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 5
+    timeout             = 60
+    target              = "HTTP:80/"
+    interval            = 300
+  }
+
+  cross_zone_load_balancing   = false
+  idle_timeout                = 400
+  connection_draining         = false
+  connection_draining_timeout = 400
+
+  tags {
+    stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_autoscaling_attachment" "cluster_asg_a" {
+  autoscaling_group_name = "${aws_autoscaling_group.cluster_asg_a.id}"
+  elb = "${aws_elb.cluster_elb.id}"
+}
+
+resource "aws_autoscaling_attachment" "cluster_asg_b" {
+  autoscaling_group_name = "${aws_autoscaling_group.cluster_asg_b.id}"
+  elb = "${aws_elb.cluster_elb.id}"
+}
+
+resource "aws_elb_attachment" "cluster_server_a" {
+  elb      = "${aws_elb.cluster_elb.id}"
+  instance = "${aws_instance.cluster_server_a.id}"
+}
+
+resource "aws_elb_attachment" "cluster_server_b" {
+  elb      = "${aws_elb.cluster_elb.id}"
+  instance = "${aws_instance.cluster_server_b.id}"
+}
+
+##############################################################################
+# Route 53
+##############################################################################
+
+resource "aws_route53_record" "cluster_elb" {
+  zone_id = "${var.public_hosted_zone_id}"
+  name = "kibana.${var.public_hosted_zone_name}"
+  type = "A"
+
+  alias {
+    name = "${aws_elb.cluster_elb.dns_name}"
+    zone_id = "${aws_elb.cluster_elb.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "cluster_dns" {
+  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+  name = "cluster.${var.hosted_zone_name}"
+  type = "CNAME"
+  ttl = "30"
+
+  records = ["${aws_elb.cluster_elb.dns_name}"]
 }
