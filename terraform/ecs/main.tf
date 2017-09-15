@@ -394,7 +394,7 @@ resource "aws_route53_record" "cluster_dns" {
 ##############################################################################
 
 resource "aws_s3_bucket" "services" {
-  bucket = "services-secrets"
+  bucket = "${var.services_bucket_name}"
   region = "${var.aws_region}"
   versioning = "enabled"
   acl = "private"

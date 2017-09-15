@@ -52,3 +52,7 @@ variable "cluster_instance_type" {
   description = "cluster instance type."
   default  = "t2.medium"
 }
+
+### MANDATORY ###
+variable "services_bucket_name" {
+}

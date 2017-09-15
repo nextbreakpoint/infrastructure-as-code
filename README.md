@@ -62,6 +62,9 @@ Create a file config.tfvars like this:
     public_hosted_zone_name="yourdomain.com"
     public_hosted_zone_id="your_public_zone_id"
 
+    # Services configuration bucket
+    services_bucket_name="your_bucket_name"
+
 Create a file config_vars.json like this:
 
     {
