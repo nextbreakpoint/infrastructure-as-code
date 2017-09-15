@@ -2,6 +2,8 @@
 DIR=$(pwd)
 source bash_alias
 
+cd $DIR/terraform/ecs && tf_destroy -force
+
 cd $DIR/terraform/kafka && tf_destroy -force &
 kafka_pid=$!
 

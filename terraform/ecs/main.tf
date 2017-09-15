@@ -418,3 +418,55 @@ resource "aws_route53_record" "cluster_dns" {
 
   records = ["${aws_elb.cluster_elb.dns_name}"]
 }
+
+##############################################################################
+# S3 Bucket
+##############################################################################
+
+resource "aws_s3_bucket" "services" {
+  bucket = "services-secrets"
+  region = "${var.aws_region}"
+  versioning = "enabled"
+  acl = "private"
+  force_destroy  = true
+
+  tags {
+    stream = "${var.stream_tag}"
+  }
+}
+
+data "aws_iam_policy_document" "services" {
+  statement {
+    sid = "Access-to-specific-VPC-only"
+
+    effect = "Deny"
+
+    principals = [
+      "*"
+    ]
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.services.id}",
+    ]
+
+    condition {
+      test     = "StringNotEquals"
+      variable = "aws:sourceVpce"
+
+      values = [
+        "${data.terraform_remote_state.vpc.network-vpc-id}"
+      ]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "services_policy" {
+  bucket = "${aws_s3_bucket.services.id}"
+  policy = "${data.aws_iam_policy_document.services.json}"
+}

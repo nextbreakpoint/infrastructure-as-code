@@ -38,3 +38,5 @@ kafka_pid=$!
 wait $cassandra_pid
 
 wait $kafka_pid
+
+cd $DIR/terraform/ecs && tf_init && tf_apply

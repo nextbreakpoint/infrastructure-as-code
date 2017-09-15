@@ -41,15 +41,6 @@ data "terraform_remote_state" "vpc" {
     }
 }
 
-data "terraform_remote_state" "network" {
-    backend = "s3"
-    config {
-        bucket = "nextbreakpoint-terraform-state"
-        region = "${var.aws_region}"
-        key = "network.tfstate"
-    }
-}
-
 ##############################################################################
 # Kibana servers
 ##############################################################################
