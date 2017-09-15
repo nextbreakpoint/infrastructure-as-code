@@ -110,7 +110,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "cluster_server_role_policy" {
-  name = "cluster-server-role-policy"
+  name = "ecs-cluster-server-role-policy"
   role = "${aws_iam_role.cluster_server_role.id}"
 
   policy = <<EOF
@@ -122,7 +122,9 @@ resource "aws_iam_role_policy" "cluster_server_role_policy" {
         "ecs:DeregisterContainerInstance",
         "ecs:RegisterContainerInstance",
         "ecs:DiscoverPollEndpoint",
+        "ecs:Poll*",
         "ecs:Submit*",
+        "ecs:StartTelemetrySession",
         "ecr:GetAuthorizationToken",
         "ecr:BatchCheckLayerAvailability",
         "ecr:GetDownloadUrlForLayer",
