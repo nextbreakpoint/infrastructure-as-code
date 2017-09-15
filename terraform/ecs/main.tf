@@ -25,7 +25,7 @@ provider "null" {
 ##############################################################################
 
 resource "aws_security_group" "cluster_server" {
-  name = "cluster-security-group"
+  name = "ecs-cluster-security-group"
   description = "ECS security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -39,6 +39,13 @@ resource "aws_security_group" "cluster_server" {
   ingress {
     from_port = 80
     to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port = 443
+    to_port = 443
     protocol = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
@@ -88,6 +95,14 @@ resource "aws_iam_role" "cluster_server_role" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -105,10 +120,8 @@ resource "aws_iam_role_policy" "cluster_server_role_policy" {
     {
       "Action": [
         "ecs:DeregisterContainerInstance",
-        "ecs:DiscoverPollEndpoint",
-        "ecs:Poll",
         "ecs:RegisterContainerInstance",
-        "ecs:StartTelemetrySession",
+        "ecs:DiscoverPollEndpoint",
         "ecs:Submit*",
         "ecr:GetAuthorizationToken",
         "ecr:BatchCheckLayerAvailability",
@@ -116,6 +129,14 @@ resource "aws_iam_role_policy" "cluster_server_role_policy" {
         "ecr:BatchGetImage",
         "logs:CreateLogStream",
         "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -151,6 +172,7 @@ data "aws_ami" "ecs_cluster" {
   }
 }
 
+/*
 resource "aws_instance" "cluster_server_a" {
   depends_on = ["aws_ecs_cluster.services"]
   instance_type = "${var.cluster_instance_type}"
@@ -192,6 +214,7 @@ resource "aws_instance" "cluster_server_b" {
     Stream = "${var.stream_tag}"
   }
 }
+*/
 
 resource "aws_launch_configuration" "cluster_launch_configuration" {
   depends_on = ["aws_ecs_cluster.services"]
@@ -297,6 +320,13 @@ resource "aws_security_group" "cluster_elb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port = 0
     to_port = 0
@@ -320,10 +350,18 @@ resource "aws_elb" "cluster_elb" {
   ]
 
   listener {
+    instance_port     = 443
+    instance_protocol = "HTTPS"
+    lb_port           = 443
+    lb_protocol       = "HTTPS"
+    ssl_certificate_id = "arn:aws:acm:eu-west-1:991512327633:certificate/a006fdd3-2076-44a9-b36c-5b733ebcdec9"
+  }
+
+  listener {
     instance_port     = 80
-    instance_protocol = "http"
+    instance_protocol = "HTTP"
     lb_port           = 80
-    lb_protocol       = "http"
+    lb_protocol       = "HTTP"
   }
 
   health_check {
@@ -354,6 +392,7 @@ resource "aws_autoscaling_attachment" "cluster_asg_b" {
   elb = "${aws_elb.cluster_elb.id}"
 }
 
+/*
 resource "aws_elb_attachment" "cluster_server_a" {
   elb      = "${aws_elb.cluster_elb.id}"
   instance = "${aws_instance.cluster_server_a.id}"
@@ -363,6 +402,7 @@ resource "aws_elb_attachment" "cluster_server_b" {
   elb      = "${aws_elb.cluster_elb.id}"
   instance = "${aws_instance.cluster_server_b.id}"
 }
+*/
 
 ##############################################################################
 # Route 53
@@ -370,7 +410,7 @@ resource "aws_elb_attachment" "cluster_server_b" {
 
 resource "aws_route53_record" "cluster_elb" {
   zone_id = "${var.public_hosted_zone_id}"
-  name = "kibana.${var.public_hosted_zone_name}"
+  name = "cluster.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {
@@ -396,13 +436,20 @@ resource "aws_route53_record" "cluster_dns" {
 resource "aws_s3_bucket" "services" {
   bucket = "${var.services_bucket_name}"
   region = "${var.aws_region}"
-  versioning = "enabled"
+  versioning = {
+    enabled = true
+  }
   acl = "private"
   force_destroy  = true
 
   tags {
     stream = "${var.stream_tag}"
   }
+}
+/*
+data "aws_vpc_endpoint" "s3" {
+  vpc_id       = "${aws_vpc.vpc.id}"
+  service_name = "com.amazonaws.eu-east-1.s3"
 }
 
 data "aws_iam_policy_document" "services" {
@@ -411,9 +458,10 @@ data "aws_iam_policy_document" "services" {
 
     effect = "Deny"
 
-    principals = [
-      "*"
-    ]
+    principals = {
+      type = "AWS"
+      identifiers = ["*"]
+    }
 
     actions = [
       "s3:GetObject",
@@ -422,7 +470,7 @@ data "aws_iam_policy_document" "services" {
     ]
 
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.services.id}",
+      "arn:aws:s3:::${aws_s3_bucket.services.id}/*",
     ]
 
     condition {
@@ -430,7 +478,7 @@ data "aws_iam_policy_document" "services" {
       variable = "aws:sourceVpce"
 
       values = [
-        "${data.terraform_remote_state.vpc.network-vpc-id}"
+        "${aws_vpc_endpoint.s3.id}"
       ]
     }
   }
@@ -440,3 +488,4 @@ resource "aws_s3_bucket_policy" "services_policy" {
   bucket = "${aws_s3_bucket.services.id}"
   policy = "${data.aws_iam_policy_document.services.json}"
 }
+*/
