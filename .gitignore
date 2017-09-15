@@ -1,4 +1,5 @@
 # Compiled files
+*.tf.bkp
 *.tfstate
 *.tfstate.backup
 *.pem
