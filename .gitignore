@@ -4,6 +4,8 @@
 *.tfstate.backup
 *.pem
 *.pub
+*.crt
+*.key
 config_vars.json
 config.tfvars
 terraform.tfstate*

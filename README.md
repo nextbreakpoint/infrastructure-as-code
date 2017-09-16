@@ -82,13 +82,13 @@ Terraform requires a S3 Bucket to store the remote state.
 
 Create a S3 bucket with the command:
 
-    sh create-bucket.sh your_bucket_name eu-west-1
+    sh create_bucket.sh your_bucket_name eu-west-1
 
 Please note that the bucket name must be unique among all S3 buckets.
 
 Once that the bucket has been created, execute the command:
 
-    sh config-bucket.sh your_bucket_name eu-west-1
+    sh config_bucket.sh your_bucket_name eu-west-1
 
 The script will set the bucket name and region in all remote_state.tf files.
 
@@ -107,6 +107,14 @@ The deployer key can be destroyed when it is not used anymore.
 Destroy the keypair using the script:
 
     sh destroy_keys.sh
+
+### Generate certificates
+
+A certificate is required in order to secure access via HTTPS.
+
+Create a certificate using the script:
+
+    sh generate_certificates.sh
 
 ### Create VPCs and subnets
 

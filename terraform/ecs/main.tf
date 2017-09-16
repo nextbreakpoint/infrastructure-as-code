@@ -95,14 +95,6 @@ resource "aws_iam_role" "cluster_server_role" {
       },
       "Effect": "Allow",
       "Sid": ""
-    },
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "s3.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
     }
   ]
 }
@@ -119,26 +111,19 @@ resource "aws_iam_role_policy" "cluster_server_role_policy" {
   "Statement": [
     {
       "Action": [
+        "ecs:CreateCluster",
         "ecs:DeregisterContainerInstance",
-        "ecs:RegisterContainerInstance",
         "ecs:DiscoverPollEndpoint",
-        "ecs:Poll*",
-        "ecs:Submit*",
+        "ecs:Poll",
+        "ecs:RegisterContainerInstance",
         "ecs:StartTelemetrySession",
+        "ecs:Submit*",
         "ecr:GetAuthorizationToken",
         "ecr:BatchCheckLayerAvailability",
         "ecr:GetDownloadUrlForLayer",
         "ecr:BatchGetImage",
         "logs:CreateLogStream",
         "logs:PutLogEvents"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
-    },
-    {
-      "Action": [
-        "s3:GetObject",
-        "s3:ListBucket"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -341,6 +326,16 @@ resource "aws_security_group" "cluster_elb" {
   }
 }
 
+resource "aws_iam_server_certificate" "cluster_elb" {
+  name_prefix      = "ecs-cluster-elb-certificate"
+  certificate_body = "${file("${var.ecs_cluster_elb_certificate_path}")}"
+  private_key      = "${file("${var.ecs_cluster_elb_private_key_path}")}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_elb" "cluster_elb" {
   name               = "cluster-elb"
 
@@ -352,25 +347,25 @@ resource "aws_elb" "cluster_elb" {
   ]
 
   listener {
-    instance_port     = 443
-    instance_protocol = "HTTPS"
-    lb_port           = 443
-    lb_protocol       = "HTTPS"
-    ssl_certificate_id = "arn:aws:acm:eu-west-1:991512327633:certificate/a006fdd3-2076-44a9-b36c-5b733ebcdec9"
+    instance_port       = 443
+    instance_protocol   = "HTTPS"
+    lb_port             = 443
+    lb_protocol         = "HTTPS"
+    ssl_certificate_id  = "${aws_iam_server_certificate.cluster_elb.arn}"
   }
 
   listener {
-    instance_port     = 80
-    instance_protocol = "HTTP"
-    lb_port           = 80
-    lb_protocol       = "HTTP"
+    instance_port       = 80
+    instance_protocol   = "HTTP"
+    lb_port             = 80
+    lb_protocol         = "HTTP"
   }
 
   health_check {
     healthy_threshold   = 2
     unhealthy_threshold = 5
     timeout             = 60
-    target              = "HTTP:80/"
+    target              = "HTTPS:443/"
     interval            = 300
   }
 
@@ -448,6 +443,7 @@ resource "aws_s3_bucket" "services" {
     stream = "${var.stream_tag}"
   }
 }
+
 /*
 data "aws_vpc_endpoint" "s3" {
   vpc_id       = "${aws_vpc.vpc.id}"
