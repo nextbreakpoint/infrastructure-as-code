@@ -20,14 +20,6 @@ provider "null" {
   version = "~> 0.1"
 }
 
-terraform {
-  backend "s3" {
-    bucket = "nextbreakpoint-terraform-state"
-    region = "eu-west-1"
-    key = "maintenance.tfstate"
-  }
-}
-
 ##############################################################################
 # Maintenance servers
 ##############################################################################
@@ -65,7 +57,7 @@ resource "aws_security_group" "maintenance_server" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
+  egress {
     from_port = 0
     to_port = 0
     protocol = "-1"
@@ -128,8 +120,8 @@ resource "aws_instance" "maintenance_server_a" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_ubuntu_amis, var.aws_region)}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
-  associate_public_ip_address = "true"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+  associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.maintenance_server.id}"]
   key_name = "${var.key_name}"
 
@@ -155,8 +147,8 @@ resource "aws_instance" "maintenance_server_b" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_ubuntu_amis, var.aws_region)}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
-  associate_public_ip_address = "true"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+  associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.maintenance_server.id}"]
   key_name = "${var.key_name}"
 
@@ -168,6 +160,8 @@ resource "aws_instance" "maintenance_server_b" {
     type = "ssh"
     # The path to your keyfile
     private_key = "${file(var.key_path)}"
+    bastion_user = "ec2-user"
+    bastion_host = "bastion.${var.public_hosted_zone_name}"
   }
 
   tags {
