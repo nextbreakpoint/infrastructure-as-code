@@ -111,6 +111,7 @@ resource "aws_iam_role_policy" "cluster_server_role_policy" {
   "Statement": [
     {
       "Action": [
+        "ec2:Describe*",
         "ecs:CreateCluster",
         "ecs:DeregisterContainerInstance",
         "ecs:DiscoverPollEndpoint",
@@ -118,12 +119,21 @@ resource "aws_iam_role_policy" "cluster_server_role_policy" {
         "ecs:RegisterContainerInstance",
         "ecs:StartTelemetrySession",
         "ecs:Submit*",
+        "ecs:DescribeContainerInstances",
+        "ecs:ListContainerInstances",
+        "ecs:ListTasks",
         "ecr:GetAuthorizationToken",
         "ecr:BatchCheckLayerAvailability",
         "ecr:GetDownloadUrlForLayer",
         "ecr:BatchGetImage",
         "logs:CreateLogStream",
-        "logs:PutLogEvents"
+        "logs:PutLogEvents",
+        "route53:GetHostedZone*",
+        "route53:ListHostedZones*",
+        "route53:ListResourceRecordSets",
+        "route53:ChangeResourceRecordSets",
+        "route53:UpdateHostedZoneComment",
+        "route53:GetChange"
       ],
       "Effect": "Allow",
       "Resource": "*"
