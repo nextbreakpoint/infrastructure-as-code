@@ -22,7 +22,7 @@ cat <<EOF >/tmp/consul.json
     },
     "disable_anonymous_signature" : true,
     "disable_update_check"        : true,
-    "data_dir"                    : "/mnt/consul/data"
+    "data_dir"                    : "/mnt/consul"
 }
 EOF
 sudo mv /tmp/consul.json /etc/consul.d/consul.json
