@@ -4,11 +4,16 @@ source bash_alias
 
 cd $DIR/terraform/consul && tf_init && tf_apply
 
+cd $DIR/terraform/webserver && tf_init && tf_apply &
+webserver_pid=$!
+
 cd $DIR/terraform/pipeline && tf_init && tf_apply &
 pipeline_pid=$!
 
 cd $DIR/terraform/elasticsearch && tf_init && tf_apply &
 elasticsearch_pid=$!
+
+wait $webserver_pid
 
 wait $pipeline_pid
 

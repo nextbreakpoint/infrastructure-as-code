@@ -52,7 +52,7 @@ Export your active profile:
 Create a file config.tfvars like this:
 
     # AWS Account
-    account_id="your_account"
+    account_id="your_account_id"
 
     # SSH key
     key_name="deployer_key"
@@ -63,11 +63,15 @@ Create a file config.tfvars like this:
     public_hosted_zone_id="your_public_zone_id"
 
     # Services configuration bucket
-    services_bucket_name="your_bucket_name"
+    services_bucket_name="services_bucket_name"
+
+    # Webserver configuration bucket
+    webserver_bucker_name="webserver_bucket_name"
 
 Create a file config_vars.json like this:
 
     {
+      "account_id": "your_account_id",
       "key_name": "deployer_key",
       "key_path": "../../deployer_key.pem",
       "bastion_host": "bastion.yourdomain.com"

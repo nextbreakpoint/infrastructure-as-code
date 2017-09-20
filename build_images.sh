@@ -23,6 +23,9 @@ pipeline_pid=$!
 cd $DIR/packer/puppet && pk_create &
 puppet_pid=$!
 
+cd $DIR/packer/nginx && pk_create &
+nginx_pid=$!
+
 cd $DIR/packer/elasticsearch && pk_create &
 elasticsearch_pid=$!
 
@@ -48,6 +51,7 @@ kubernetes_pid=$!
 
 wait $pipeline_pid
 wait $puppet_pid
+wait $nginx_pid
 wait $elasticsearch_pid
 wait $logstash_pid
 wait $kibana_pid

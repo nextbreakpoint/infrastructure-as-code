@@ -35,8 +35,13 @@ elasticsearch_pid=$!
 cd $DIR/terraform/pipeline && tf_destroy -force &
 pipeline_pid=$!
 
+cd $DIR/terraform/webserver && tf_destroy -force &
+webserver_pid=$!
+
 wait $elasticsearch_pid
 
 wait $pipeline_pid
+
+wait $webserver_pid
 
 cd $DIR/terraform/consul && tf_destroy -force
