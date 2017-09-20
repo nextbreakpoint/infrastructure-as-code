@@ -81,6 +81,11 @@
     },
     {
       "type": "shell",
+      "script": "scripts/aws-cli.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
       "script": "scripts/consul.sh",
       "environment_vars": [
         "CONSUL_VERSION={{user `consul_version`}}"

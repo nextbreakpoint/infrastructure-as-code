@@ -1,5 +1,6 @@
 {
   "variables": {
+    "account_id": "",
     "key_name": "",
     "key_path": "",
     "aws_access_key": "",
@@ -29,7 +30,7 @@
         "name": "base-{{user `base_version`}}-*",
         "root-device-type": "ebs"
       },
-      "owners": ["991512327633"],
+      "owners": ["{{user `account_id`}}"],
       "most_recent": true
     },
     "instance_type": "{{user `aws_instance_type`}}",
