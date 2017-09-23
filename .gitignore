@@ -1,13 +1,17 @@
 # Compiled files
+*.jceks
+*.jks
+*.crt
+*.key
+*.cer
+*.pem
+*.pub
 *.tf.bkp
 *.tfstate
 *.tfstate.backup
-*.pem
-*.pub
-*.crt
-*.key
 config_vars.json
 config.tfvars
 terraform.tfstate*
 .terraform
 network_vars.json
+/secrets

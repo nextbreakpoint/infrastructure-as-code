@@ -54,13 +54,5 @@ variable "cluster_instance_type" {
 }
 
 ### MANDATORY ###
-variable "services_bucket_name" {
-}
-
-### MANDATORY ###
-variable "ecs_cluster_elb_certificate_path" {
-}
-
-### MANDATORY ###
-variable "ecs_cluster_elb_private_key_path" {
+variable "secrets_bucket_name" {
 }

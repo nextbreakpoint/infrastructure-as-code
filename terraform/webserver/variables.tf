@@ -74,15 +74,15 @@ variable "environment" {
 }
 
 ### MANDATORY ###
-variable "webserver_bucker_name" {
+variable "secrets_bucket_name" {
 }
 
 variable "webserver_elb_certificate_path" {
-  default = "environments/production/nginx/nginx.crt"
+  default = "../../secrets/ca_and_server_cert.pem"
 }
 
 variable "webserver_elb_private_key_path" {
-  default = "environments/production/nginx/nginx.key"
+  default = "../../secrets/server_key.pem"
 }
 
 ###################################################################

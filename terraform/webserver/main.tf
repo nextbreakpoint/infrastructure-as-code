@@ -92,7 +92,7 @@ data "template_file" "webserver_user_data_a" {
   vars {
     aws_region              = "${var.aws_region}"
     environment             = "${var.environment}"
-    bucker_name             = "${var.webserver_bucker_name}"
+    bucket_name             = "${var.secrets_bucket_name}"
     security_groups         = "${aws_security_group.webserver.id}"
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
@@ -109,7 +109,7 @@ data "template_file" "webserver_user_data_b" {
   vars {
     aws_region              = "${var.aws_region}"
     environment             = "${var.environment}"
-    bucker_name             = "${var.webserver_bucker_name}"
+    bucket_name             = "${var.secrets_bucket_name}"
     security_groups         = "${aws_security_group.webserver.id}"
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
@@ -166,7 +166,7 @@ resource "aws_iam_role_policy" "webserver_role_policy" {
             "s3:GetObject"
         ],
         "Effect": "Allow",
-        "Resource": "arn:aws:s3:::${aws_s3_bucket.webserver.id}/*"
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
@@ -314,7 +314,7 @@ resource "aws_autoscaling_group" "webserver_asg_a" {
   }
 
   tag {
-    key                 = "stream"
+    key                 = "Stream"
     value               = "${var.stream_tag}"
     propagate_at_launch = true
   }
@@ -349,7 +349,7 @@ resource "aws_autoscaling_group" "webserver_asg_b" {
   }
 
   tag {
-    key                 = "stream"
+    key                 = "Stream"
     value               = "${var.stream_tag}"
     propagate_at_launch = true
   }
@@ -517,36 +517,4 @@ resource "aws_route53_record" "artifactory" {
     zone_id = "${aws_elb.webserver_elb.zone_id}"
     evaluate_target_health = true
   }
-}
-
-##############################################################################
-# S3 Bucket
-##############################################################################
-
-resource "aws_s3_bucket" "webserver" {
-  bucket = "${var.webserver_bucker_name}"
-  region = "${var.aws_region}"
-  versioning = {
-    enabled = true
-  }
-  acl = "private"
-  force_destroy  = true
-
-  tags {
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_s3_bucket_object" "nginx-certificate" {
-  bucket = "${aws_s3_bucket.webserver.id}"
-  key    = "environments/production/nginx/nginx.crt"
-  source = "environments/production/nginx/nginx.crt"
-  etag   = "${md5(file("environments/production/nginx/nginx.crt"))}"
-}
-
-resource "aws_s3_bucket_object" "nginx-private-key" {
-  bucket = "${aws_s3_bucket.webserver.id}"
-  key    = "environments/production/nginx/nginx.key"
-  source = "environments/production/nginx/nginx.key"
-  etag   = "${md5(file("environments/production/nginx/nginx.key"))}"
 }

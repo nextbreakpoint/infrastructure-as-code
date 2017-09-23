@@ -45,3 +45,5 @@ wait $pipeline_pid
 wait $webserver_pid
 
 cd $DIR/terraform/consul && tf_destroy -force
+
+cd $DIR/terraform/secrets && tf_destroy -force

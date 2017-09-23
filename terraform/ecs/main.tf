@@ -281,7 +281,7 @@ resource "aws_autoscaling_group" "cluster_asg_a" {
   }
 
   tag {
-    key                 = "stream"
+    key                 = "Stream"
     value               = "${var.stream_tag}"
     propagate_at_launch = true
   }
@@ -317,7 +317,7 @@ resource "aws_autoscaling_group" "cluster_asg_b" {
   }
 
   tag {
-    key                 = "stream"
+    key                 = "Stream"
     value               = "${var.stream_tag}"
     propagate_at_launch = true
   }
@@ -465,67 +465,5 @@ resource "aws_route53_record" "cluster_dns" {
   ttl = "30"
 
   records = ["${aws_elb.cluster_elb.dns_name}"]
-}
-*/
-
-##############################################################################
-# S3 Bucket
-##############################################################################
-
-resource "aws_s3_bucket" "services" {
-  bucket = "${var.services_bucket_name}"
-  region = "${var.aws_region}"
-  versioning = {
-    enabled = true
-  }
-  acl = "private"
-  force_destroy  = true
-
-  tags {
-    Stream = "${var.stream_tag}"
-  }
-}
-
-/*
-data "aws_vpc_endpoint" "s3" {
-  vpc_id       = "${aws_vpc.vpc.id}"
-  service_name = "com.amazonaws.eu-east-1.s3"
-}
-
-data "aws_iam_policy_document" "services" {
-  statement {
-    sid = "Access-to-specific-VPC-only"
-
-    effect = "Deny"
-
-    principals = {
-      type = "AWS"
-      identifiers = ["*"]
-    }
-
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject"
-    ]
-
-    resources = [
-      "arn:aws:s3:::${aws_s3_bucket.services.id}/*",
-    ]
-
-    condition {
-      test     = "StringNotEquals"
-      variable = "aws:sourceVpce"
-
-      values = [
-        "${aws_vpc_endpoint.s3.id}"
-      ]
-    }
-  }
-}
-
-resource "aws_s3_bucket_policy" "services_policy" {
-  bucket = "${aws_s3_bucket.services.id}"
-  policy = "${data.aws_iam_policy_document.services.json}"
 }
 */
