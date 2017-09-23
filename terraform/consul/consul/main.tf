@@ -36,7 +36,7 @@ resource "aws_instance" "consul" {
 
   tags {
     Name = "${var.name}"
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 
   provisioner "remote-exec" {

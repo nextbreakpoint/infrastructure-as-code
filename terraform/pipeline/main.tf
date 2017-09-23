@@ -191,8 +191,8 @@ resource "aws_instance" "pipeline_server_a" {
 
   ami = "${data.aws_ami.pipeline.id}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
-  associate_public_ip_address = "true"
+  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+  associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.pipeline_server.id}"]
   key_name = "${var.key_name}"
 
@@ -238,6 +238,7 @@ resource "null_resource" "pipeline_server_a" {
 # Route 53
 ##############################################################################
 
+/*
 resource "aws_route53_record" "public_jenkins" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "jenkins.${var.public_hosted_zone_name}"
@@ -261,6 +262,7 @@ resource "aws_route53_record" "public_artifactory" {
   ttl = "60"
   records = ["${aws_instance.pipeline_server_a.*.public_ip}"]
 }
+*/
 
 resource "aws_route53_record" "jenkins" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"

@@ -89,7 +89,7 @@ resource "aws_security_group" "consul_server" {
   }
 
   tags {
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 }
 
@@ -225,6 +225,7 @@ module "consul_servers_c" {
 # Load balancer
 ##############################################################################
 
+/*
 resource "aws_security_group" "consul_elb" {
   name = "consul-elb-security-group"
   description = "consul load balacer"
@@ -245,7 +246,7 @@ resource "aws_security_group" "consul_elb" {
   }
 
   tags {
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 }
 
@@ -290,14 +291,16 @@ resource "aws_elb" "consul" {
   internal = false
 
   tags {
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 }
+*/
 
 ##############################################################################
 # Route 53
 ##############################################################################
 
+/*
 resource "aws_route53_record" "consul_elb" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "consul.${var.public_hosted_zone_name}"
@@ -309,6 +312,7 @@ resource "aws_route53_record" "consul_elb" {
     evaluate_target_health = true
   }
 }
+*/
 
 resource "aws_route53_record" "consul_dns" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"

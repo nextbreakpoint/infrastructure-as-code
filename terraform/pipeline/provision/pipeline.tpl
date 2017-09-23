@@ -248,6 +248,24 @@ sudo chmod go-w /etc/filebeat/filebeat.yml
 sudo update-rc.d filebeat defaults 95 10
 sudo service filebeat start
 
+# Configure the consul agent
+cat <<EOF >/tmp/consul.json
+{
+  "addresses": {
+    "http": "0.0.0.0"
+  },
+  "disable_anonymous_signature": true,
+  "disable_update_check": true,
+  "datacenter": "terraform",
+  "data_dir": "/mnt/consul",
+  "log_level": "TRACE",
+  "retry_join": ["consul.internal"],
+  "enable_script_checks": true,
+  "leave_on_terminate": true
+}
+EOF
+sudo mv /tmp/consul.json /etc/consul.d/consul.json
+
 sudo cat <<EOF >/tmp/consul.service
 [Unit]
 Description=Consul service discovery agent
@@ -273,15 +291,9 @@ EOF
 sudo sed -i -e 's/PIPELINE_HOST/'$PIPELINE_HOST'/g' /tmp/consul.service
 sudo mv /tmp/consul.service /etc/systemd/system/consul.service
 
-# Setup the consul agent config
-sudo cat <<EOF >/tmp/pipeline-consul.json
+# Configure the pipeline healthchecks
+sudo cat <<EOF >/tmp/pipeline.json
 {
-    "datacenter": "terraform",
-    "data_dir": "/mnt/consul",
-    "log_level": "TRACE",
-    "retry_join": ["consul.internal"],
-    "enable_script_checks": true,
-    "leave_on_terminate": true,
     "services": [{
         "name": "jenkins",
         "tags": [
@@ -327,7 +339,7 @@ sudo cat <<EOF >/tmp/pipeline-consul.json
     }]
 }
 EOF
-sudo mv /tmp/pipeline-consul.json /etc/consul.d/pipeline.json
+sudo mv /tmp/pipeline.json /etc/consul.d/pipeline.json
 
 sudo service consul start
 

@@ -249,6 +249,7 @@ resource "aws_instance" "kibana_server_b" {
 # Load balancer
 ##############################################################################
 
+/*
 resource "aws_security_group" "kibana_elb" {
   name = "kibana-elb-security-group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
@@ -268,7 +269,7 @@ resource "aws_security_group" "kibana_elb" {
   }
 
   tags {
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 }
 
@@ -311,14 +312,16 @@ resource "aws_elb" "kibana" {
   internal = false
 
   tags {
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 }
+*/
 
 ##############################################################################
 # Route 53
 ##############################################################################
 
+/*
 resource "aws_route53_record" "kibana_elb" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "kibana.${var.public_hosted_zone_name}"
@@ -330,6 +333,7 @@ resource "aws_route53_record" "kibana_elb" {
     evaluate_target_health = true
   }
 }
+*/
 
 resource "aws_route53_record" "kibana_dns" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"

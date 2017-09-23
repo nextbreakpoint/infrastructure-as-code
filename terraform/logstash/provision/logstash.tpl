@@ -14,6 +14,24 @@ export LOGSTASH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }
 #datetime_format = %b %d %H:%M:%S
 #EOF
 
+# Configure the consul agent
+cat <<EOF >/tmp/consul.json
+{
+  "addresses": {
+    "http": "0.0.0.0"
+  },
+  "disable_anonymous_signature": true,
+  "disable_update_check": true,
+  "datacenter": "terraform",
+  "data_dir": "/mnt/consul",
+  "log_level": "TRACE",
+  "retry_join": ["consul.internal"],
+  "enable_script_checks": true,
+  "leave_on_terminate": true
+}
+EOF
+sudo mv /tmp/consul.json /etc/consul.d/consul.json
+
 sudo cat <<EOF >/tmp/consul.service
 [Unit]
 Description=Consul service discovery agent
@@ -39,15 +57,9 @@ EOF
 sudo sed -i -e 's/LOGSTASH_HOST/'$LOGSTASH_HOST'/g' /tmp/consul.service
 sudo mv /tmp/consul.service /etc/systemd/system/consul.service
 
-# Setup the consul agent config
-sudo cat <<EOF >/tmp/kibana-consul.json
+# Configure the logstash healthchecks
+sudo cat <<EOF >/tmp/logstash.json
 {
-    "datacenter": "terraform",
-    "data_dir": "/mnt/consul",
-    "log_level": "TRACE",
-    "retry_join": ["consul.internal"],
-    "enable_script_checks": true,
-    "leave_on_terminate": true,
     "services": [{
         "name": "logstash",
         "tags": [
@@ -65,7 +77,7 @@ sudo cat <<EOF >/tmp/kibana-consul.json
     }]
 }
 EOF
-sudo mv /tmp/kibana-consul.json /etc/consul.d/kibana.json
+sudo mv /tmp/logstash.json /etc/consul.d/logstash.json
 
 sudo cat <<EOF >/tmp/logstash.yml
 path.data: /var/lib/logstash

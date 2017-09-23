@@ -17,12 +17,17 @@ export ELASTICSEARCH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2
 # Configure the consul agent
 cat <<EOF >/tmp/consul.json
 {
-    "addresses"                   : {
-        "http" : "0.0.0.0"
-    },
-    "disable_anonymous_signature" : true,
-    "disable_update_check"        : true,
-    "data_dir"                    : "/mnt/consul"
+  "addresses": {
+    "http": "0.0.0.0"
+  },
+  "disable_anonymous_signature": true,
+  "disable_update_check": true,
+  "datacenter": "terraform",
+  "data_dir": "/mnt/consul",
+  "log_level": "TRACE",
+  "retry_join": ["consul.internal"],
+  "enable_script_checks": true,
+  "leave_on_terminate": true
 }
 EOF
 sudo mv /tmp/consul.json /etc/consul.d/consul.json
@@ -52,15 +57,9 @@ EOF
 sudo sed -i -e 's/ELASTICSEARCH_HOST/'$ELASTICSEARCH_HOST'/g' /tmp/consul.service
 sudo mv /tmp/consul.service /etc/systemd/system/consul.service
 
-# Setup the consul agent config
-sudo cat <<EOF >/tmp/elasticsearch-consul.json
+# Configure the elastisearch healthchecks
+sudo cat <<EOF >/tmp/elasticsearch.json
 {
-    "datacenter": "terraform",
-    "data_dir": "/mnt/consul",
-    "log_level": "TRACE",
-    "retry_join": ["consul.internal"],
-    "enable_script_checks": true,
-    "leave_on_terminate": true,
     "services": [{
         "name": "elasticsearch-9200",
         "tags": [
@@ -75,8 +74,7 @@ sudo cat <<EOF >/tmp/elasticsearch-consul.json
             "interval": "60s"
         } ],
         "leave_on_terminate": true
-    },
-    {
+    },{
         "name": "elasticsearch-9300",
         "tags": [
             "tcp", "index"
@@ -93,7 +91,7 @@ sudo cat <<EOF >/tmp/elasticsearch-consul.json
     }]
 }
 EOF
-sudo mv /tmp/elasticsearch-consul.json /etc/consul.d/elasticsearch.json
+sudo mv /tmp/elasticsearch.json /etc/consul.d/elasticsearch.json
 
 sudo cat <<EOF >/tmp/elasticsearch.yml
 cluster.name: ${es_cluster}

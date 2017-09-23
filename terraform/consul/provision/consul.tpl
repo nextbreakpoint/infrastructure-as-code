@@ -16,6 +16,11 @@ export CONSUL_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
 
 sudo cat <<EOF >/tmp/consul.json
 {
+  "addresses": {
+    "http": "0.0.0.0"
+  },
+  "disable_anonymous_signature": true,
+  "disable_update_check": true,
   "datacenter": "terraform",
   "data_dir": "/mnt/consul",
   "log_level": "TRACE",

@@ -50,6 +50,34 @@ resource "aws_security_group" "cluster_server" {
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
+  ingress {
+    from_port = 3000
+    to_port = 3099
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port = 8080
+    to_port = 8080
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port = 8301
+    to_port = 8301
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port = 8301
+    to_port = 8301
+    protocol = "udp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
   egress {
     from_port = 0
     to_port = 0
@@ -305,6 +333,7 @@ resource "aws_autoscaling_group" "cluster_asg_b" {
   }
 }
 
+/*
 resource "aws_security_group" "cluster_elb" {
   name = "ecs-cluster-elb-security-group"
   description = "ECS Cluster ELB security group"
@@ -332,7 +361,7 @@ resource "aws_security_group" "cluster_elb" {
   }
 
   tags {
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 }
 
@@ -385,7 +414,7 @@ resource "aws_elb" "cluster_elb" {
   connection_draining_timeout = 400
 
   tags {
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 }
 
@@ -398,6 +427,7 @@ resource "aws_autoscaling_attachment" "cluster_asg_b" {
   autoscaling_group_name = "${aws_autoscaling_group.cluster_asg_b.id}"
   elb = "${aws_elb.cluster_elb.id}"
 }
+*/
 
 /*
 resource "aws_elb_attachment" "cluster_server_a" {
@@ -411,6 +441,7 @@ resource "aws_elb_attachment" "cluster_server_b" {
 }
 */
 
+/*
 ##############################################################################
 # Route 53
 ##############################################################################
@@ -435,6 +466,7 @@ resource "aws_route53_record" "cluster_dns" {
 
   records = ["${aws_elb.cluster_elb.dns_name}"]
 }
+*/
 
 ##############################################################################
 # S3 Bucket
@@ -450,7 +482,7 @@ resource "aws_s3_bucket" "services" {
   force_destroy  = true
 
   tags {
-    stream = "${var.stream_tag}"
+    Stream = "${var.stream_tag}"
   }
 }
 

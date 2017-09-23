@@ -65,6 +65,9 @@ Create a file config.tfvars like this:
     # Services configuration bucket
     services_bucket_name="services_bucket_name"
 
+    # Webserver configuration bucket
+    webserver_bucker_name="webserver_bucket_name"
+
 Create a file config_vars.json like this:
 
     {

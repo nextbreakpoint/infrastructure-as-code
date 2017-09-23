@@ -2,10 +2,6 @@ output "ecs-cluster-id" {
   value = "${aws_ecs_cluster.services.id}"
 }
 
-output "ecs-cluster-elb-name" {
-  value = "${aws_elb.cluster_elb.name}"
-}
-
 output "ecs-cluster-bucket-name" {
   value = "${aws_s3_bucket.services.id}"
 }

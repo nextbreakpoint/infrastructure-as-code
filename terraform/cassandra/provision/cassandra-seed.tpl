@@ -16,6 +16,24 @@ sudo service cassandra stop
 #datetime_format = %b %d %H:%M:%S
 #EOF
 
+# Configure the consul agent
+cat <<EOF >/tmp/consul.json
+{
+  "addresses": {
+    "http": "0.0.0.0"
+  },
+  "disable_anonymous_signature": true,
+  "disable_update_check": true,
+  "datacenter": "terraform",
+  "data_dir": "/mnt/consul",
+  "log_level": "TRACE",
+  "retry_join": ["consul.internal"],
+  "enable_script_checks": true,
+  "leave_on_terminate": true
+}
+EOF
+sudo mv /tmp/consul.json /etc/consul.d/consul.json
+
 sudo cat <<EOF >/tmp/consul.service
 [Unit]
 Description=Consul service discovery agent
@@ -41,15 +59,9 @@ EOF
 sudo sed -i -e 's/CASSANDRA_HOST/'$CASSANDRA_HOST'/g' /tmp/consul.service
 sudo mv /tmp/consul.service /etc/systemd/system/consul.service
 
-# Setup the consul agent config
-sudo cat <<EOF >/tmp/cassandra-consul.json
+# Configure the cassandra healthchecks
+sudo cat <<EOF >/tmp/cassandra.json
 {
-    "datacenter": "terraform",
-    "data_dir": "/mnt/consul",
-    "log_level": "TRACE",
-    "retry_join": ["consul.internal"],
-    "enable_script_checks": true,
-    "leave_on_terminate": true,
     "services": [{
         "name": "cassandra",
         "tags": [
@@ -67,7 +79,7 @@ sudo cat <<EOF >/tmp/cassandra-consul.json
     }]
 }
 EOF
-sudo mv /tmp/cassandra-consul.json /etc/consul.d/cassandra.json
+sudo mv /tmp/cassandra.json /etc/consul.d/cassandra.json
 
 sudo cat <<EOF >/tmp/filebeat.yml
 filebeat:

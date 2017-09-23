@@ -15,6 +15,24 @@ export KAFKA_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
 #datetime_format = %b %d %H:%M:%S
 #EOF
 
+# Configure the consul agent
+cat <<EOF >/tmp/consul.json
+{
+  "addresses": {
+    "http": "0.0.0.0"
+  },
+  "disable_anonymous_signature": true,
+  "disable_update_check": true,
+  "datacenter": "terraform",
+  "data_dir": "/mnt/consul",
+  "log_level": "TRACE",
+  "retry_join": ["consul.internal"],
+  "enable_script_checks": true,
+  "leave_on_terminate": true
+}
+EOF
+sudo mv /tmp/consul.json /etc/consul.d/consul.json
+
 sudo cat <<EOF >/tmp/consul.service
 [Unit]
 Description=Consul service discovery agent
@@ -40,15 +58,9 @@ EOF
 sudo sed -i -e 's/KAFKA_HOST/'$KAFKA_HOST'/g' /tmp/consul.service
 sudo mv /tmp/consul.service /etc/systemd/system/consul.service
 
-# Setup the consul agent config
-sudo cat <<EOF >/tmp/kafka-consul.json
+# Configure the kafka healthchecks
+sudo cat <<EOF >/tmp/kafka.json
 {
-    "datacenter": "terraform",
-    "data_dir": "/mnt/consul",
-    "log_level": "TRACE",
-    "retry_join": ["consul.internal"],
-    "enable_script_checks": true,
-    "leave_on_terminate": true,
     "services": [{
         "name": "kafka",
         "tags": [
@@ -66,7 +78,7 @@ sudo cat <<EOF >/tmp/kafka-consul.json
     }]
 }
 EOF
-sudo mv /tmp/kafka-consul.json /etc/consul.d/kafka.json
+sudo mv /tmp/kafka.json /etc/consul.d/kafka.json
 
 sudo cat <<EOF >/tmp/filebeat.yml
 filebeat:
