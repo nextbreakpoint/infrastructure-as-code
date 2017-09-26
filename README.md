@@ -15,7 +15,7 @@ The infrastructure provides key components such like:
 
 - Jenkins, SonarQube and Artifactory for creating a continuous delivery pipeline
 
-- Consul for monitoring servers and services
+- Consul for services discovery
 
 - Kubernetes and ECS for orchestrating Docker containers
 
