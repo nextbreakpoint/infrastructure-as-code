@@ -136,12 +136,12 @@ runcmd:
 
               location / {
                   resolver 127.0.0.1;
-                  set \$$upstream_consul consul.internal;
-                  proxy_pass http://\$$upstream_consul:8500\$$request_uri;
-                  proxy_redirect http://\$$upstream_consul:8500 https://consul.${public_hosted_zone_name};
-                  proxy_set_header Host \$$host;
-                  proxy_set_header X-Real-IP \$$remote_addr;
-                  proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
+                  set $$upstream_consul consul.internal;
+                  proxy_pass http://$$upstream_consul:8500$$request_uri;
+                  proxy_redirect http://$$upstream_consul:8500 https://consul.${public_hosted_zone_name};
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Real-IP $$remote_addr;
+                  proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
               }
             }
 
@@ -156,12 +156,12 @@ runcmd:
 
               location / {
                   resolver 127.0.0.1;
-                  set \$$upstream_kibana kibana.internal;
-                  proxy_pass http://\$$upstream_kibana:5601;
-                  proxy_redirect http://\$$upstream_kibana:5601 https://kibana.${public_hosted_zone_name};
-                  proxy_set_header Host \$$host;
-                  proxy_set_header X-Real-IP \$$remote_addr;
-                  proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
+                  set $$upstream_kibana kibana.internal;
+                  proxy_pass http://$$upstream_kibana:5601;
+                  proxy_redirect http://$$upstream_kibana:5601 https://kibana.${public_hosted_zone_name};
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Real-IP $$remote_addr;
+                  proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
               }
             }
 
@@ -176,12 +176,12 @@ runcmd:
 
               location / {
                   resolver 127.0.0.1;
-                  set \$$upstream_jenkins jenkins.internal;
-                  proxy_pass http://\$$upstream_jenkins:8080\$$request_uri;
-                  proxy_redirect http://\$$upstream_jenkins:8080 https://jenkins.${public_hosted_zone_name};
-                  proxy_set_header Host \$$host;
-                  proxy_set_header X-Real-IP \$$remote_addr;
-                  proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
+                  set $$upstream_jenkins jenkins.internal;
+                  proxy_pass http://$$upstream_jenkins:8080$$request_uri;
+                  proxy_redirect http://$$upstream_jenkins:8080 https://jenkins.${public_hosted_zone_name};
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Real-IP $$remote_addr;
+                  proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
               }
             }
 
@@ -196,12 +196,12 @@ runcmd:
 
               location / {
                   resolver 127.0.0.1;
-                  set \$$upstream_sonarqube sonarqube.internal;
-                  proxy_pass http://\$$upstream_sonarqube:9000\$$request_uri;
-                  proxy_redirect http://\$$upstream_sonarqube:9000 https://sonarqube.${public_hosted_zone_name};
-                  proxy_set_header Host \$$host;
-                  proxy_set_header X-Real-IP \$$remote_addr;
-                  proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
+                  set $$upstream_sonarqube sonarqube.internal;
+                  proxy_pass http://$$upstream_sonarqube:9000$$request_uri;
+                  proxy_redirect http://$$upstream_sonarqube:9000 https://sonarqube.${public_hosted_zone_name};
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Real-IP $$remote_addr;
+                  proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
               }
             }
 
@@ -216,11 +216,11 @@ runcmd:
 
               location / {
                   resolver 127.0.0.1;
-                  set \$$upstream_artifactory artifactory.internal;
-                  proxy_pass http://\$$upstream_artifactory:8081\$$request_uri;
-                  proxy_redirect http://\$$upstream_artifactory:8081 https://artifactory.${public_hosted_zone_name};
-                  proxy_set_header Host \$$host;
-                  proxy_set_header X-Real-IP \$$remote_addr;
+                  set $$upstream_artifactory artifactory.internal;
+                  proxy_pass http://$$upstream_artifactory:8081$$request_uri;
+                  proxy_redirect http://$$upstream_artifactory:8081 https://artifactory.${public_hosted_zone_name};
+                  proxy_set_header Host $$host;
+                  proxy_set_header X-Real-IP $$remote_addr;
                   proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
               }
             }
