@@ -37,24 +37,12 @@ variable "hosted_zone_name" {
 }
 
 ### MANDATORY ###
-variable "public_hosted_zone_id" {
-}
-
-### MANDATORY ###
-variable "public_hosted_zone_name" {
-}
-
-### MANDATORY ###
 variable "aws_bastion_vpc_cidr" {
 }
 
 ### MANDATORY ###
 variable "aws_network_vpc_cidr" {
 }
-
-###################################################################
-# Consul configuration below
-###################################################################
 
 ### MANDATORY ###
 variable "base_version" {
@@ -64,20 +52,22 @@ variable "base_version" {
 variable "account_id" {
 }
 
+###################################################################
+# Consul configuration below
+###################################################################
+
 variable "consul_instance_type" {
-  description = "Consul instance type."
   default = "t2.micro"
 }
 
-variable "allowed_cidr_blocks" {
-  default = "0.0.0.0/0"
+variable "consul_record" {
+  default = "consul"
+}
+
+variable "consul_datacenter" {
+  default = "terraform"
 }
 
 variable "consul_log_file" {
   default = "/var/log/consul.log"
-}
-
-### MANDATORY ###
-variable "environment" {
-  default = "terraform"
 }

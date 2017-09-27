@@ -98,11 +98,12 @@ data "template_file" "consul_server_user_data" {
 
   vars {
     aws_region              = "${var.aws_region}"
-    environment             = "${var.environment}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
+    consul_bootstrap_expect = "3"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
-    bootstrap_expect        = "3"
   }
 }
 
@@ -303,7 +304,7 @@ resource "aws_elb" "consul" {
 /*
 resource "aws_route53_record" "consul_elb" {
   zone_id = "${var.public_hosted_zone_id}"
-  name = "consul.${var.public_hosted_zone_name}"
+  name = "${var.consul_hostname}.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {
@@ -316,7 +317,7 @@ resource "aws_route53_record" "consul_elb" {
 
 resource "aws_route53_record" "consul_dns" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "consul.${var.hosted_zone_name}"
+  name = "${var.consul_hostname}.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
 
