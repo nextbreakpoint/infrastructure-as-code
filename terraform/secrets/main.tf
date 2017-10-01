@@ -113,6 +113,13 @@ resource "aws_s3_bucket_object" "truststore-server" {
   etag   = "${md5(file("environments/production/keystores/truststore-server.jks"))}"
 }
 
+resource "aws_s3_bucket_object" "nginx-certificate-with-ca-authority" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/nginx/ca_and_server_cert.pem"
+  source = "environments/production/nginx/ca_and_server_cert.pem"
+  etag   = "${md5(file("environments/production/nginx/ca_and_server_cert.pem"))}"
+}
+
 resource "aws_s3_bucket_object" "nginx-certificate" {
   bucket = "${aws_s3_bucket.secrets.id}"
   key    = "environments/production/nginx/server_cert.pem"

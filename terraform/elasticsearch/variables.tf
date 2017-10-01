@@ -36,6 +36,14 @@ variable "volume_name" {
   default = "/dev/xvdh"
 }
 
+variable "volume_size" {
+  default = "4"
+}
+
+variable "volume_encrypted" {
+  default = "false"
+}
+
 ### MANDATORY ###
 variable "hosted_zone_name" {
 }
@@ -52,63 +60,69 @@ variable "aws_bastion_vpc_cidr" {
 variable "aws_network_vpc_cidr" {
 }
 
-###################################################################
-# Elasticsearch configuration below
-###################################################################
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
 
 ### MANDATORY ###
-variable "elasticsearch_version" {
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
 }
 
 ### MANDATORY ###
 variable "account_id" {
 }
 
+### MANDATORY ###
+variable "environment" {
+  default = "production"
+}
+
+### MANDATORY ###
+variable "secrets_bucket_name" {
+}
+
+###################################################################
+# Elasticsearch configuration below
+###################################################################
+
+### MANDATORY ###
+variable "base_version" {
+}
+
+### MANDATORY ###
+variable "filebeat_version" {
+}
+
+### MANDATORY ###
+variable "elasticsearch_version" {
+}
+
 variable "elasticsearch_instance_type" {
-  description = "Elasticsearch instance type."
   default = "t2.medium"
 }
 
 ### MANDATORY ###
-# if you have multiple clusters sharing the same es_environment?
-variable "es_cluster" {
-  description = "Elastic cluster name"
-}
-
-### MANDATORY ###
-variable "es_environment" {
-  description = "Elastic environment tag for auto discovery"
-  default = "terraform"
-}
-
-# number of nodes in zone a
-variable "es_num_nodes_a" {
-  description = "Elastic nodes in a"
-  default = "1"
-}
-
-# number of nodes in zone b
-variable "es_num_nodes_b" {
-  description = "Elastic nodes in b"
-  default = "1"
-}
-
-# the ability to add additional existing security groups. In our case we have consul running as agents on the box
-variable "es_additional_security_groups" {
-  default = ""
+variable "elasticsearch_cluster_name" {
+  description = "Elasticsearch cluster name"
 }
 
 variable "minimum_master_nodes" {
-  default = "1"
-}
-
-variable "availability_zones" {
-  default = "eu-west-1a,eu-west-1b"
+  default = "2"
 }
 
 ###################################################################
 # Consul configuration below
 ###################################################################
+
+variable "consul_record" {
+  default = "consul"
+}
+
+variable "consul_datacenter" {
+  default = "terraform"
+}
 
 variable "consul_log_file" {
   default = "/var/log/consul.log"

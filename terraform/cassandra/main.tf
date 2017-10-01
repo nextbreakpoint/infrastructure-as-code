@@ -160,12 +160,35 @@ data "template_file" "cassandra_server_user_data_seed" {
   template = "${file("provision/cassandra-seed.tpl")}"
 
   vars {
-    aws_region              = "${var.aws_region}"
     security_groups         = "${aws_security_group.cassandra_server.id}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
     hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
+    cassandra_version       = "${var.cassandra_version}"
+    cassandra_nodes         = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "70")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "70")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "70")}"
+  }
+}
+
+data "template_file" "cassandra_server_user_data_node" {
+  template = "${file("provision/cassandra-node.tpl")}"
+
+  vars {
+    security_groups         = "${aws_security_group.cassandra_server.id}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
+    cassandra_version       = "${var.cassandra_version}"
+    cassandra_nodes         = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "70")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "70")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "70")}"
   }
 }
 
@@ -174,7 +197,7 @@ data "aws_ami" "cassandra" {
 
   filter {
     name = "name"
-    values = ["cassandra-${var.cassandra_version}-*"]
+    values = ["base-${var.base_version}-*"]
   }
 
   filter {
@@ -197,22 +220,9 @@ resource "aws_instance" "cassandra_server_a1" {
 
   iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
-  connection {
-    #host = "${element(aws_instance.cassandra_server_a1.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
+  user_data = "${data.template_file.cassandra_server_user_data_seed.rendered}"
 
-  provisioner "remote-exec" {
-    inline = [
-        "${data.template_file.cassandra_server_user_data_seed.rendered}"
-    ]
-  }
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "70")}"
 
   tags {
     Name = "cassandra-server-a1"
@@ -232,22 +242,9 @@ resource "aws_instance" "cassandra_server_b1" {
 
   iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
-  connection {
-    #host = "${element(aws_instance.cassandra_server_b1.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
+  user_data = "${data.template_file.cassandra_server_user_data_seed.rendered}"
 
-  provisioner "remote-exec" {
-    inline = [
-        "${data.template_file.cassandra_server_user_data_seed.rendered}"
-    ]
-  }
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "70")}"
 
   tags {
     Name = "cassandra-server-b1"
@@ -267,22 +264,9 @@ resource "aws_instance" "cassandra_server_c1" {
 
   iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
-  connection {
-    #host = "${element(aws_instance.cassandra_server_c1.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
+  user_data = "${data.template_file.cassandra_server_user_data_seed.rendered}"
 
-  provisioner "remote-exec" {
-    inline = [
-        "${data.template_file.cassandra_server_user_data_seed.rendered}"
-    ]
-  }
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "70")}"
 
   tags {
     Name = "cassandra-server-c1"
@@ -302,6 +286,10 @@ resource "aws_instance" "cassandra_server_a2" {
 
   iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
+  user_data = "${data.template_file.cassandra_server_user_data_node.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "72")}"
+
   tags {
     Name = "cassandra-server-a2"
     Stream = "${var.stream_tag}"
@@ -319,6 +307,10 @@ resource "aws_instance" "cassandra_server_b2" {
   key_name = "${var.key_name}"
 
   iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
+
+  user_data = "${data.template_file.cassandra_server_user_data_node.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "72")}"
 
   tags {
     Name = "cassandra-server-b2"
@@ -338,104 +330,13 @@ resource "aws_instance" "cassandra_server_c2" {
 
   iam_instance_profile = "${aws_iam_instance_profile.cassandra_server_profile.id}"
 
+  user_data = "${data.template_file.cassandra_server_user_data_node.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "72")}"
+
   tags {
     Name = "cassandra-server-c2"
     Stream = "${var.stream_tag}"
-  }
-}
-
-data "template_file" "cassandra_server_user_data_node" {
-  template = "${file("provision/cassandra-node.tpl")}"
-
-  vars {
-    aws_region              = "${var.aws_region}"
-    security_groups         = "${aws_security_group.cassandra_server.id}"
-    consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
-    hosted_zone_name        = "${var.hosted_zone_name}"
-    cassandra_seeds         = "${aws_instance.cassandra_server_a1.private_ip},${aws_instance.cassandra_server_b1.private_ip},${aws_instance.cassandra_server_c1.private_ip}"
-  }
-}
-
-resource "null_resource" "cassandra_server_a2" {
-  #depends_on = ["aws_volume_attachment.cassandra_volume_attachment_a"]
-  depends_on = ["aws_instance.cassandra_server_a1","aws_instance.cassandra_server_b1","aws_instance.cassandra_server_c1"]
-
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.cassandra_server_a2.*.id)}"
-  }
-
-  connection {
-    host = "${element(aws_instance.cassandra_server_a2.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-        "sleep 60",
-        "${data.template_file.cassandra_server_user_data_node.rendered}"
-    ]
-  }
-}
-
-resource "null_resource" "cassandra_server_b2" {
-  #depends_on = ["aws_volume_attachment.cassandra_volume_attachment_b"]
-  depends_on = ["aws_instance.cassandra_server_a1","aws_instance.cassandra_server_b1","aws_instance.cassandra_server_c1"]
-
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.cassandra_server_b2.*.id)}"
-  }
-
-  connection {
-    host = "${element(aws_instance.cassandra_server_b2.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-        "sleep 120",
-        "${data.template_file.cassandra_server_user_data_node.rendered}"
-    ]
-  }
-}
-
-resource "null_resource" "cassandra_server_c2" {
-  #depends_on = ["aws_volume_attachment.cassandra_volume_attachment_c"]
-  depends_on = ["aws_instance.cassandra_server_a1","aws_instance.cassandra_server_b1","aws_instance.cassandra_server_c1"]
-
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.cassandra_server_c2.*.id)}"
-  }
-
-  connection {
-    host = "${element(aws_instance.cassandra_server_c2.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-        "sleep 180",
-        "${data.template_file.cassandra_server_user_data_node.rendered}"
-    ]
   }
 }
 

@@ -14,5 +14,6 @@ sudo apt-get update
 echo "Installing Docker..."
 sudo apt-cache madison docker-ce
 sudo apt-get install -y docker-ce
+sudo usermod -aG docker ubuntu
 
 echo "Docker installed."

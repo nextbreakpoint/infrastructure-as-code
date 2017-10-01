@@ -37,10 +37,6 @@ variable "hosted_zone_name" {
 }
 
 ### MANDATORY ###
-variable "public_hosted_zone_id" {
-}
-
-### MANDATORY ###
 variable "public_hosted_zone_name" {
 }
 
@@ -52,50 +48,73 @@ variable "aws_bastion_vpc_cidr" {
 variable "aws_network_vpc_cidr" {
 }
 
-###################################################################
-# Kibana configuration below
-###################################################################
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
 
 ### MANDATORY ###
-variable "kibana_version" {
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
 }
 
 ### MANDATORY ###
 variable "account_id" {
 }
 
+### MANDATORY ###
+variable "environment" {
+  default = "production"
+}
+
+### MANDATORY ###
+variable "secrets_bucket_name" {
+}
+
+###################################################################
+# Kibana configuration below
+###################################################################
+
+### MANDATORY ###
+variable "base_version" {
+}
+
+### MANDATORY ###
+variable "filebeat_version" {
+}
+
+### MANDATORY ###
+variable "kibana_version" {
+}
+
+### MANDATORY ###
+variable "elasticsearch_version" {
+}
+
 variable "kibana_instance_type" {
-  description = "Kibana instance type."
   default  = "t2.medium"
 }
 
 ### MANDATORY ###
-# if you have multiple clusters sharing the same es_environment?
-variable "es_cluster" {
-  description = "Elastic cluster name"
-}
-
-### MANDATORY ###
-variable "es_environment" {
-  description = "Elastic environment tag for auto discovery"
-  default = "terraform"
+variable "elasticsearch_cluster_name" {
+  description = "Elasticsearch cluster name"
 }
 
 variable "minimum_master_nodes" {
-  default = "1"
-}
-
-variable "availability_zones" {
-  default = "eu-west-1a,eu-west-1b"
-}
-
-variable "kibana_log_file" {
-  default = "/var/log/kibana.log"
+  default = "2"
 }
 
 ###################################################################
 # Consul configuration below
 ###################################################################
+
+variable "consul_record" {
+  default = "consul"
+}
+
+variable "consul_datacenter" {
+  default = "terraform"
+}
 
 variable "consul_log_file" {
   default = "/var/log/consul.log"

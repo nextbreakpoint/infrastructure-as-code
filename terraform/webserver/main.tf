@@ -86,7 +86,7 @@ resource "aws_security_group" "webserver" {
   }
 }
 
-data "template_file" "webserver_user_data_a" {
+data "template_file" "webserver_user_data" {
   template = "${file("provision/nginx.tpl")}"
 
   vars {
@@ -94,29 +94,15 @@ data "template_file" "webserver_user_data_a" {
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     security_groups         = "${aws_security_group.webserver.id}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
     hosted_zone_name        = "${var.hosted_zone_name}"
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
-  }
-}
-
-data "template_file" "webserver_user_data_b" {
-  template = "${file("provision/nginx.tpl")}"
-
-  vars {
-    aws_region              = "${var.aws_region}"
-    environment             = "${var.environment}"
-    bucket_name             = "${var.secrets_bucket_name}"
-    security_groups         = "${aws_security_group.webserver.id}"
-    consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
-    hosted_zone_name        = "${var.hosted_zone_name}"
-    public_hosted_zone_name = "${var.public_hosted_zone_name}"
-    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
   }
 }
 
@@ -178,7 +164,7 @@ data "aws_ami" "webserver" {
 
   filter {
     name = "name"
-    values = ["nginx-${var.base_version}-*"]
+    values = ["base-${var.base_version}-*"]
   }
 
   filter {
@@ -188,74 +174,6 @@ data "aws_ami" "webserver" {
 
   owners = ["${var.account_id}"]
 }
-
-/*
-resource "aws_instance" "webserver_a" {
-  instance_type = "${var.web_instance_type}"
-
-  ami = "${data.aws_ami.webserver.id}"
-
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
-  associate_public_ip_address = "true"
-  security_groups = ["${aws_security_group.webserver.id}"]
-  key_name = "${var.key_name}"
-
-  iam_instance_profile = "${aws_iam_instance_profile.webserver_profile.id}"
-
-  tags {
-    Name = "webserver-a"
-    Stream = "${var.stream_tag}"
-  }
-
-  connection {
-    host = "${element(aws_instance.webserver_a.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.webserver_user_data_a.rendered}"
-  }
-}
-
-resource "aws_instance" "webserver_b" {
-  instance_type = "${var.web_instance_type}"
-
-  ami = "${data.aws_ami.webserver.id}"
-
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
-  associate_public_ip_address = "true"
-  security_groups = ["${aws_security_group.webserver.id}"]
-  key_name = "${var.key_name}"
-
-  iam_instance_profile = "${aws_iam_instance_profile.webserver_profile.id}"
-
-  tags {
-    Name = "webserver-b"
-    Stream = "${var.stream_tag}"
-  }
-
-  connection {
-    host = "${element(aws_instance.webserver_b.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.webserver_user_data_b.rendered}"
-  }
-}
-*/
 
 resource "aws_launch_configuration" "webserver_launch_configuration_a" {
   name_prefix   = "webserver-"
@@ -269,7 +187,7 @@ resource "aws_launch_configuration" "webserver_launch_configuration_a" {
 
   iam_instance_profile = "${aws_iam_instance_profile.webserver_profile.name}"
 
-  user_data = "${data.template_file.webserver_user_data_a.rendered}"
+  user_data = "${data.template_file.webserver_user_data.rendered}"
 
   lifecycle {
     create_before_destroy = true
@@ -288,7 +206,7 @@ resource "aws_launch_configuration" "webserver_launch_configuration_b" {
 
   iam_instance_profile = "${aws_iam_instance_profile.webserver_profile.name}"
 
-  user_data = "${data.template_file.webserver_user_data_b.rendered}"
+  user_data = "${data.template_file.webserver_user_data.rendered}"
 
   lifecycle {
     create_before_destroy = true

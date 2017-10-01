@@ -1,138 +1,76 @@
-#!/bin/bash
-set -e
+#cloud-config
+manage_etc_hosts: True
+runcmd:
+  - sudo usermod -aG docker ubuntu
+  - sudo mkdir -p /filebeat/config
+  - sudo mkdir -p /consul/config
+  - sudo mkdir -p /zookeeper/logs
+  - sudo mkdir -p /zookeeper/data
+  - sudo mkdir -p /zookeeper/config
+  - sudo chown -R ubuntu:ubuntu /consul
+  - sudo chown -R ubuntu:ubuntu /filebeat
+  - sudo chown -R ubuntu:ubuntu /zookeeper
+  - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=zookeeper-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo -u ubuntu docker run -d --name=zookeeper --restart unless-stopped -p 2181:2181 --net=host -v /zookeeper/config/zoo.cfg:/conf/zoo.cfg -v /zookeeper/config/myid:/var/lib/zookeeper/myid -v /zookeeper/data:/var/lib/zookeeper -v /zookeeper/logs:/var/log zookeeper:latest
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /zookeeper/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
+write_files:
+  - path: /consul/config/consul.json
+    permissions: '0644'
+    content: |
+        {
+          "enable_script_checks": true,
+          "leave_on_terminate": true,
+          "dns_config": {
+            "allow_stale": true,
+            "max_stale": "1s",
+            "service_ttl": {
+              "*": "5s"
+            }
+          }
+        }
+  - path: /consul/config/zookeeper.json
+    permissions: '0644'
+    content: |
+        {
+            "services": [{
+                "name": "zookeeper",
+                "tags": [
+                    "tcp", "zookeeper"
+                ],
+                "port": 2181,
+                "checks": [{
+                    "id": "1",
+                    "name": "Zookeeper TCP",
+                    "notes": "Use nc to check the service every 30 seconds",
+                    "script": "echo stat | nc $HOST_IP_ADDRESS 2181 >/dev/null 2>&1",
+                    "interval": "30s"
+                } ],
+                "leave_on_terminate": true
+            }]
+        }
+  - path: /filebeat/config/filebeat.yml
+    permissions: '0644'
+    content: |
+        filebeat.prospectors:
+        - input_type: log
+          paths:
+          - /logs/zookeeper.log
 
-export ZOOKEEPER_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-
-#sudo cat <<EOF >/tmp/cloudwatch.cfg
-#[general]
-#state_file = /var/awslogs/state/agent-state
-#
-#[consul]
-#file = ${consul_log_file}
-#log_group_name = ${log_group_name}
-#log_stream_name = ${log_stream_name}-consul
-#datetime_format = %b %d %H:%M:%S
-#EOF
-
-# Configure the consul agent
-cat <<EOF >/tmp/consul.json
-{
-  "addresses": {
-    "http": "0.0.0.0"
-  },
-  "disable_anonymous_signature": true,
-  "disable_update_check": true,
-  "datacenter": "terraform",
-  "data_dir": "/mnt/consul",
-  "log_level": "TRACE",
-  "retry_join": ["consul.internal"],
-  "enable_script_checks": true,
-  "leave_on_terminate": true
-}
-EOF
-sudo mv /tmp/consul.json /etc/consul.d/consul.json
-
-sudo cat <<EOF >/tmp/consul.service
-[Unit]
-Description=Consul service discovery agent
-Requires=network-online.target
-After=network.target
-
-[Service]
-User=ubuntu
-Group=ubuntu
-PIDFile=/var/consul/consul.pid
-Restart=on-failure
-Environment=GOMAXPROCS=2
-ExecStartPre=/bin/rm -f /var/consul/consul.pid
-ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
-ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="ZOOKEEPER_HOST" -node="zookeeper-ZOOKEEPER_HOST" >>${consul_log_file} 2>&1
-ExecReload=/bin/kill -s HUP
-KillSignal=SIGINT
-TimeoutStopSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-sudo sed -i -e 's/ZOOKEEPER_HOST/'$ZOOKEEPER_HOST'/g' /tmp/consul.service
-sudo mv /tmp/consul.service /etc/systemd/system/consul.service
-
-# Configure the zookeeper healthchecks
-sudo cat <<EOF >/tmp/zookeeper.json
-{
-    "services": [{
-        "name": "zookeeper",
-        "tags": [
-            "nc", "zookeeper"
-        ],
-        "port": 2181,
-        "checks": [{
-            "id": "1",
-            "name": "zookeeper TCP",
-            "notes": "Use nc to check the service every 30 seconds",
-            "script": "echo stat | nc `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 2181 >/dev/null 2>&1",
-            "interval": "30s"
-        } ],
-        "leave_on_terminate": true
-    }]
-}
-EOF
-sudo mv /tmp/zookeeper.json /etc/consul.d/zookeeper.json
-
-sudo cat <<EOF >/tmp/filebeat.yml
-filebeat:
-  prospectors:
-    -
-      paths:
-        - /var/log/auth.log
-        - /var/log/syslog
-        - /var/log/zookeeper/zookeeper.log
-
-      input_type: log
-
-      document_type: syslog
-
-  registry_file: /var/lib/filebeat/registry
-
-output:
-  logstash:
-    hosts: ["logstash.${hosted_zone_name}:5044"]
-    bulk_max_size: 1024
-    ssl.enabled: false
-
-shipper:
-
-logging:
-  files:
-    rotateeverybytes: 10485760 # = 10MB
-EOF
-sudo mv /tmp/filebeat.yml /etc/filebeat/filebeat.yml
-sudo chown root.root /etc/filebeat/filebeat.yml
-sudo chmod go-w /etc/filebeat/filebeat.yml
-
-sudo update-rc.d filebeat defaults 95 10
-sudo service filebeat start
-
-cat <<EOF >/tmp/zoo.cfg
-tickTime=2000
-dataDir=/var/lib/zookeeper
-clientPort=2181
-initLimit=5
-syncLimit=2
-server.1=${element(split(",", zookeeper_nodes), 0)}:2888:3888
-server.2=${element(split(",", zookeeper_nodes), 1)}:2888:3888
-server.3=${element(split(",", zookeeper_nodes), 2)}:2888:3888
-EOF
-sudo mv /tmp/zoo.cfg /etc/zookeeper/conf/zoo.cfg
-
-sudo update-rc.d zookeeper defaults 95 10
-sudo service zookeeper restart
-
-sudo service consul start
-
-#sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
-#sudo update-rc.d awslogs defaults 95 10
-#sudo service awslogs start
-#sudo systemctl daemon-reload
-
-echo "Done"
+        output.logstash:
+          hosts: ["${logstash_host}:5044"]
+  - path: /zookeeper/config/zoo.cfg
+    permissions: '0644'
+    content: |
+        tickTime=2000
+        dataDir=/var/lib/zookeeper
+        clientPort=2181
+        initLimit=5
+        syncLimit=2
+        server.1=${element(split(",", zookeeper_nodes), 0)}:2888:3888
+        server.2=${element(split(",", zookeeper_nodes), 1)}:2888:3888
+        server.3=${element(split(",", zookeeper_nodes), 2)}:2888:3888
+  - path: /zookeeper/config/myid
+    permissions: '0644'
+    content: |
+        ${zookeeper_id}

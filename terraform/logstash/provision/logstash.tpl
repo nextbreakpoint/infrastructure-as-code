@@ -1,142 +1,80 @@
-#!/bin/bash
-set -e
+#cloud-config
+manage_etc_hosts: True
+runcmd:
+  - sudo usermod -aG docker ubuntu
+  - sudo mkdir -p /filebeat/config
+  - sudo mkdir -p /consul/config
+  - sudo mkdir -p /logstash/logs
+  - sudo mkdir -p /logstash/config
+  - sudo mkdir -p /logstash/pipeline
+  - sudo chown -R ubuntu:ubuntu /consul
+  - sudo chown -R ubuntu:ubuntu /filebeat
+  - sudo chown -R ubuntu:ubuntu /logstash
+  - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=logstash-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped -p 5044:5044 -e xpack.monitoring.elasticsearch.url=http://${elasticsearch_host}:9200 -e xpack.monitoring.elasticsearch.username=elastic -e xpack.monitoring.elasticsearch.password=changeme --net=host -v /logstash/pipeline:/usr/share/logstash/pipeline -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /logstash/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
+write_files:
+  - path: /consul/config/consul.json
+    permissions: '0644'
+    content: |
+        {
+          "enable_script_checks": true,
+          "leave_on_terminate": true,
+          "dns_config": {
+            "allow_stale": true,
+            "max_stale": "1s",
+            "service_ttl": {
+              "*": "5s"
+            }
+          }
+        }
+  - path: /consul/config/logstash.json
+    permissions: '0644'
+    content: |
+        {
+            "services": [{
+                "name": "logstash",
+                "tags": [
+                    "tcp", "logstash"
+                ],
+                "port": 5044,
+                "checks": [{
+                    "id": "1",
+                    "name": "Logstash TCP",
+                    "notes": "Use nc to check the tcp port every 60 seconds",
+                    "script": "nc -zv $HOST_IP_ADDRESS 5044 >/dev/null 2>&1",
+                    "interval": "60s"
+                }],
+                "leave_on_terminate": true
+            }]
+        }
+  - path: /logstash/pipeline/pipeline.conf
+    permissions: '0644'
+    content: |
+        input {
+          beats {
+            port => 5044
+            host => "0.0.0.0"
+          }
+        }
+        output {
+          elasticsearch {
+            hosts => ["http://${elasticsearch_host}:9200"]
+            user => elastic
+            password => changeme
+            manage_template => false
+            index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+            document_type => "%{[@metadata][type]}"
+          }
+        }
+  - path: /filebeat/config/filebeat.yml
+    permissions: '0644'
+    content: |
+        filebeat.prospectors:
+        - input_type: log
+          paths:
+          - /logs/*.log
 
-export LOGSTASH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-
-#sudo cat <<EOF >/tmp/cloudwatch.cfg
-#[general]
-#state_file = /var/awslogs/state/agent-state
-#
-#[consul]
-#file = ${consul_log_file}
-#log_group_name = ${log_group_name}
-#log_stream_name = ${log_stream_name}-consul
-#datetime_format = %b %d %H:%M:%S
-#EOF
-
-# Configure the consul agent
-cat <<EOF >/tmp/consul.json
-{
-  "addresses": {
-    "http": "0.0.0.0"
-  },
-  "disable_anonymous_signature": true,
-  "disable_update_check": true,
-  "datacenter": "terraform",
-  "data_dir": "/mnt/consul",
-  "log_level": "TRACE",
-  "retry_join": ["consul.internal"],
-  "enable_script_checks": true,
-  "leave_on_terminate": true
-}
-EOF
-sudo mv /tmp/consul.json /etc/consul.d/consul.json
-
-sudo cat <<EOF >/tmp/consul.service
-[Unit]
-Description=Consul service discovery agent
-Requires=network-online.target
-After=network.target
-
-[Service]
-User=ubuntu
-Group=ubuntu
-PIDFile=/var/consul/consul.pid
-Restart=on-failure
-Environment=GOMAXPROCS=2
-ExecStartPre=/bin/rm -f /var/consul/consul.pid
-ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
-ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="LOGSTASH_HOST" -node="logstash-LOGSTASH_HOST" >>${consul_log_file} 2>&1
-ExecReload=/bin/kill -s HUP
-KillSignal=SIGINT
-TimeoutStopSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-sudo sed -i -e 's/LOGSTASH_HOST/'$LOGSTASH_HOST'/g' /tmp/consul.service
-sudo mv /tmp/consul.service /etc/systemd/system/consul.service
-
-# Configure the logstash healthchecks
-sudo cat <<EOF >/tmp/logstash.json
-{
-    "services": [{
-        "name": "logstash",
-        "tags": [
-            "tcp", "logstash"
-        ],
-        "port": 5044,
-        "checks": [{
-            "id": "1",
-            "name": "Logstash TCP",
-            "notes": "Use nc to check the tcp port every 60 seconds",
-            "script": "nc -zv `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 5044 >/dev/null 2>&1 ",
-            "interval": "60s"
-        }],
-        "leave_on_terminate": true
-    }]
-}
-EOF
-sudo mv /tmp/logstash.json /etc/consul.d/logstash.json
-
-sudo cat <<EOF >/tmp/logstash.yml
-path.data: /var/lib/logstash
-path.config: /etc/logstash/conf.d
-path.logs: /var/log/logstash
-http.host: "LOGSTASH_HOST"
-EOF
-sudo sed -ie 's/LOGSTASH_HOST/'$LOGSTASH_HOST'/g' /tmp/logstash.yml
-sudo mv /tmp/logstash.yml /etc/logstash/logstash.yml
-
-sudo cat <<EOF >/tmp/02-beats-input.conf
-input {
-  beats {
-    port => 5044
-    host => "LOGSTASH_HOST"
-    ssl => false
-  }
-}
-EOF
-sudo sed -ie 's/LOGSTASH_HOST/'$LOGSTASH_HOST'/g' /tmp/02-beats-input.conf
-sudo mv /tmp/02-beats-input.conf /etc/logstash/conf.d/02-beats-input.conf
-
-sudo cat <<EOF >/tmp/10-syslog-filter.conf
-filter {
-  if [type] == "syslog" {
-    grok {
-      match => { "message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:syslog_hostname} %{DATA:syslog_program}(?:\[%{POSINT:syslog_pid}\])?: %{GREEDYDATA:syslog_message}" }
-      add_field => [ "received_at", "%{@timestamp}" ]
-      add_field => [ "received_from", "%{host}" ]
-    }
-    syslog_pri { }
-    date {
-      match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
-    }
-  }
-}
-EOF
-sudo mv /tmp/10-syslog-filter.conf /etc/logstash/conf.d/10-syslog-filter.conf
-
-sudo cat <<EOF >/tmp/30-elasticsearch-output.conf
-output {
-  elasticsearch {
-    hosts => ["${elasticsearch_host}:9200"]
-    sniffing => true
-    manage_template => false
-    index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
-    document_type => "%{[@metadata][type]}"
-  }
-}
-EOF
-sudo mv /tmp/30-elasticsearch-output.conf /etc/logstash/conf.d/30-elasticsearch-output.conf
-
-#sudo update-rc.d logstash defaults 95 10
-sudo service logstash start
-
-sudo service consul start
-
-#sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
-#sudo update-rc.d awslogs defaults 95 10
-#sudo service awslogs start
-
-echo "Done"
+        output.logstash:
+          hosts: ["${logstash_host}:5044"]

@@ -83,19 +83,66 @@ resource "aws_security_group" "kafka_server" {
   }
 }
 
-data "template_file" "kafka_server_user_data" {
+data "template_file" "kafka_server_user_data_a" {
   template = "${file("provision/kafka.tpl")}"
 
   vars {
+    broker_id               = "1"
     aws_region              = "${var.aws_region}"
     security_groups         = "${aws_security_group.kafka_server.id}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
     kafka_version           = "${var.kafka_version}"
     scala_version           = "${var.scala_version}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
+    zookeeper_nodes         = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "20")}"
+  }
+}
+
+data "template_file" "kafka_server_user_data_b" {
+  template = "${file("provision/kafka.tpl")}"
+
+  vars {
+    broker_id               = "2"
+    aws_region              = "${var.aws_region}"
+    security_groups         = "${aws_security_group.kafka_server.id}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
     hosted_zone_name        = "${var.hosted_zone_name}"
-    zookeeper_nodes         = "${data.terraform_remote_state.zookeeper.zookeeper-server-a-private-ip}:2181,${data.terraform_remote_state.zookeeper.zookeeper-server-b-private-ip}:2181,${data.terraform_remote_state.zookeeper.zookeeper-server-c-private-ip}:2181"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
+    kafka_version           = "${var.kafka_version}"
+    scala_version           = "${var.scala_version}"
+    zookeeper_nodes         = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "20")}"
+  }
+}
+
+data "template_file" "kafka_server_user_data_c" {
+  template = "${file("provision/kafka.tpl")}"
+
+  vars {
+    broker_id               = "3"
+    aws_region              = "${var.aws_region}"
+    security_groups         = "${aws_security_group.kafka_server.id}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
+    kafka_version           = "${var.kafka_version}"
+    scala_version           = "${var.scala_version}"
+    zookeeper_nodes         = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "20")}"
   }
 }
 
@@ -149,7 +196,7 @@ data "aws_ami" "kafka" {
 
   filter {
     name = "name"
-    values = ["kafka-${var.kafka_version}-*"]
+    values = ["base-${var.base_version}-*"]
   }
 
   filter {
@@ -172,27 +219,13 @@ resource "aws_instance" "kafka_server_a" {
 
   iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
-  }
+  user_data = "${data.template_file.kafka_server_user_data_a.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "50")}"
 
   tags {
     Name = "kafka-server-a"
     Stream = "${var.stream_tag}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "sudo echo 1 >/tmp/brokerid"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.kafka_server_user_data.rendered}"
   }
 }
 
@@ -208,27 +241,13 @@ resource "aws_instance" "kafka_server_b" {
 
   iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
-  }
+  user_data = "${data.template_file.kafka_server_user_data_b.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "50")}"
 
   tags {
     Name = "kafka-server-b"
     Stream = "${var.stream_tag}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "sudo echo 2 >/tmp/brokerid"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.kafka_server_user_data.rendered}"
   }
 }
 
@@ -244,27 +263,13 @@ resource "aws_instance" "kafka_server_c" {
 
   iam_instance_profile = "${aws_iam_instance_profile.kafka_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.nextbreakpoint.com"
-  }
+  user_data = "${data.template_file.kafka_server_user_data_c.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "50")}"
 
   tags {
     Name = "kafka-server-c"
     Stream = "${var.stream_tag}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "sudo echo 3 >/tmp/brokerid"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.kafka_server_user_data.rendered}"
   }
 }
 

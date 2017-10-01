@@ -48,6 +48,34 @@ variable "aws_bastion_vpc_cidr" {
 variable "aws_network_vpc_cidr" {
 }
 
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_c" {
+  description = "Private subnet C cidr block"
+}
+
+### MANDATORY ###
+variable "account_id" {
+}
+
+### MANDATORY ###
+variable "environment" {
+  default = "production"
+}
+
+### MANDATORY ###
+variable "secrets_bucket_name" {
+}
+
 ###################################################################
 # ZooKeeper configuration below
 ###################################################################
@@ -57,21 +85,24 @@ variable "base_version" {
 }
 
 ### MANDATORY ###
-variable "account_id" {
+variable "filebeat_version" {
 }
 
 variable "zookeeper_instance_type" {
-  description = "zookeeper instance type."
   default  = "t2.small"
-}
-
-variable "zookeeper_log_file" {
-  default = "/var/log/zookeeper/zookeeper.log"
 }
 
 ###################################################################
 # Consul configuration below
 ###################################################################
+
+variable "consul_record" {
+  default = "consul"
+}
+
+variable "consul_datacenter" {
+  default = "terraform"
+}
 
 variable "consul_log_file" {
   default = "/var/log/consul.log"

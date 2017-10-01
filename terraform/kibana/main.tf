@@ -90,23 +90,32 @@ resource "aws_security_group" "kibana_server" {
   }
 }
 
+data "template_file" "kibana_server_filebeat_index" {
+  template = "${file("provision/filebeat-index.json")}"
+}
+
 data "template_file" "kibana_server_user_data" {
   template = "${file("provision/kibana.tpl")}"
 
   vars {
     aws_region              = "${var.aws_region}"
-    es_cluster              = "${var.es_cluster}"
-    es_environment          = "${var.es_environment}"
+    environment             = "${var.environment}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
     security_groups         = "${aws_security_group.kibana_server.id}"
     minimum_master_nodes    = "${var.minimum_master_nodes}"
-    availability_zones      = "${var.availability_zones}"
-    elasticsearch_data_dir  = "/mnt/elasticsearch/data"
-    elasticsearch_logs_dir  = "/mnt/elasticsearch/logs"
-    elasticsearch_host      = "_site_"
-    elasticsearch_node      = "elasticsearch.${var.hosted_zone_name}"
-    consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    elasticsearch_host      = "elasticsearch.${var.hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    cluster_name            = "${var.elasticsearch_cluster_name}"
+    elasticsearch_version   = "${var.elasticsearch_version}"
+    filebeat_version        = "${var.filebeat_version}"
+    kibana_version          = "${var.kibana_version}"
+    filebeat_index          = "${data.template_file.kibana_server_filebeat_index.rendered}"
+    elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
   }
 }
 
@@ -160,7 +169,7 @@ data "aws_ami" "kibana" {
 
   filter {
     name = "name"
-    values = ["kibana-${var.kibana_version}-*"]
+    values = ["base-${var.base_version}-*"]
   }
 
   filter {
@@ -183,28 +192,13 @@ resource "aws_instance" "kibana_server_a" {
 
   iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
+  user_data = "${data.template_file.kibana_server_user_data.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "40")}"
 
   tags {
     Name = "kibana-server-a"
     Stream = "${var.stream_tag}"
-  }
-
-  provisioner "file" {
-      source = "provision/filebeat-index.json"
-      destination = "/tmp/filebeat-index.json"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.kibana_server_user_data.rendered}"
   }
 }
 
@@ -220,120 +214,19 @@ resource "aws_instance" "kibana_server_b" {
 
   iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
+  user_data = "${data.template_file.kibana_server_user_data.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "40")}"
 
   tags {
     Name = "kibana-server-b"
     Stream = "${var.stream_tag}"
   }
-
-  provisioner "file" {
-      source = "provision/filebeat-index.json"
-      destination = "/tmp/filebeat-index.json"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.kibana_server_user_data.rendered}"
-  }
 }
-
-##############################################################################
-# Load balancer
-##############################################################################
-
-/*
-resource "aws_security_group" "kibana_elb" {
-  name = "kibana-elb-security-group"
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
-
-  ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags {
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_elb" "kibana" {
-  name = "kibana-elb"
-
-  depends_on = ["aws_security_group.kibana_elb"]
-
-  security_groups = ["${aws_security_group.kibana_elb.id}"]
-
-  subnets = [
-    "${data.terraform_remote_state.vpc.network-public-subnet-a-id}",
-    "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
-  ]
-
-  listener {
-    instance_port = 5601
-    instance_protocol = "http"
-    lb_port = 80
-    lb_protocol = "http"
-  }
-
-  health_check {
-    healthy_threshold = 2
-    unhealthy_threshold = 3
-    timeout = 10
-    target = "TCP:5601"
-    interval = 30
-  }
-
-  instances = [
-    "${aws_instance.kibana_server_a.id}",
-    "${aws_instance.kibana_server_b.id}"
-  ]
-
-  cross_zone_load_balancing = true
-  idle_timeout = 400
-  connection_draining = true
-  connection_draining_timeout = 400
-  internal = false
-
-  tags {
-    Stream = "${var.stream_tag}"
-  }
-}
-*/
 
 ##############################################################################
 # Route 53
 ##############################################################################
-
-/*
-resource "aws_route53_record" "kibana_elb" {
-  zone_id = "${var.public_hosted_zone_id}"
-  name = "kibana.${var.public_hosted_zone_name}"
-  type = "A"
-
-  alias {
-    name = "${aws_elb.kibana.dns_name}"
-    zone_id = "${aws_elb.kibana.zone_id}"
-    evaluate_target_health = true
-  }
-}
-*/
 
 resource "aws_route53_record" "kibana_dns" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
@@ -342,7 +235,6 @@ resource "aws_route53_record" "kibana_dns" {
   ttl = "60"
 
   records = [
-    "${aws_instance.kibana_server_a.private_ip}",
-    "${aws_instance.kibana_server_b.private_ip}"
+    "${aws_instance.kibana_server_a.private_ip}"
   ]
 }

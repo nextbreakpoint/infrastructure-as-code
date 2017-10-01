@@ -48,30 +48,65 @@ variable "aws_bastion_vpc_cidr" {
 variable "aws_network_vpc_cidr" {
 }
 
-###################################################################
-# Cassandra configuration below
-###################################################################
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
 
 ### MANDATORY ###
-variable "cassandra_version" {
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_c" {
+  description = "Private subnet C cidr block"
 }
 
 ### MANDATORY ###
 variable "account_id" {
 }
 
-variable "cassandra_instance_type" {
-  description = "cassandra instance type."
-  default  = "t2.medium"
+### MANDATORY ###
+variable "environment" {
+  default = "production"
 }
 
-variable "cassandra_log_file" {
-  default = "/var/log/cassandra/cassandra.log"
+### MANDATORY ###
+variable "secrets_bucket_name" {
+}
+
+###################################################################
+# Cassandra configuration below
+###################################################################
+
+### MANDATORY ###
+variable "base_version" {
+}
+
+### MANDATORY ###
+variable "filebeat_version" {
+}
+
+### MANDATORY ###
+variable "cassandra_version" {
+}
+
+variable "cassandra_instance_type" {
+  default  = "t2.medium"
 }
 
 ###################################################################
 # Consul configuration below
 ###################################################################
+
+variable "consul_record" {
+  default = "consul"
+}
+
+variable "consul_datacenter" {
+  default = "terraform"
+}
 
 variable "consul_log_file" {
   default = "/var/log/consul.log"

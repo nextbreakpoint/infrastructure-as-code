@@ -26,6 +26,8 @@ resource "aws_instance" "consul" {
 
   iam_instance_profile = "${var.instance_profile}"
 
+  user_data = "${var.user_data}"
+
   connection {
     user = "ubuntu"
     type = "ssh"
@@ -37,9 +39,5 @@ resource "aws_instance" "consul" {
   tags {
     Name = "${var.name}"
     Stream = "${var.stream_tag}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${var.user_data}"
   }
 }

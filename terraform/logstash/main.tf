@@ -90,31 +90,23 @@ resource "aws_security_group" "logstash_server" {
   }
 }
 
-data "template_file" "logstash_server_user_data_a" {
+data "template_file" "logstash_server_user_data" {
   template = "${file("provision/logstash.tpl")}"
 
   vars {
     aws_region              = "${var.aws_region}"
     environment             = "${var.environment}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
     security_groups         = "${aws_security_group.logstash_server.id}"
     elasticsearch_host      = "elasticsearch.${var.hosted_zone_name}"
-    consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
-  }
-}
-
-data "template_file" "logstash_server_user_data_b" {
-  template = "${file("provision/logstash.tpl")}"
-
-  vars {
-    aws_region              = "${var.aws_region}"
-    environment             = "${var.environment}"
-    security_groups         = "${aws_security_group.logstash_server.id}"
-    elasticsearch_host      = "elasticsearch.${var.hosted_zone_name}"
-    consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_version        = "${var.logstash_version}"
+    filebeat_version        = "${var.filebeat_version}"
   }
 }
 
@@ -168,7 +160,7 @@ data "aws_ami" "logstash" {
 
   filter {
     name = "name"
-    values = ["logstash-${var.logstash_version}-*"]
+    values = ["base-${var.base_version}-*"]
   }
 
   filter {
@@ -191,23 +183,13 @@ resource "aws_instance" "logstash_server_a" {
 
   iam_instance_profile = "${aws_iam_instance_profile.logstash_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
+  user_data = "${data.template_file.logstash_server_user_data.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "30")}"
 
   tags {
     Name = "logstash-server-a"
     Stream = "${var.stream_tag}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.logstash_server_user_data_a.rendered}"
   }
 }
 
@@ -223,23 +205,13 @@ resource "aws_instance" "logstash_server_b" {
 
   iam_instance_profile = "${aws_iam_instance_profile.logstash_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
+  user_data = "${data.template_file.logstash_server_user_data.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "30")}"
 
   tags {
     Name = "logstash-server-b"
     Stream = "${var.stream_tag}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.logstash_server_user_data_b.rendered}"
   }
 }
 

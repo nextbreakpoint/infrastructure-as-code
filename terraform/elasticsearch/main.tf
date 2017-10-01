@@ -88,17 +88,21 @@ data "template_file" "elasticsearch_server_user_data" {
 
   vars {
     aws_region              = "${var.aws_region}"
-    es_cluster              = "${var.es_cluster}"
-    es_environment          = "${var.es_environment}"
+    environment             = "${var.environment}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
     security_groups         = "${aws_security_group.elasticsearch_server.id}"
     minimum_master_nodes    = "${var.minimum_master_nodes}"
-    availability_zones      = "${var.availability_zones}"
     volume_name             = "${var.volume_name}"
-    elasticsearch_data_dir  = "/mnt/elasticsearch/data"
-    elasticsearch_logs_dir  = "/mnt/elasticsearch/logs"
-    consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    cluster_name            = "${var.elasticsearch_cluster_name}"
+    filebeat_version        = "${var.filebeat_version}"
+    elasticsearch_version   = "${var.elasticsearch_version}"
+    elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
   }
 }
 
@@ -152,7 +156,7 @@ data "aws_ami" "elasticsearch" {
 
   filter {
     name = "name"
-    values = ["elasticsearch-${var.elasticsearch_version}-*"]
+    values = ["base-${var.base_version}-*"]
   }
 
   filter {
@@ -175,14 +179,16 @@ resource "aws_instance" "elasticsearch_server_a" {
 
   iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
+  user_data = "${data.template_file.elasticsearch_server_user_data.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")}"
+
+  ebs_block_device {
+    device_name = "${var.volume_name}"
+    volume_size = "${var.volume_size}"
+    volume_type = "gp2"
+    encrypted = "${var.volume_encrypted}"
+    delete_on_termination = true
   }
 
   tags {
@@ -203,14 +209,16 @@ resource "aws_instance" "elasticsearch_server_b" {
 
   iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_server_profile.name}"
 
-  connection {
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
+  user_data = "${data.template_file.elasticsearch_server_user_data.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
+
+  ebs_block_device {
+    device_name = "${var.volume_name}"
+    volume_size = "${var.volume_size}"
+    volume_type = "gp2"
+    encrypted = "${var.volume_encrypted}"
+    delete_on_termination = true
   }
 
   tags {
@@ -219,63 +227,92 @@ resource "aws_instance" "elasticsearch_server_b" {
   }
 }
 
-resource "aws_volume_attachment" "elasticsearch_volume_attachment_a" {
-  device_name = "${var.volume_name}"
-  volume_id = "${data.terraform_remote_state.volumes.elasticsearch-volume-a-id}"
-  instance_id = "${aws_instance.elasticsearch_server_a.id}"
-  skip_destroy = true
-}
+resource "aws_launch_configuration" "elasticsearch_launch_configuration" {
+  name_prefix   = "elasticsearch-server-"
+  instance_type = "${var.elasticsearch_instance_type}"
 
-resource "aws_volume_attachment" "elasticsearch_volume_attachment_b" {
-  device_name = "${var.volume_name}"
-  volume_id = "${data.terraform_remote_state.volumes.elasticsearch-volume-b-id}"
-  instance_id = "${aws_instance.elasticsearch_server_b.id}"
-  skip_destroy = true
-}
+  image_id = "${data.aws_ami.elasticsearch.id}"
 
-resource "null_resource" "elasticsearch_server_a" {
-  depends_on = ["aws_volume_attachment.elasticsearch_volume_attachment_a"]
+  associate_public_ip_address = "false"
+  security_groups = ["${aws_security_group.elasticsearch_server.id}"]
+  key_name = "${var.key_name}"
 
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.elasticsearch_server_a.*.id)}"
-  }
+  iam_instance_profile = "${aws_iam_instance_profile.elasticsearch_server_profile.name}"
 
-  connection {
-    host = "${element(aws_instance.elasticsearch_server_a.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
+  user_data = "${data.template_file.elasticsearch_server_user_data.rendered}"
 
-  provisioner "remote-exec" {
-    inline = "${data.template_file.elasticsearch_server_user_data.rendered}"
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
-resource "null_resource" "elasticsearch_server_b" {
-  depends_on = ["aws_volume_attachment.elasticsearch_volume_attachment_b"]
+resource "aws_autoscaling_group" "elasticsearch_asg_a" {
+  name                      = "elasticsearch-asg-a"
+  max_size                  = 4
+  min_size                  = 0
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  desired_capacity          = 0
+  force_delete              = true
+  launch_configuration      = "${aws_launch_configuration.elasticsearch_launch_configuration.name}"
 
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.elasticsearch_server_b.*.id)}"
+  vpc_zone_identifier = [
+    "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+  ]
+
+  lifecycle {
+    create_before_destroy = true
   }
 
-  connection {
-    host = "${element(aws_instance.elasticsearch_server_b.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
+  tag {
+    key                 = "Stream"
+    value               = "${var.stream_tag}"
+    propagate_at_launch = true
   }
 
-  provisioner "remote-exec" {
-    inline = "${data.template_file.elasticsearch_server_user_data.rendered}"
+  tag {
+    key                 = "Name"
+    value               = "elasticsearch-server-a"
+    propagate_at_launch = true
+  }
+
+  timeouts {
+    delete = "15m"
+  }
+}
+
+resource "aws_autoscaling_group" "elasticsearch_asg_b" {
+  name                      = "elasticsearch-asg-b"
+  max_size                  = 4
+  min_size                  = 0
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  desired_capacity          = 0
+  force_delete              = true
+  launch_configuration      = "${aws_launch_configuration.elasticsearch_launch_configuration.name}"
+
+  vpc_zone_identifier = [
+    "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+  ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tag {
+    key                 = "Stream"
+    value               = "${var.stream_tag}"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "elasticsearch-server-b"
+    propagate_at_launch = true
+  }
+
+  timeouts {
+    delete = "15m"
   }
 }
 

@@ -33,7 +33,7 @@ variable "log_stream_name" {
 }
 
 ### MANDATORY ###
-variable "public_hosted_zone_id" {
+variable "hosted_zone_name" {
 }
 
 ### MANDATORY ###
@@ -41,7 +41,7 @@ variable "public_hosted_zone_name" {
 }
 
 ### MANDATORY ###
-variable "hosted_zone_name" {
+variable "public_hosted_zone_id" {
 }
 
 ### MANDATORY ###
@@ -52,10 +52,6 @@ variable "aws_bastion_vpc_cidr" {
 variable "aws_network_vpc_cidr" {
 }
 
-###################################################################
-# Server configuration below
-###################################################################
-
 ### MANDATORY ###
 variable "base_version" {
 }
@@ -64,17 +60,25 @@ variable "base_version" {
 variable "account_id" {
 }
 
-variable "web_instance_type" {
-  description = "NGINX instance type"
-  default = "t2.small"
-}
-
 variable "environment" {
   default = "production"
 }
 
 ### MANDATORY ###
 variable "secrets_bucket_name" {
+}
+
+###################################################################
+# Nginx configuration below
+###################################################################
+
+### MANDATORY ###
+variable "filebeat_version" {
+}
+
+variable "web_instance_type" {
+  description = "NGINX instance type"
+  default = "t2.small"
 }
 
 variable "webserver_elb_certificate_path" {
@@ -88,6 +92,14 @@ variable "webserver_elb_private_key_path" {
 ###################################################################
 # Consul configuration below
 ###################################################################
+
+variable "consul_record" {
+  default = "consul"
+}
+
+variable "consul_datacenter" {
+  default = "terraform"
+}
 
 variable "consul_log_file" {
   default = "/var/log/consul.log"

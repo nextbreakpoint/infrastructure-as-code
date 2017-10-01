@@ -5,6 +5,6 @@ echo "Updating packages..."
 sudo apt-get update
 
 echo "Installing tools..."
-sudo apt-get install -y vim curl wget unzip screen python dnsmasq bind-utils
+sudo apt-get install -y vim curl wget unzip screen python dnsmasq dnsutils
 
 echo "Tools installed."

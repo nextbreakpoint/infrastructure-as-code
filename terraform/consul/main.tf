@@ -88,6 +88,20 @@ resource "aws_security_group" "consul_server" {
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
+  egress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags {
     Stream = "${var.stream_tag}"
   }
@@ -223,101 +237,12 @@ module "consul_servers_c" {
 }
 
 ##############################################################################
-# Load balancer
-##############################################################################
-
-/*
-resource "aws_security_group" "consul_elb" {
-  name = "consul-elb-security-group"
-  description = "consul load balacer"
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
-
-  ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags {
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_elb" "consul" {
-  name = "consul-elb"
-
-  depends_on = ["aws_security_group.consul_elb"]
-
-  security_groups = ["${aws_security_group.consul_elb.id}"]
-
-  subnets = [
-    "${data.terraform_remote_state.vpc.network-public-subnet-a-id}",
-    "${data.terraform_remote_state.vpc.network-public-subnet-b-id}",
-    "${data.terraform_remote_state.vpc.network-public-subnet-c-id}"
-  ]
-
-  listener {
-    instance_port = 8500
-    instance_protocol = "http"
-    lb_port = 80
-    lb_protocol = "http"
-  }
-
-  health_check {
-    healthy_threshold = 2
-    unhealthy_threshold = 3
-    timeout = 10
-    target = "TCP:8500"
-    interval = 30
-  }
-
-  instances = [
-    "${module.consul_servers_a.ids}",
-    "${module.consul_servers_b.ids}",
-    "${module.consul_servers_c.ids}"
-  ]
-
-  cross_zone_load_balancing = true
-  idle_timeout = 400
-  connection_draining = true
-  connection_draining_timeout = 400
-  internal = false
-
-  tags {
-    Stream = "${var.stream_tag}"
-  }
-}
-*/
-
-##############################################################################
 # Route 53
 ##############################################################################
 
-/*
-resource "aws_route53_record" "consul_elb" {
-  zone_id = "${var.public_hosted_zone_id}"
-  name = "${var.consul_hostname}.${var.public_hosted_zone_name}"
-  type = "A"
-
-  alias {
-    name = "${aws_elb.consul.dns_name}"
-    zone_id = "${aws_elb.consul.zone_id}"
-    evaluate_target_health = true
-  }
-}
-*/
-
 resource "aws_route53_record" "consul_dns" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "${var.consul_hostname}.${var.hosted_zone_name}"
+  name = "${var.consul_record}.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
 

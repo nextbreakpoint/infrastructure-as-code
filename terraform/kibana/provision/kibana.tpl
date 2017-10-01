@@ -1,174 +1,111 @@
-#!/bin/bash
-set -e
+#cloud-config
+manage_etc_hosts: True
+runcmd:
+  - sudo sysctl -w vm.max_map_count=262144
+  - sudo usermod -aG docker ubuntu
+  - sudo mkdir -p /filebeat/config
+  - sudo mkdir -p /consul/config
+  - sudo mkdir -p /kibana/config
+  - sudo mkdir -p /elasticsearch/config
+  - sudo mkdir -p /elasticsearch/data
+  - sudo mkdir -p /elasticsearch/logs
+  - sudo chmod -R ubuntu.ubuntu /consul
+  - sudo chmod -R ubuntu.ubuntu /filebeat
+  - sudo chown -R ubuntu:ubuntu /elasticsearch
+  - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kibana-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e xpack.security.enabled=true -e cluster.name=${cluster_name} -e network.host=0.0.0.0 -e network.publish_host=$HOST_IP_ADDRESS -e network.bind_host=0.0.0.0 -e http.port=9200 -e transport.tcp.port=9300 -e bootstrap.memory_lock=true -e discovery.zen.ping.unicast.hosts=${elasticsearch_nodes} -e discovery.zen.minimum_master_nodes=${minimum_master_nodes} -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -e node.master=false -e node.data=false -e node.ingest=false --net=host -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
+  - sudo -u ubuntu docker run -d --name=kibana --restart unless-stopped -p 5601:5601 -e ELASTICSEARCH_URL=http://elastic:changeme@${elasticsearch_host}:9200 --net=host -v /kibana/config/kibana.yml:/usr/share/kibana/config/kibana. -v /kibana/logs:/usr/share/kibana/logs docker.elastic.co/kibana/kibana:${kibana_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /elasticsearch/logs:/logs/elasticsearch -v /kibana/logs:/logs/kibana docker.elastic.co/beats/filebeat:${filebeat_version}
+  - sudo curl -XPUT 'http://elastic:changeme@'$HOST_IP_ADDRESS':9200/.kibana/index-pattern/filebeat-*' -d@/filebeat/config/filebeat-index.json
+write_files:
+  - path: /consul/config/consul.json
+    permissions: '0644'
+    content: |
+        {
+          "enable_script_checks": true,
+          "leave_on_terminate": true,
+          "dns_config": {
+            "allow_stale": true,
+            "max_stale": "1s",
+            "service_ttl": {
+              "*": "5s"
+            }
+          }
+        }
+  - path: /consul/config/elasticsearch.json
+    permissions: '0644'
+    content: |
+        {
+            "services": [{
+                "name": "elasticsearch-query",
+                "tags": [
+                    "http", "query"
+                ],
+                "port": 9200,
+                "checks": [{
+                    "id": "1",
+                    "name": "Elasticsearch HTTP",
+                    "notes": "Use curl to check the web service every 60 seconds",
+                    "script": "curl $HOST_IP_ADDRESS:9200 >/dev/null 2>&1",
+                    "interval": "60s"
+                }],
+                "leave_on_terminate": true
+            },{
+                "name": "elasticsearch-index",
+                "tags": [
+                    "tcp", "index"
+                ],
+                "port": 9300,
+                "checks": [{
+                    "id": "1",
+                    "name": "Elasticsearch TCP",
+                    "notes": "Use nc to check the tcp port every 60 seconds",
+                    "script": "nc -zv $HOST_IP_ADDRESS 9300 >/dev/null 2>&1",
+                    "interval": "60s"
+                }],
+                "leave_on_terminate": true
+            }]
+        }
+  - path: /consul/config/kibana.json
+    permissions: '0644'
+    content: |
+        {
+            "services": [{
+                "name": "kibana",
+                "tags": [
+                    "http", "kibana"
+                ],
+                "port": 5601,
+                "checks": [{
+                    "id": "1",
+                    "name": "Kibana HTTP",
+                    "notes": "Use curl to check the web service every 60 seconds",
+                    "script": "curl $HOST_IP_ADDRESS:5601 >/dev/null 2>&1",
+                    "interval": "60s"
+                } ],
+                "leave_on_terminate": true
+            }]
+        }
+  - path: /kibana/config/kibana.yml
+    permissions: '0644'
+    content: |
+        server.port: 5601
+        server.host: "0.0.0.0"
+        logging.verbose: false
+        kibana.index: ".kibana"
+        kibana.defaultAppId: "discover"
+  - path: /filebeat/config/filebeat.yml
+    permissions: '0644'
+    content: |
+        filebeat.prospectors:
+        - input_type: log
+          paths:
+          - /logs/*.log
 
-export KIBANA_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-export ELASTICSEARCH_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-
-#sudo cat <<EOF >/tmp/cloudwatch.cfg
-#[general]
-#state_file = /var/awslogs/state/agent-state
-#
-#[consul]
-#file = ${consul_log_file}
-#log_group_name = ${log_group_name}
-#log_stream_name = ${log_stream_name}-consul
-#datetime_format = %b %d %H:%M:%S
-#EOF
-
-# Configure the consul agent
-cat <<EOF >/tmp/consul.json
-{
-  "addresses": {
-    "http": "0.0.0.0"
-  },
-  "disable_anonymous_signature": true,
-  "disable_update_check": true,
-  "datacenter": "terraform",
-  "data_dir": "/mnt/consul",
-  "log_level": "TRACE",
-  "retry_join": ["consul.internal"],
-  "enable_script_checks": true,
-  "leave_on_terminate": true
-}
-EOF
-sudo mv /tmp/consul.json /etc/consul.d/consul.json
-
-sudo cat <<EOF >/tmp/consul.service
-[Unit]
-Description=Consul service discovery agent
-Requires=network-online.target
-After=network.target
-
-[Service]
-User=ubuntu
-Group=ubuntu
-PIDFile=/var/consul/consul.pid
-Restart=on-failure
-Environment=GOMAXPROCS=2
-ExecStartPre=/bin/rm -f /var/consul/consul.pid
-ExecStartPre=/usr/local/bin/consul configtest -config-dir=/etc/consul.d
-ExecStart=/usr/local/bin/consul agent -pid-file=/var/consul/consul.pid -config-dir=/etc/consul.d -bind="KIBANA_HOST" -node="kibana-KIBANA_HOST" >>${consul_log_file} 2>&1
-ExecReload=/bin/kill -s HUP
-KillSignal=SIGINT
-TimeoutStopSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-sudo sed -i -e 's/KIBANA_HOST/'$KIBANA_HOST'/g' /tmp/consul.service
-sudo mv /tmp/consul.service /etc/systemd/system/consul.service
-
-# Configure the kibana healthchecks
-sudo cat <<EOF >/tmp/kibana.json
-{
-    "services": [{
-        "name": "kibana",
-        "tags": [
-            "http", "kibana"
-        ],
-        "port": 5601,
-        "checks": [{
-            "id": "1",
-            "name": "kibana HTTP",
-            "notes": "Use curl to check the web service every 60 seconds",
-            "script": "curl `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'`:5601 >/dev/null 2>&1",
-            "interval": "60s"
-        } ],
-        "leave_on_terminate": true
-    },{
-        "name": "elasticsearch-9200",
-        "tags": [
-            "http", "query"
-        ],
-        "port": 9200,
-        "checks": [{
-            "id": "1",
-            "name": "Elasticsearch HTTP",
-            "notes": "Use curl to check the web service every 60 seconds",
-            "script": "curl `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'`:9200 >/dev/null 2>&1",
-            "interval": "60s"
-        } ],
-        "leave_on_terminate": true
-    },{
-        "name": "elasticsearch-9300",
-        "tags": [
-            "tcp", "index"
-        ],
-        "port": 9300,
-        "checks": [{
-            "id": "1",
-            "name": "Elasticsearch TCP",
-            "notes": "Use nc to check the tcp port every 60 seconds",
-            "script": "nc -zv `ifconfig eth0 | grep 'inet ' | awk '{ print substr($2,6) }'` 9300 >/dev/null 2>&1 ",
-            "interval": "60s"
-        }],
-        "leave_on_terminate": true
-    }]
-}
-EOF
-sudo mv /tmp/kibana.json /etc/consul.d/kibana.json
-
-sudo cat <<EOF >/tmp/elasticsearch.yml
-cluster.name: ${es_cluster}
-node.master: false
-node.data: false
-node.ingest: false
-node.name: elasticsearch
-path.logs: ${elasticsearch_logs_dir}
-http.port: 9200
-network.host: _ec2:privateIpv4_
-transport.tcp.port: 9300
-discovery.zen.minimum_master_nodes: ${minimum_master_nodes}
-cloud.aws.region: ${aws_region}
-#discovery.zen.hosts_provider: ec2
-#discovery.ec2.tag.name: terraform
-#discovery.ec2.availability_zones: ${availability_zones}
-discovery.zen.ping.unicast.hosts:
- - ${elasticsearch_node}:9300
-EOF
-sudo mv /tmp/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
-
-sudo mkdir -p ${elasticsearch_data_dir}
-sudo mkdir -p ${elasticsearch_logs_dir}
-
-sudo chown -R elasticsearch:elasticsearch ${elasticsearch_data_dir}
-sudo chown -R elasticsearch:elasticsearch ${elasticsearch_logs_dir}
-
-echo "Running Elasticsearch..."
-
-sudo update-rc.d elasticsearch defaults 95 10
-sudo service elasticsearch start
-
-sudo cat <<EOF >/tmp/kibana.yml
-server.port: 5601
-server.host: "0.0.0.0"
-elasticsearch.url: "http://ELASTICSEARCH_HOST:9200"
-elasticsearch.preserveHost: true
-kibana.index: ".kibana"
-#kibana.elasticsearch.username: terraform
-#kibana.elasticsearch.password: terraform
-kibana.defaultAppId: "discover"
-elasticsearch.requestTimeout: 300000
-elasticsearch.shardTimeout: 0
-elasticsearch.ssl.verify: false
-logging.verbose: true
-EOF
-sudo sed -ie 's/ELASTICSEARCH_HOST/'$ELASTICSEARCH_HOST'/g' /tmp/kibana.yml
-sudo mv /tmp/kibana.yml /etc/kibana/kibana.yml
-
-sudo update-rc.d kibana defaults 95 10
-sudo service kibana start
-
-sudo service consul start
-
-#sudo /usr/bin/awslogs-agent-setup.py -n -r ${aws_region} -c /tmp/cloudwatch.cfg
-#sudo update-rc.d awslogs defaults 95 10
-#sudo service awslogs start
-
-sleep 30
-
-sudo /usr/share/filebeat/scripts/import_dashboards -es http://$ELASTICSEARCH_HOST:9200 -k .kibana
-
-sudo curl -XPUT 'http://'$ELASTICSEARCH_HOST':9200/.kibana/index-pattern/filebeat-*' -d@/tmp/filebeat-index.json
-
-echo "Done"
+        output.logstash:
+          hosts: ["${logstash_host}:5044"]
+  - path: /filebeat/config/filebeat-index.json
+    permissions: '0644'
+    content: |
+        ${filebeat_index}

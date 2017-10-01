@@ -176,7 +176,7 @@ resource "aws_ecs_cluster" "services" {
 }
 
 data "template_file" "cluster_launch_user_data" {
-  template = "${file("provision/cluster.sh")}"
+  template = "${file("provision/cluster.tpl")}"
 
   vars {
     cluster_name = "${aws_ecs_cluster.services.name}"
@@ -427,9 +427,7 @@ resource "aws_autoscaling_attachment" "cluster_asg_b" {
   autoscaling_group_name = "${aws_autoscaling_group.cluster_asg_b.id}"
   elb = "${aws_elb.cluster_elb.id}"
 }
-*/
 
-/*
 resource "aws_elb_attachment" "cluster_server_a" {
   elb      = "${aws_elb.cluster_elb.id}"
   instance = "${aws_instance.cluster_server_a.id}"
@@ -439,9 +437,7 @@ resource "aws_elb_attachment" "cluster_server_b" {
   elb      = "${aws_elb.cluster_elb.id}"
   instance = "${aws_instance.cluster_server_b.id}"
 }
-*/
 
-/*
 ##############################################################################
 # Route 53
 ##############################################################################

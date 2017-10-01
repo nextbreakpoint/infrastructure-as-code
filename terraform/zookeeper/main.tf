@@ -147,7 +147,7 @@ data "aws_ami" "zookeeper" {
 
   filter {
     name = "name"
-    values = ["zookeeper-${var.base_version}-*"]
+    values = ["base-${var.base_version}-*"]
   }
 
   filter {
@@ -156,6 +156,63 @@ data "aws_ami" "zookeeper" {
   }
 
   owners = ["${var.account_id}"]
+}
+
+data "template_file" "zookeeper_server_user_data_a" {
+  template = "${file("provision/zookeeper.tpl")}"
+
+  vars {
+    zookeeper_id            = "1"
+    aws_region              = "${var.aws_region}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    security_groups         = "${aws_security_group.zookeeper_server.id}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
+    zookeeper_nodes         = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "20")}"
+  }
+}
+
+data "template_file" "zookeeper_server_user_data_b" {
+  template = "${file("provision/zookeeper.tpl")}"
+
+  vars {
+    zookeeper_id            = "2"
+    aws_region              = "${var.aws_region}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    security_groups         = "${aws_security_group.zookeeper_server.id}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
+    zookeeper_nodes         = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "20")}"
+  }
+}
+
+data "template_file" "zookeeper_server_user_data_c" {
+  template = "${file("provision/zookeeper.tpl")}"
+
+  vars {
+    zookeeper_id            = "3"
+    aws_region              = "${var.aws_region}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    security_groups         = "${aws_security_group.zookeeper_server.id}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
+    zookeeper_nodes         = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "20")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "20")}"
+  }
 }
 
 resource "aws_instance" "zookeeper_server_a" {
@@ -169,6 +226,10 @@ resource "aws_instance" "zookeeper_server_a" {
   key_name = "${var.key_name}"
 
   iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.name}"
+
+  user_data = "${data.template_file.zookeeper_server_user_data_a.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "20")}"
 
   tags {
     Name = "zookeeper-server-a"
@@ -188,6 +249,10 @@ resource "aws_instance" "zookeeper_server_b" {
 
   iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.name}"
 
+  user_data = "${data.template_file.zookeeper_server_user_data_b.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "20")}"
+
   tags {
     Name = "zookeeper-server-b"
     Stream = "${var.stream_tag}"
@@ -206,113 +271,13 @@ resource "aws_instance" "zookeeper_server_c" {
 
   iam_instance_profile = "${aws_iam_instance_profile.zookeeper_server_profile.name}"
 
+  user_data = "${data.template_file.zookeeper_server_user_data_c.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "20")}"
+
   tags {
     Name = "zookeeper-server-c"
     Stream = "${var.stream_tag}"
-  }
-}
-
-data "template_file" "zookeeper_server_user_data" {
-  template = "${file("provision/zookeeper.tpl")}"
-
-  vars {
-    aws_region              = "${var.aws_region}"
-    security_groups         = "${aws_security_group.zookeeper_server.id}"
-    consul_log_file         = "${var.consul_log_file}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
-    hosted_zone_name        = "${var.hosted_zone_name}"
-    zookeeper_nodes         = "${aws_instance.zookeeper_server_a.private_ip},${aws_instance.zookeeper_server_b.private_ip},${aws_instance.zookeeper_server_c.private_ip}"
-  }
-}
-
-resource "null_resource" "zookeeper_server_a" {
-  #depends_on = ["aws_volume_attachment.zookeeper_volume_attachment_a"]
-
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.zookeeper_server_a.*.id)}"
-  }
-
-  connection {
-    host = "${element(aws_instance.zookeeper_server_a.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "echo 1 >/tmp/myid",
-      "sudo mv /tmp/myid /var/lib/zookeeper/myid"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.zookeeper_server_user_data.rendered}"
-  }
-}
-
-resource "null_resource" "zookeeper_server_b" {
-  #depends_on = ["aws_volume_attachment.zookeeper_volume_attachment_b"]
-
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.zookeeper_server_b.*.id)}"
-  }
-
-  connection {
-    host = "${element(aws_instance.zookeeper_server_b.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "echo 2 >/tmp/myid",
-      "sudo mv /tmp/myid /var/lib/zookeeper/myid"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.zookeeper_server_user_data.rendered}"
-  }
-}
-
-resource "null_resource" "zookeeper_server_c" {
-  #depends_on = ["aws_volume_attachment.zookeeper_volume_attachment_c"]
-
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.zookeeper_server_c.*.id)}"
-  }
-
-  connection {
-    host = "${element(aws_instance.zookeeper_server_c.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "echo 3 >/tmp/myid",
-      "sudo mv /tmp/myid /var/lib/zookeeper/myid"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.zookeeper_server_user_data.rendered}"
   }
 }
 
