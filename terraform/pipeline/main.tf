@@ -16,10 +16,6 @@ provider "template" {
   version = "~> 0.1"
 }
 
-provider "null" {
-  version = "~> 0.1"
-}
-
 ##############################################################################
 # Pipeline server
 ##############################################################################
@@ -78,6 +74,13 @@ resource "aws_security_group" "pipeline_server" {
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
+  ingress {
+    from_port = 3306
+    to_port = 3306
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
   egress {
     from_port = 0
     to_port = 0
@@ -110,18 +113,21 @@ data "template_file" "pipeline_server_user_data" {
   vars {
     aws_region              = "${var.aws_region}"
     environment             = "${var.environment}"
-    security_groups         = "${aws_security_group.pipeline_server.id}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
+    security_groups         = "${aws_security_group.pipeline_server.id}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
+    public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
     volume_name             = "${var.volume_name}"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
-    pipeline_data_dir       = "/mnt/pipeline"
+    logstash_version        = "${var.logstash_version}"
+    filebeat_version        = "${var.filebeat_version}"
     jenkins_version         = "${var.jenkins_version}"
     sonarqube_version       = "${var.sonarqube_version}"
     artifactory_version     = "${var.artifactory_version}"
     mysqlconnector_version  = "${var.mysqlconnector_version}"
-    hosted_zone_name        = "${var.hosted_zone_name}"
-    public_hosted_zone_name = "${var.public_hosted_zone_name}"
   }
 }
 
@@ -198,39 +204,21 @@ resource "aws_instance" "pipeline_server_a" {
 
   iam_instance_profile = "${aws_iam_instance_profile.pipeline_server_profile.id}"
 
+  user_data = "${data.template_file.pipeline_server_user_data.rendered}"
+
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "100")}"
+
+  ebs_block_device {
+    device_name = "${var.volume_name}"
+    volume_size = "${var.volume_size}"
+    volume_type = "gp2"
+    encrypted = "${var.volume_encrypted}"
+    delete_on_termination = true
+  }
+
   tags {
     Name = "pipeline-server-a"
     Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_volume_attachment" "pipeline_volume_attachment_a" {
-  device_name = "${var.volume_name}"
-  volume_id = "${data.terraform_remote_state.volumes.pipeline-volume-a-id}"
-  instance_id = "${aws_instance.pipeline_server_a.id}"
-  skip_destroy = true
-}
-
-resource "null_resource" "pipeline_server_a" {
-  depends_on = ["aws_volume_attachment.pipeline_volume_attachment_a"]
-
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.pipeline_server_a.*.id)}"
-  }
-
-  connection {
-    host = "${element(aws_instance.pipeline_server_a.*.private_ip, 0)}"
-    # The default username for our AMI
-    user = "ubuntu"
-    type = "ssh"
-    # The path to your keyfile
-    private_key = "${file(var.key_path)}"
-    bastion_user = "ec2-user"
-    bastion_host = "bastion.${var.public_hosted_zone_name}"
-  }
-
-  provisioner "remote-exec" {
-    inline = "${data.template_file.pipeline_server_user_data.rendered}"
   }
 }
 
@@ -238,31 +226,13 @@ resource "null_resource" "pipeline_server_a" {
 # Route 53
 ##############################################################################
 
-/*
-resource "aws_route53_record" "public_jenkins" {
-  zone_id = "${var.public_hosted_zone_id}"
-  name = "jenkins.${var.public_hosted_zone_name}"
+resource "aws_route53_record" "mysql" {
+  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
+  name = "mysql.${var.hosted_zone_name}"
   type = "A"
   ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.public_ip}"]
+  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
 }
-
-resource "aws_route53_record" "public_sonarqube" {
-  zone_id = "${var.public_hosted_zone_id}"
-  name = "sonarqube.${var.public_hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.public_ip}"]
-}
-
-resource "aws_route53_record" "public_artifactory" {
-  zone_id = "${var.public_hosted_zone_id}"
-  name = "artifactory.${var.public_hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.public_ip}"]
-}
-*/
 
 resource "aws_route53_record" "jenkins" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"

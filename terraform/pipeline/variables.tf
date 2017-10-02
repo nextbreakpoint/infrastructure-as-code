@@ -36,6 +36,14 @@ variable "volume_name" {
   default = "/dev/xvdh"
 }
 
+variable "volume_size" {
+  default = "4"
+}
+
+variable "volume_encrypted" {
+  default = "false"
+}
+
 ### MANDATORY ###
 variable "hosted_zone_name" {
 }
@@ -56,9 +64,45 @@ variable "aws_bastion_vpc_cidr" {
 variable "aws_network_vpc_cidr" {
 }
 
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_c" {
+  description = "Private subnet C cidr block"
+}
+
+### MANDATORY ###
+variable "account_id" {
+}
+
+### MANDATORY ###
+variable "environment" {
+  default = "production"
+}
+
+### MANDATORY ###
+variable "secrets_bucket_name" {
+}
+
 ###################################################################
 # Pipeline configuration below
 ###################################################################
+
+### MANDATORY ###
+variable "base_version" {
+}
+
+### MANDATORY ###
+variable "filebeat_version" {
+}
 
 ### MANDATORY ###
 variable "jenkins_version" {
@@ -76,22 +120,17 @@ variable "artifactory_version" {
 variable "mysqlconnector_version" {
 }
 
-### MANDATORY ###
-variable "base_version" {
-}
-
-### MANDATORY ###
-variable "account_id" {
-}
-
-### MANDATORY ###
-variable "environment" {
-  default = "terraform"
-}
-
 ###################################################################
 # Consul configuration below
 ###################################################################
+
+variable "consul_record" {
+  default = "consul"
+}
+
+variable "consul_datacenter" {
+  default = "terraform"
+}
 
 variable "consul_log_file" {
   default = "/var/log/consul.log"
