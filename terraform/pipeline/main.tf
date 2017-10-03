@@ -122,7 +122,6 @@ data "template_file" "pipeline_server_user_data" {
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
     volume_name             = "${var.volume_name}"
-    logstash_version        = "${var.logstash_version}"
     filebeat_version        = "${var.filebeat_version}"
     jenkins_version         = "${var.jenkins_version}"
     sonarqube_version       = "${var.sonarqube_version}"
@@ -181,7 +180,7 @@ data "aws_ami" "pipeline" {
 
   filter {
     name = "name"
-    values = ["pipeline-${var.base_version}-*"]
+    values = ["base-${var.base_version}-*"]
   }
 
   filter {
