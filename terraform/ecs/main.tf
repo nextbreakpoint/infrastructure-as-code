@@ -20,8 +20,8 @@ provider "template" {
 # ECS
 ##############################################################################
 
-resource "aws_security_group" "cluster_server" {
-  name = "ecs-cluster-security-group"
+resource "aws_security_group" "ecs_server" {
+  name = "ecs-server-security-group"
   description = "ECS security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -100,13 +100,13 @@ resource "aws_security_group" "cluster_server" {
   }
 }
 
-resource "aws_iam_instance_profile" "cluster_server_profile" {
+resource "aws_iam_instance_profile" "ecs_server_profile" {
     name = "ecs-server-profile"
-    role = "${aws_iam_role.cluster_server_role.name}"
+    role = "${aws_iam_role.ecs_server_role.name}"
 }
 
-resource "aws_iam_role" "cluster_server_role" {
-  name = "cluster-server-role"
+resource "aws_iam_role" "ecs_server_role" {
+  name = "ecs-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -125,9 +125,9 @@ resource "aws_iam_role" "cluster_server_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "cluster_server_role_policy" {
-  name = "ecs-cluster-server-role-policy"
-  role = "${aws_iam_role.cluster_server_role.id}"
+resource "aws_iam_role_policy" "ecs_server_role_policy" {
+  name = "ecs-server-role-policy"
+  role = "${aws_iam_role.ecs_server_role.id}"
 
   policy = <<EOF
 {
@@ -151,13 +151,7 @@ resource "aws_iam_role_policy" "cluster_server_role_policy" {
         "ecr:GetDownloadUrlForLayer",
         "ecr:BatchGetImage",
         "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "route53:GetHostedZone*",
-        "route53:ListHostedZones*",
-        "route53:ListResourceRecordSets",
-        "route53:ChangeResourceRecordSets",
-        "route53:UpdateHostedZoneComment",
-        "route53:GetChange"
+        "logs:PutLogEvents"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -171,11 +165,14 @@ resource "aws_ecs_cluster" "services" {
   name = "services"
 }
 
-data "template_file" "cluster_launch_user_data" {
+data "template_file" "ecs_launch_user_data" {
   template = "${file("provision/cluster.tpl")}"
 
   vars {
-    cluster_name = "${aws_ecs_cluster.services.name}"
+    ecs_name            = "${aws_ecs_cluster.services.name}"
+    consul_datacenter   = "${var.consul_datacenter}"
+    consul_hostname     = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file     = "${var.consul_log_file}"
   }
 }
 
@@ -194,79 +191,79 @@ data "aws_ami" "ecs_cluster" {
 }
 
 /*
-resource "aws_instance" "cluster_server_a" {
+resource "aws_instance" "ecs_server_a" {
   depends_on = ["aws_ecs_cluster.services"]
-  instance_type = "${var.cluster_instance_type}"
+  instance_type = "${var.ecs_instance_type}"
 
   ami = "${data.aws_ami.ecs_cluster.id}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.cluster_server.id}"]
+  security_groups = ["${aws_security_group.ecs_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cluster_server_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.ecs_server_profile.name}"
 
-  user_data = "${data.template_file.cluster_launch_user_data.rendered}"
+  user_data = "${data.template_file.ecs_launch_user_data.rendered}"
 
   tags {
-    Name = "cluster-server-a"
+    Name = "ecs-server-a"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_instance" "cluster_server_b" {
+resource "aws_instance" "ecs_server_b" {
   depends_on = ["aws_ecs_cluster.services"]
-  instance_type = "${var.cluster_instance_type}"
+  instance_type = "${var.ecs_instance_type}"
 
   ami = "${data.aws_ami.ecs_cluster.id}"
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.cluster_server.id}"]
+  security_groups = ["${aws_security_group.ecs_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cluster_server_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.ecs_server_profile.name}"
 
-  user_data = "${data.template_file.cluster_launch_user_data.rendered}"
+  user_data = "${data.template_file.ecs_launch_user_data.rendered}"
 
   tags {
-    Name = "cluster-server-b"
+    Name = "ecs-server-b"
     Stream = "${var.stream_tag}"
   }
 }
 */
 
-resource "aws_launch_configuration" "cluster_launch_configuration" {
+resource "aws_launch_configuration" "ecs_launch_configuration" {
   depends_on = ["aws_ecs_cluster.services"]
-  name_prefix   = "cluster-"
-  instance_type = "${var.cluster_instance_type}"
+  name_prefix   = "server-"
+  instance_type = "${var.ecs_instance_type}"
 
   image_id = "${data.aws_ami.ecs_cluster.id}"
 
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.cluster_server.id}"]
+  security_groups = ["${aws_security_group.ecs_server.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.cluster_server_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.ecs_server_profile.name}"
 
-  user_data = "${data.template_file.cluster_launch_user_data.rendered}"
+  user_data = "${data.template_file.ecs_launch_user_data.rendered}"
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-resource "aws_autoscaling_group" "cluster_asg_a" {
+resource "aws_autoscaling_group" "ecs_asg_a" {
   depends_on = ["aws_ecs_cluster.services"]
-  name                      = "cluster-asg-a"
+  name                      = "server-asg-a"
   max_size                  = 4
   min_size                  = 0
   health_check_grace_period = 300
   health_check_type         = "ELB"
   desired_capacity          = 1
   force_delete              = true
-  launch_configuration      = "${aws_launch_configuration.cluster_launch_configuration.name}"
+  launch_configuration      = "${aws_launch_configuration.ecs_launch_configuration.name}"
 
   vpc_zone_identifier = [
     "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
@@ -284,7 +281,7 @@ resource "aws_autoscaling_group" "cluster_asg_a" {
 
   tag {
     key                 = "Name"
-    value               = "cluster-server-a"
+    value               = "ecs-server-a"
     propagate_at_launch = true
   }
 
@@ -293,16 +290,16 @@ resource "aws_autoscaling_group" "cluster_asg_a" {
   }
 }
 
-resource "aws_autoscaling_group" "cluster_asg_b" {
+resource "aws_autoscaling_group" "ecs_asg_b" {
   depends_on = ["aws_ecs_cluster.services"]
-  name                      = "cluster-asg-b"
+  name                      = "server-asg-b"
   max_size                  = 4
   min_size                  = 0
   health_check_grace_period = 300
   health_check_type         = "ELB"
   desired_capacity          = 1
   force_delete              = true
-  launch_configuration      = "${aws_launch_configuration.cluster_launch_configuration.name}"
+  launch_configuration      = "${aws_launch_configuration.ecs_launch_configuration.name}"
 
   vpc_zone_identifier = [
     "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
@@ -320,7 +317,7 @@ resource "aws_autoscaling_group" "cluster_asg_b" {
 
   tag {
     key                 = "Name"
-    value               = "cluster-server-b"
+    value               = "ecs-server-b"
     propagate_at_launch = true
   }
 
@@ -330,8 +327,8 @@ resource "aws_autoscaling_group" "cluster_asg_b" {
 }
 
 /*
-resource "aws_security_group" "cluster_elb" {
-  name = "ecs-cluster-elb-security-group"
+resource "aws_security_group" "ecs_elb" {
+  name = "ecs-server-elb-security-group"
   description = "ECS Cluster ELB security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -361,20 +358,20 @@ resource "aws_security_group" "cluster_elb" {
   }
 }
 
-resource "aws_iam_server_certificate" "cluster_elb" {
-  name_prefix      = "ecs-cluster-elb-certificate"
-  certificate_body = "${file("${var.ecs_cluster_elb_certificate_path}")}"
-  private_key      = "${file("${var.ecs_cluster_elb_private_key_path}")}"
+resource "aws_iam_server_certificate" "ecs_elb" {
+  name_prefix      = "ecs-server-elb-certificate"
+  certificate_body = "${file("${var.ecs_elb_certificate_path}")}"
+  private_key      = "${file("${var.ecs_elb_private_key_path}")}"
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-resource "aws_elb" "cluster_elb" {
-  name               = "cluster-elb"
+resource "aws_elb" "ecs_elb" {
+  name               = "server-elb"
 
-  security_groups = ["${aws_security_group.cluster_elb.id}"]
+  security_groups = ["${aws_security_group.ecs_elb.id}"]
 
   subnets = [
     "${data.terraform_remote_state.vpc.network-public-subnet-a-id}",
@@ -386,7 +383,7 @@ resource "aws_elb" "cluster_elb" {
     instance_protocol   = "HTTPS"
     lb_port             = 443
     lb_protocol         = "HTTPS"
-    ssl_certificate_id  = "${aws_iam_server_certificate.cluster_elb.arn}"
+    ssl_certificate_id  = "${aws_iam_server_certificate.ecs_elb.arn}"
   }
 
   listener {
@@ -414,48 +411,48 @@ resource "aws_elb" "cluster_elb" {
   }
 }
 
-resource "aws_autoscaling_attachment" "cluster_asg_a" {
-  autoscaling_group_name = "${aws_autoscaling_group.cluster_asg_a.id}"
-  elb = "${aws_elb.cluster_elb.id}"
+resource "aws_autoscaling_attachment" "ecs_asg_a" {
+  autoscaling_group_name = "${aws_autoscaling_group.ecs_asg_a.id}"
+  elb = "${aws_elb.ecs_elb.id}"
 }
 
-resource "aws_autoscaling_attachment" "cluster_asg_b" {
-  autoscaling_group_name = "${aws_autoscaling_group.cluster_asg_b.id}"
-  elb = "${aws_elb.cluster_elb.id}"
+resource "aws_autoscaling_attachment" "ecs_asg_b" {
+  autoscaling_group_name = "${aws_autoscaling_group.ecs_asg_b.id}"
+  elb = "${aws_elb.ecs_elb.id}"
 }
 
-resource "aws_elb_attachment" "cluster_server_a" {
-  elb      = "${aws_elb.cluster_elb.id}"
-  instance = "${aws_instance.cluster_server_a.id}"
+resource "aws_elb_attachment" "ecs_server_a" {
+  elb      = "${aws_elb.ecs_elb.id}"
+  instance = "${aws_instance.ecs_server_a.id}"
 }
 
-resource "aws_elb_attachment" "cluster_server_b" {
-  elb      = "${aws_elb.cluster_elb.id}"
-  instance = "${aws_instance.cluster_server_b.id}"
+resource "aws_elb_attachment" "ecs_server_b" {
+  elb      = "${aws_elb.ecs_elb.id}"
+  instance = "${aws_instance.ecs_server_b.id}"
 }
 
 ##############################################################################
 # Route 53
 ##############################################################################
 
-resource "aws_route53_record" "cluster_elb" {
+resource "aws_route53_record" "ecs_elb" {
   zone_id = "${var.public_hosted_zone_id}"
   name = "cluster.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {
-    name = "${aws_elb.cluster_elb.dns_name}"
-    zone_id = "${aws_elb.cluster_elb.zone_id}"
+    name = "${aws_elb.ecs_elb.dns_name}"
+    zone_id = "${aws_elb.ecs_elb.zone_id}"
     evaluate_target_health = true
   }
 }
 
-resource "aws_route53_record" "cluster_dns" {
+resource "aws_route53_record" "ecs_dns" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
   name = "cluster.${var.hosted_zone_name}"
   type = "CNAME"
   ttl = "30"
 
-  records = ["${aws_elb.cluster_elb.dns_name}"]
+  records = ["${aws_elb.ecs_elb.dns_name}"]
 }
 */

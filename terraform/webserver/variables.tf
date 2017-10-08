@@ -53,10 +53,6 @@ variable "aws_network_vpc_cidr" {
 }
 
 ### MANDATORY ###
-variable "base_version" {
-}
-
-### MANDATORY ###
 variable "account_id" {
 }
 
@@ -73,11 +69,14 @@ variable "secrets_bucket_name" {
 ###################################################################
 
 ### MANDATORY ###
+variable "base_version" {
+}
+
+### MANDATORY ###
 variable "filebeat_version" {
 }
 
 variable "web_instance_type" {
-  description = "NGINX instance type"
   default = "t2.small"
 }
 

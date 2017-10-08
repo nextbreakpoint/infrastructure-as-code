@@ -45,6 +45,21 @@ variable "aws_network_vpc_cidr" {
 }
 
 ### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_c" {
+  description = "Private subnet C cidr block"
+}
+
+### MANDATORY ###
 variable "account_id" {
 }
 
@@ -58,11 +73,39 @@ variable "secrets_bucket_name" {
 }
 
 ###################################################################
-# Cluster configuration below
+# Kubernetes configuration below
 ###################################################################
 
-variable "cluster_instance_type" {
+### MANDATORY ###
+variable "base_version" {
+}
+
+### MANDATORY ###
+variable "filebeat_version" {
+}
+
+### MANDATORY ###
+variable "kubernetes_version" {
+}
+
+variable "kubernetes_instance_type" {
   default  = "t2.medium"
+}
+
+variable "kubernetes_token" {
+  default  = "abcdef.1234567890abcdef"
+}
+
+variable "kubernetes_pod_network_cidr" {
+  default  = "10.1.0.0/16"
+}
+
+variable "kubernetes_elb_certificate_path" {
+  default = "../../secrets/ca_and_server_cert.pem"
+}
+
+variable "kubernetes_elb_private_key_path" {
+  default = "../../secrets/server_key.pem"
 }
 
 ###################################################################

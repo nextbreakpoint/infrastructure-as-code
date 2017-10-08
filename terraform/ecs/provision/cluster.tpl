@@ -4,9 +4,9 @@ runcmd:
   - sudo yum install -y wget dnsmasq bind-utils
   - sudo mkdir -p /consul/config
   - sudo chmod -R ubuntu.ubuntu /consul
-  - export CONSUL_HOST=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-  - sudo docker run -d --name=consul --restart unless-stopped --net=host -v /consul/config:/consul/config consul:latest agent -bind=$CONSUL_HOST -client=$CONSUL_HOST -node=cluster-$CONSUL_HOST -retry-join=consul.internal -datacenter=terraform -enable-script-checks
-  - sudo docker run -d --name=registrator --restart unless-stopped --net=host --volume=/var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator:latest consul://$CONSUL_HOST:8500
+  - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
+  - sudo docker run -d --name=consul --restart unless-stopped --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=cluster-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo docker run -d --name=registrator --restart unless-stopped --net=host --volume=/var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator:latest consul://$HOST_IP_ADDRESS:8500
 write_files:
   - path: /etc/ecs/ecs.config
     permissions: '0644'

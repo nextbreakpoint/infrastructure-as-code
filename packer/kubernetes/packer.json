@@ -5,6 +5,7 @@
     "key_path": "",
     "aws_access_key": "",
     "aws_secret_key": "",
+    "aws_security_token": "",
     "aws_region": "eu-west-1",
     "aws_build_regions" : "",
     "aws_instance_type": "t2.small",
@@ -14,27 +15,27 @@
     "bastion_host": "",
     "bastion_username": "ec2-user",
     "kubernetes_version": "",
-    "base_version": "",
     "stream_tag": ""
   },
   "builders": [{
     "type": "amazon-ebs",
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
+    "token": "{{user `aws_security_token`}}",
     "region": "{{user `aws_region`}}",
     "source_ami_filter": {
       "filters": {
         "virtualization-type": "hvm",
-        "name": "base-{{user `base_version`}}-*",
+        "name": "*ubuntu-xenial-16.04-amd64-server-*",
         "root-device-type": "ebs"
       },
-      "owners": ["{{user `account_id`}}"],
+      "owners": ["099720109477"],
       "most_recent": true
     },
     "instance_type": "{{user `aws_instance_type`}}",
     "vpc_id": "{{user `aws_vpc_id`}}",
     "subnet_id": "{{user `aws_subnet_id`}}",
-    "ami_name": "{{user `ami_name_prefix`}}-{{user `kubernetes_version`}}-{{user `base_version`}}-{{timestamp}}",
+    "ami_name": "{{user `ami_name_prefix`}}-{{user `kubernetes_version`}}-{{timestamp}}",
     "ami_regions": "{{user `aws_build_regions`}}",
     "communicator": "ssh",
     "ssh_pty": "true",
@@ -52,10 +53,30 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "scripts/kubernetes.sh",
+      "script": "../scripts/tools.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "../scripts/docker.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "../scripts/java.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "../scripts/kubernetes.sh",
       "environment_vars": [
         "KUBERNETES_VERSION={{user `kubernetes_version`}}"
       ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "../scripts/aws-cli.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]

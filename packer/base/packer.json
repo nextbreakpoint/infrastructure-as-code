@@ -1,5 +1,6 @@
 {
   "variables": {
+    "account_id": "",
     "key_name": "",
     "key_path": "",
     "aws_access_key": "",
@@ -13,9 +14,6 @@
     "ami_name_prefix": "base",
     "bastion_host": "",
     "bastion_username": "ec2-user",
-    "filebeat_version": "",
-    "topbeat_version": "",
-    "consul_version": "",
     "base_version": "",
     "stream_tag": ""
   },
@@ -55,51 +53,22 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "scripts/tools.sh",
+      "script": "../scripts/tools.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
       "type": "shell",
-      "script": "scripts/java.sh",
+      "script": "../scripts/docker.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
       "type": "shell",
-      "script": "scripts/filebeat.sh",
-      "environment_vars": [
-        "FILEBEAT_VERSION={{user `filebeat_version`}}"
-      ],
+      "script": "../scripts/java.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
       "type": "shell",
-      "script": "scripts/topbeat.sh",
-      "environment_vars": [
-        "TOPBEAT_VERSION={{user `topbeat_version`}}"
-      ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/aws-cli.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/consul.sh",
-      "environment_vars": [
-        "CONSUL_VERSION={{user `consul_version`}}"
-      ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/docker.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "scripts/update.sh",
+      "script": "../scripts/aws-cli.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]
