@@ -65,6 +65,8 @@ cat $DIR/server_cert.pem $DIR/ca_cert.pem > $DIR/ca_and_server_cert.pem
 
 export DST=terraform/secrets/environments/production/keystores
 
+mkdir -p $DST
+
 cp $DIR/keystore-auth.jceks $DST
 cp $DIR/keystore-client.jks $DST
 cp $DIR/keystore-server.jks $DST
@@ -75,8 +77,9 @@ cp $DIR/truststore-server.jks $DST
 
 export DST=terraform/secrets/environments/production/nginx
 
+mkdir -p $DST
+
 cp $DIR/ca_cert.pem $DST
 cp $DIR/server_cert.pem $DST
 cp $DIR/server_key.pem $DST
 cp $DIR/ca_and_server_cert.pem $DST
-
