@@ -14,9 +14,10 @@ runcmd:
   - sudo -u ubuntu mkdir -p /home/ubuntu/.kube
   - sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
   - sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
-  - sudo kubectl apply -f https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/daemonset/kubeadm-kuberouter.yaml
-  - sudo kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
-  - sudo kubectl get pods --all-namespaces
+  - bash -c "sleep 180"
+  - sudo -u ubuntu kubectl apply -f https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/daemonset/kubeadm-kuberouter.yaml
+  - sudo -u ubuntu kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+  - sudo -u ubuntu kubectl get pods --all-namespaces
 write_files:
   - path: /consul/config/consul.json
     permissions: '0644'

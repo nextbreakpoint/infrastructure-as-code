@@ -476,8 +476,10 @@ resource "aws_route53_record" "kubernetes_elb" {
 resource "aws_route53_record" "kubernetes_dns" {
   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
   name = "kubernetes.${var.hosted_zone_name}"
-  type = "CNAME"
-  ttl = "30"
+  type = "A"
+  ttl = "300"
 
-  records = ["${aws_elb.kubernetes_elb.dns_name}"]
+  records = [
+    "${aws_instance.kubernetes_server_a.private_ip}"
+  ]
 }
