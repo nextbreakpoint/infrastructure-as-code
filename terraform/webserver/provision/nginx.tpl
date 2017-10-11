@@ -122,6 +122,12 @@ write_files:
           }
 
           server {
+            listen 80;
+            server_name kubernetes.${public_hosted_zone_name};
+          	return 301 https://$$server_name$$request_uri;
+          }
+
+          server {
             listen 443 ssl;
             server_name consul.${public_hosted_zone_name};
 
@@ -215,6 +221,26 @@ write_files:
                 set $$upstream_artifactory artifactory.internal;
                 proxy_pass http://$$upstream_artifactory:8081$$request_uri;
                 proxy_redirect http://$$upstream_artifactory:8081 https://artifactory.${public_hosted_zone_name};
+                proxy_set_header Host $$host;
+                proxy_set_header X-Real-IP $$remote_addr;
+                proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+            }
+          }
+
+          server {
+            listen 443 ssl;
+            server_name kubernetes.${public_hosted_zone_name};
+
+            ssl_certificate     /nginx/secrets/ca_and_server_cert.pem;
+            ssl_certificate_key /nginx/secrets/server_key.pem;
+            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+            ssl_ciphers         HIGH:!aNULL:!MD5;
+
+            location / {
+                resolver 127.0.0.1;
+                set $$upstream_kubernetes kubernetes.internal;
+                proxy_pass http://$$upstream_kubernetes:8081$$request_uri;
+                proxy_redirect http://$$upstream_kubernetes:8081 https://kubernetes.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
