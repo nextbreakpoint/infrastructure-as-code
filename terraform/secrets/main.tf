@@ -30,50 +30,6 @@ resource "aws_s3_bucket" "secrets" {
   }
 }
 
-/*
-data "aws_vpc_endpoint" "s3" {
-  vpc_id       = "${aws_vpc.vpc.id}"
-  service_name = "com.amazonaws.eu-east-1.s3"
-}
-
-data "aws_iam_policy_document" "secrets" {
-  statement {
-    sid = "Access-to-specific-VPC-only"
-
-    effect = "Deny"
-
-    principals = {
-      type = "AWS"
-      identifiers = ["*"]
-    }
-
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject"
-    ]
-
-    resources = [
-      "arn:aws:s3:::${var.secrets_bucket_name}/*",
-    ]
-
-    condition {
-      test     = "StringNotEquals"
-      variable = "aws:sourceVpce"
-
-      values = [
-        "${aws_vpc_endpoint.s3.id}"
-      ]
-    }
-  }
-}
-
-resource "aws_s3_bucket_policy" "secrets_policy" {
-  bucket = "${aws_s3_bucket.secrets.id}"
-  policy = "${data.aws_iam_policy_document.secrets.json}"
-}
-*/
-
 ##############################################################################
 # S3 Bucket objects
 ##############################################################################
