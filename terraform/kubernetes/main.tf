@@ -110,6 +110,13 @@ resource "aws_iam_role_policy" "kubernetes_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+      "Action": [
+          "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
