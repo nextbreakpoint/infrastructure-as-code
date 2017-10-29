@@ -169,7 +169,7 @@ data "template_file" "ecs_launch_user_data" {
   template = "${file("provision/cluster.tpl")}"
 
   vars {
-    ecs_name            = "${aws_ecs_cluster.services.name}"
+    cluster_name        = "${aws_ecs_cluster.services.name}"
     consul_datacenter   = "${var.consul_datacenter}"
     consul_hostname     = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file     = "${var.consul_log_file}"
@@ -236,8 +236,8 @@ resource "aws_instance" "ecs_server_b" {
 
 resource "aws_launch_configuration" "ecs_launch_configuration" {
   depends_on = ["aws_ecs_cluster.services"]
-  name_prefix   = "server-"
-  instance_type = "${var.ecs_instance_type}"
+  name_prefix   = "ecs-server-"
+  instance_type = "${var.cluster_instance_type}"
 
   image_id = "${data.aws_ami.ecs_cluster.id}"
 
@@ -256,7 +256,7 @@ resource "aws_launch_configuration" "ecs_launch_configuration" {
 
 resource "aws_autoscaling_group" "ecs_asg_a" {
   depends_on = ["aws_ecs_cluster.services"]
-  name                      = "server-asg-a"
+  name                      = "ecs-cluster-asg-a"
   max_size                  = 4
   min_size                  = 0
   health_check_grace_period = 300
@@ -292,7 +292,7 @@ resource "aws_autoscaling_group" "ecs_asg_a" {
 
 resource "aws_autoscaling_group" "ecs_asg_b" {
   depends_on = ["aws_ecs_cluster.services"]
-  name                      = "server-asg-b"
+  name                      = "ecs-cluster-asg-b"
   max_size                  = 4
   min_size                  = 0
   health_check_grace_period = 300

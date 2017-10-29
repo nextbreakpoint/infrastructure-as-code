@@ -44,8 +44,7 @@ write_files:
                     "notes": "Use netstat to check the service every 60 seconds",
                     "script": "netstat -tulpn | grep 9092 >/dev/null 2>&1",
                     "interval": "60s"
-                } ],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /filebeat/config/filebeat.yml

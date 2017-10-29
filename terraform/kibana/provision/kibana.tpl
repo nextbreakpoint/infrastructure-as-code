@@ -49,8 +49,7 @@ write_files:
                     "notes": "Use curl to check the web service every 60 seconds",
                     "script": "curl $HOST_IP_ADDRESS:9200 >/dev/null 2>&1",
                     "interval": "60s"
-                }],
-                "leave_on_terminate": true
+                }]
             },{
                 "name": "elasticsearch-index",
                 "tags": [
@@ -63,8 +62,7 @@ write_files:
                     "notes": "Use nc to check the tcp port every 60 seconds",
                     "script": "nc -zv $HOST_IP_ADDRESS 9300 >/dev/null 2>&1",
                     "interval": "60s"
-                }],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /consul/config/kibana.json
@@ -83,8 +81,7 @@ write_files:
                     "notes": "Use curl to check the web service every 60 seconds",
                     "script": "curl $HOST_IP_ADDRESS:5601 >/dev/null 2>&1",
                     "interval": "60s"
-                } ],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /kibana/config/kibana.yml

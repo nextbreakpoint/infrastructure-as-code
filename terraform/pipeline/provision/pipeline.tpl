@@ -74,8 +74,7 @@ write_files:
                     "notes": "Use curl to check the web service every 60 seconds",
                     "script": "curl $HOST_IP_ADDRESS:8080 >/dev/null 2>&1",
                     "interval": "60s"
-                }],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /consul/config/jenkins.json
@@ -94,8 +93,7 @@ write_files:
                     "notes": "Use curl to check the service every 60 seconds",
                     "script": "curl $HOST_IP_ADDRESS:8080 >/dev/null 2>&1",
                     "interval": "60s"
-                }],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /consul/config/sonarqube.json
@@ -114,8 +112,7 @@ write_files:
                     "notes": "Use curl to check the service every 60 seconds",
                     "script": "curl $HOST_IP_ADDRESS:9000 >/dev/null 2>&1",
                     "interval": "60s"
-                }],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /consul/config/artifactory.json
@@ -134,8 +131,7 @@ write_files:
                     "notes": "Use curl to check the service every 60 seconds",
                     "script": "curl $HOST_IP_ADDRESS:8081 >/dev/null 2>&1",
                     "interval": "60s"
-                }],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /consul/config/mysql.json
@@ -154,8 +150,7 @@ write_files:
                     "notes": "Use nc to check the service every 60 seconds",
                     "script": "nc -zv $HOST_IP_ADDRESS 3306 >/dev/null 2>&1",
                     "interval": "60s"
-                }],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /filebeat/config/filebeat.yml

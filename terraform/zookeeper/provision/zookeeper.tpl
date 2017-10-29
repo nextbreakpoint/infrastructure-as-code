@@ -45,8 +45,7 @@ write_files:
                     "notes": "Use nc to check the service every 30 seconds",
                     "script": "echo stat | nc $HOST_IP_ADDRESS 2181 >/dev/null 2>&1",
                     "interval": "30s"
-                } ],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /filebeat/config/filebeat.yml

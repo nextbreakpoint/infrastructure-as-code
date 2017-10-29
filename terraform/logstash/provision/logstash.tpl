@@ -45,8 +45,7 @@ write_files:
                     "notes": "Use nc to check the tcp port every 60 seconds",
                     "script": "nc -zv $HOST_IP_ADDRESS 5044 >/dev/null 2>&1",
                     "interval": "60s"
-                }],
-                "leave_on_terminate": true
+                }]
             }]
         }
   - path: /logstash/pipeline/pipeline.conf
