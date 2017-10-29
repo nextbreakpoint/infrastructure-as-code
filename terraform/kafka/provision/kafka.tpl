@@ -11,7 +11,7 @@ runcmd:
   - sudo chown -R ubuntu:ubuntu /kafka
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kafka-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
-  - sudo -u ubuntu docker run -d --name=kafka --restart unless-stopped -p 9092:9092 -e BROKER_ID=${broker_id} -e ZK_CONNECT=zookeeper.internal:2181 -e ADVERTISED_HOST=$HOST_IP_ADDRESS -e ADVERTISED_PORT=9092 -e NUM_PARTITIONS=1 -v /kafka/logs:/var/log/supervisor --net=host nextbreakpoint/kafka:${kafka_version}
+  - sudo -u ubuntu docker run -d --name=kafka --restart unless-stopped -p 9092:9092 -e BROKER_ID=${broker_id} -e ZK_CONNECT=zookeeper.internal:2181 -e ADVERTISED_HOST=$HOST_IP_ADDRESS -e ADVERTISED_PORT=9092 -e NUM_PARTITIONS=1 -v /kafka/logs:/var/log --net=host nextbreakpoint/kafka:${kafka_version}
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /kafka/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
   - path: /consul/config/consul.json
@@ -26,6 +26,15 @@ write_files:
             "service_ttl": {
               "*": "5s"
             }
+          }
+        }
+  - path: /etc/docker/daemon.json
+    permissions: '0644'
+    content: |
+        {
+          "log-driver": "syslog",
+          "log-opts": {
+            "tag": "docker"
           }
         }
   - path: /consul/config/kafka.json

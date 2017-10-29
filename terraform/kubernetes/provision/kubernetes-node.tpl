@@ -28,3 +28,12 @@ write_files:
             }
           }
         }
+  - path: /etc/docker/daemon.json
+    permissions: '0644'
+    content: |
+        {
+          "log-driver": "syslog",
+          "log-opts": {
+            "tag": "docker"
+          }
+        }

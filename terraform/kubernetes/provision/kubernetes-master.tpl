@@ -22,7 +22,7 @@ runcmd:
   - sudo -u ubuntu kubectl apply -f /tmp/kubernetes-dashboard.yaml
   - sudo -u ubuntu kubectl create clusterrolebinding dashboard-admin-binding --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
   - sudo -u ubuntu kubectl get pods --all-namespaces
-  - sudo -u ubuntu kubectl get secrets -n kube-system kubernetes-dashboard-token-5x65d -o 'jsonpath={.data.token}' 
+  - sudo -u ubuntu kubectl get secrets -n kube-system kubernetes-dashboard-token-5x65d -o 'jsonpath={.data.token}'
 write_files:
   - path: /consul/config/consul.json
     permissions: '0644'
@@ -36,6 +36,15 @@ write_files:
             "service_ttl": {
               "*": "5s"
             }
+          }
+        }
+  - path: /etc/docker/daemon.json
+    permissions: '0644'
+    content: |
+        {
+          "log-driver": "syslog",
+          "log-opts": {
+            "tag": "docker"
           }
         }
   - path: /tmp/kubernetes-dashboard.yaml

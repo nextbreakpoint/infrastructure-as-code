@@ -142,26 +142,6 @@ Destroy VPCs and subnets using the script:
 
     sh destroy_network.sh
 
-### Create ESB volumes
-
-ESB volumes are required to store persistent data which can survive after
-a restart of a EC2 instance or in case we need to recreate a EC2 instance.
-ESB volumes need to be initialised with at least one partition before
-they can be used. We use a temporary EC2 instance to mount the volumes
-and create an empty partition.
-
-PLEASE BE AWARE OF COSTS OF CREATING VOLUMES IN AWS
-
-Create ESB volumes using the script:
-
-    sh create_volumes.sh
-
-Volumes can be destroyed any time when data are not required anymore
-
-Destroy ESB volumes using the script:
-
-    sh destroy_volumes.sh
-
 ### Build AMIs
 
 Images are useful to simplify the provisioning of a EC2 instance and
@@ -183,7 +163,7 @@ Remove all your images using the script:
 After we have created all base components and we have configured
 the required VPCs and subnets with routing tables and security groups,
 we can create the remaining components of our infrastructure.
-Those components depends on AMIs and volumes we created in previous steps,
+Those components depends on AMIs we created in previous step,
 and they can be created and destroyed as many time as we want.
 
 PLEASE BE AWARE OF COSTS OF RUNNING EC2 INSTANCES ON AWS

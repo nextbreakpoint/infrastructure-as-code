@@ -61,6 +61,10 @@ variable "secrets_bucket_name" {
 # Cluster configuration below
 ###################################################################
 
+### MANDATORY ###
+variable "filebeat_version" {
+}
+
 variable "cluster_instance_type" {
   default  = "t2.medium"
 }

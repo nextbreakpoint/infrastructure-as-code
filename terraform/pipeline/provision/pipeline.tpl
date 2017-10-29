@@ -36,10 +36,11 @@ runcmd:
   - sudo curl -L -o mysql-connector-java-${mysqlconnector_version}.zip https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-${mysqlconnector_version}.zip
   - sudo unzip mysql-connector-java-${mysqlconnector_version}.zip
   - sudo -u ubuntu docker run -d --name=mysql --restart unless-stopped -e MYSQL_ALLOW_EMPTY_PASSWORD=1 -p 3306:3306 --net=host -v /pipeline/mysql:/var/lib/mysql -d mysql:latest
-  - sudo -u ubuntu docker exec -i mysql bash -c "mysql -u root" < /mysql/scripts/setup.sql
-  - sudo mysqladmin -u root password 'changeme'
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=pipeline-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
   - sudo -u ubuntu docker run -d --name=jenkins --restart unless-stopped -p 8080:8080 -p 50000:50000 --net=host -e JAVA_OPTS=-Djenkins.install.runSetupWizard=false -v /pipeline/jenkins:/var/jenkins_home jenkins/jenkins:lts
+  - sudo -u ubuntu docker exec -i mysql bash -c "sleep 30"
+  - sudo -u ubuntu docker exec -i mysql bash -c "mysql -u root" < /mysql/scripts/setup.sql
+  - sudo -u ubuntu docker exec -i mysql bash -c "mysqladmin -u root password 'changeme'"
   - sudo -u ubuntu docker run -d --name=sonarqube --restart unless-stopped -p 9000:9000 -p 9092:9092 --net=host -e SONARQUBE_JDBC_USERNAME=sonarqube -e SONARQUBE_JDBC_PASSWORD=password -e SONARQUBE_JDBC_URL="jdbc:mysql://$HOST_IP_ADDRESS/sonar?useUnicode=true&characterEncoding=utf8&useSSL=false" sonarqube:latest
   - sudo -u ubuntu docker run -d --name=artifactory --restart unless-stopped -p 8081:8081 --net=host -e DB_TYPE=mysql -e DB_HOST=$HOST_IP_ADDRESS -e DB_PORT=3306 -e DB_USER=artifactory -e DB_PASSWORD=password -v /mysql-connector-java-${mysqlconnector_version}/mysql-connector-java-${mysqlconnector_version}-bin.jar:/opt/jfrog/artifactory/tomcat/lib/mysql-connector-java-${mysqlconnector_version}-bin.jar -v /pipeline/artifactory:/var/opt/jfrog/artifactory docker.bintray.io/jfrog/artifactory-oss:latest
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /mysql/logs:/logs/mysql -v /jenkins/logs:/logs/jenkins -v /sonarqube/logs:/logs/sonarqube -v /artifactory/logs:/logs/artifactory docker.elastic.co/beats/filebeat:${filebeat_version}
@@ -56,6 +57,15 @@ write_files:
             "service_ttl": {
               "*": "5s"
             }
+          }
+        }
+  - path: /etc/docker/daemon.json
+    permissions: '0644'
+    content: |
+        {
+          "log-driver": "syslog",
+          "log-opts": {
+            "tag": "docker"
           }
         }
   - path: /consul/config/jenkins.json
@@ -170,7 +180,7 @@ write_files:
     permissions: '0644'
     content: |
         DROP DATABASE IF EXISTS `sonar`;
-        CREATE DATABASE `sonarqube` CHARACTER SET utf8 COLLATE utf8_bin;
+        CREATE DATABASE `sonar` CHARACTER SET utf8 COLLATE utf8_bin;
         DROP DATABASE IF EXISTS `artdb`;
         CREATE DATABASE `artdb` CHARACTER SET utf8 COLLATE utf8_bin;
         CREATE USER IF NOT EXISTS 'sonarqube' IDENTIFIED BY 'password' PASSWORD EXPIRE NEVER;

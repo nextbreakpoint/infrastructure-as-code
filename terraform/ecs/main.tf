@@ -173,6 +173,8 @@ data "template_file" "ecs_launch_user_data" {
     consul_datacenter   = "${var.consul_datacenter}"
     consul_hostname     = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file     = "${var.consul_log_file}"
+    logstash_host       = "logstash.${var.hosted_zone_name}"
+    filebeat_version    = "${var.filebeat_version}"
   }
 }
 

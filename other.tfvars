@@ -5,6 +5,3 @@ hosted_zone_name="internal"
 elasticsearch_cluster_name="terraform"
 
 stream_tag="terraform"
-
-ecs_cluster_elb_certificate_path = "../../ecs-cluster-elb.crt"
-ecs_cluster_elb_private_key_path = "../../ecs-cluster-elb.key"
