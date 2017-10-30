@@ -118,6 +118,8 @@ data "template_file" "consul_server_user_data" {
     consul_bootstrap_expect = "3"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
   }
 }
 

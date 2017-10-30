@@ -42,9 +42,9 @@ write_files:
     permissions: '0644'
     content: |
         {
-          "log-driver": "syslog",
+          "log-driver": "json-file",
           "log-opts": {
-            "tag": "docker"
+            "labels": "production"
           }
         }
   - path: /tmp/kubernetes-dashboard.yaml

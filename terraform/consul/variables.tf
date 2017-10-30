@@ -60,6 +60,10 @@ variable "account_id" {
 # Consul configuration below
 ###################################################################
 
+### MANDATORY ###
+variable "filebeat_version" {
+}
+
 variable "consul_instance_type" {
   default = "t2.micro"
 }

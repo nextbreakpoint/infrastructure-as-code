@@ -15,7 +15,7 @@ runcmd:
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=webserver-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
   - sudo -u ubuntu docker run -d --name=nginx --restart unless-stopped --net=host --privileged -v /nginx/config/nginx.conf:/etc/nginx/nginx.conf -v /nginx/logs:/var/log/nginx -v /nginx/secrets:/nginx/secrets nginx:latest
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /nginx/logs:/logs -v /var/log/syslog:/logs/syslog docker.elastic.co/beats/filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /nginx/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
   - path: /consul/config/consul.json
     permissions: '0644'
@@ -35,9 +35,9 @@ write_files:
     permissions: '0644'
     content: |
         {
-          "log-driver": "syslog",
+          "log-driver": "json-file",
           "log-opts": {
-            "tag": "docker"
+            "labels": "production"
           }
         }
   - path: /consul/config/webserver.json
@@ -75,11 +75,11 @@ write_files:
   - path: /filebeat/config/filebeat.yml
     permissions: '0644'
     content: |
+        logging.level: debug
         filebeat.prospectors:
         - input_type: log
           paths:
           - /logs/*.log
-            /logs/syslog
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]

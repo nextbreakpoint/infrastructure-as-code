@@ -13,7 +13,7 @@ runcmd:
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=logstash-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
   - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped -p 5044:5044 -e xpack.monitoring.elasticsearch.url=http://${elasticsearch_host}:9200 -e xpack.monitoring.elasticsearch.username=elastic -e xpack.monitoring.elasticsearch.password=changeme --net=host -v /logstash/pipeline:/usr/share/logstash/pipeline -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /logstash/logs:/logs -v /var/log/syslog:/logs/syslog docker.elastic.co/beats/filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /logstash/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
   - path: /consul/config/consul.json
     permissions: '0644'
@@ -33,9 +33,9 @@ write_files:
     permissions: '0644'
     content: |
         {
-          "log-driver": "syslog",
+          "log-driver": "json-file",
           "log-opts": {
-            "tag": "docker"
+            "labels": "production"
           }
         }
   - path: /consul/config/logstash.json
@@ -63,7 +63,6 @@ write_files:
         input {
           beats {
             port => 5044
-            host => "0.0.0.0"
           }
         }
         output {
@@ -83,7 +82,6 @@ write_files:
         - input_type: log
           paths:
           - /logs/*.log
-            /logs/syslog
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]

@@ -43,7 +43,7 @@ runcmd:
   - sudo -u ubuntu docker exec -i mysql bash -c "mysqladmin -u root password 'changeme'"
   - sudo -u ubuntu docker run -d --name=sonarqube --restart unless-stopped -p 9000:9000 -p 9092:9092 --net=host -e SONARQUBE_JDBC_USERNAME=sonarqube -e SONARQUBE_JDBC_PASSWORD=password -e SONARQUBE_JDBC_URL="jdbc:mysql://$HOST_IP_ADDRESS/sonar?useUnicode=true&characterEncoding=utf8&useSSL=false" sonarqube:latest
   - sudo -u ubuntu docker run -d --name=artifactory --restart unless-stopped -p 8081:8081 --net=host -e DB_TYPE=mysql -e DB_HOST=$HOST_IP_ADDRESS -e DB_PORT=3306 -e DB_USER=artifactory -e DB_PASSWORD=password -v /mysql-connector-java-${mysqlconnector_version}/mysql-connector-java-${mysqlconnector_version}-bin.jar:/opt/jfrog/artifactory/tomcat/lib/mysql-connector-java-${mysqlconnector_version}-bin.jar -v /pipeline/artifactory:/var/opt/jfrog/artifactory docker.bintray.io/jfrog/artifactory-oss:latest
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /mysql/logs:/logs/mysql -v /jenkins/logs:/logs/jenkins -v /sonarqube/logs:/logs/sonarqube -v /artifactory/logs:/logs/artifactory -v /var/log/syslog:/logs/syslog docker.elastic.co/beats/filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /mysql/logs:/logs/mysql -v /jenkins/logs:/logs/jenkins -v /sonarqube/logs:/logs/sonarqube -v /artifactory/logs:/logs/artifactory docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
   - path: /consul/config/consul.json
     permissions: '0644'
@@ -63,9 +63,9 @@ write_files:
     permissions: '0644'
     content: |
         {
-          "log-driver": "syslog",
+          "log-driver": "json-file",
           "log-opts": {
-            "tag": "docker"
+            "labels": "production"
           }
         }
   - path: /consul/config/jenkins.json
@@ -170,10 +170,9 @@ write_files:
         - input_type: log
           paths:
           - /logs/mysql/*.log
-            /logs/jenkins/*.log
-            /logs/sonarqube/*.log
-            /logs/artifactory/*.log
-            /logs/syslog
+          - /logs/jenkins/*.log
+          - /logs/sonarqube/*.log
+          - /logs/artifactory/*.log
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]
