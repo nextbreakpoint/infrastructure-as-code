@@ -13,7 +13,7 @@ runcmd:
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=cassandra-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
   - sudo -u ubuntu docker run -d --name=cassandra --restart unless-stopped -p 7000:7000 -e CASSANDRA_BROADCAST_ADDRESS=$HOST_IP_ADDRESS -e CASSANDRA_RPC_ADDRESS=$HOST_IP_ADDRESS -e CASSANDRA_LISTEN_ADDRESS=$HOST_IP_ADDRESS -e CASSANDRA_RACK=RACK1 -e CASSANDRA_DC=DC1 --net=host -v /cassandra/data:/var/lib/cassandra -v /cassandra/logs:/var/log/cassandra cassandra:latest
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /cassandra/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /cassandra/logs:/logs -v /var/log/syslog:/logs/syslog docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
   - path: /consul/config/consul.json
     permissions: '0644'
@@ -64,6 +64,7 @@ write_files:
         - input_type: log
           paths:
           - /logs/*.log
+            /logs/syslog
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]

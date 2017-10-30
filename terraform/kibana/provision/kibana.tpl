@@ -16,7 +16,7 @@ runcmd:
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kibana-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
   - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e xpack.security.enabled=true -e cluster.name=${cluster_name} -e network.host=0.0.0.0 -e network.publish_host=$HOST_IP_ADDRESS -e network.bind_host=0.0.0.0 -e http.port=9200 -e transport.tcp.port=9300 -e bootstrap.memory_lock=true -e discovery.zen.ping.unicast.hosts=${elasticsearch_nodes} -e discovery.zen.minimum_master_nodes=${minimum_master_nodes} -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -e node.master=false -e node.data=false -e node.ingest=false --net=host -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
   - sudo -u ubuntu docker run -d --name=kibana --restart unless-stopped -p 5601:5601 -e ELASTICSEARCH_URL=http://elastic:changeme@${elasticsearch_host}:9200 --net=host -v /kibana/config/kibana.yml:/usr/share/kibana/config/kibana. -v /kibana/logs:/usr/share/kibana/logs docker.elastic.co/kibana/kibana:${kibana_version}
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /elasticsearch/logs:/logs/elasticsearch -v /kibana/logs:/logs/kibana docker.elastic.co/beats/filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /elasticsearch/logs:/logs/elasticsearch -v /kibana/logs:/logs/kibana -v /var/log/syslog:/logs/syslog docker.elastic.co/beats/filebeat:${filebeat_version}
   - sudo curl -XPUT 'http://elastic:changeme@'$HOST_IP_ADDRESS':9200/.kibana/index-pattern/filebeat-*' -d@/filebeat/config/filebeat-index.json
 write_files:
   - path: /consul/config/consul.json
@@ -108,7 +108,8 @@ write_files:
         - input_type: log
           paths:
           - /logs/kibana/*.log
-          - /logs/elasticsearch/*.log
+            /logs/elasticsearch/*.log
+            /logs/syslog
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]

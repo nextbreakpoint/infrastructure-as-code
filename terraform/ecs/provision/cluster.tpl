@@ -38,6 +38,7 @@ write_files:
         - input_type: log
           paths:
           - /logs/*.log
+            /logs/docker
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]
