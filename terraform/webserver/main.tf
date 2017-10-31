@@ -94,6 +94,7 @@ data "template_file" "webserver_user_data" {
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     security_groups         = "${aws_security_group.webserver.id}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"

@@ -157,10 +157,12 @@ data "template_file" "cassandra_server_user_data_seed" {
 
   vars {
     security_groups         = "${aws_security_group.cassandra_server.id}"
+    environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
+    consul_secret           = "${var.consul_secret}"
     hosted_zone_name        = "${var.hosted_zone_name}"
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
@@ -175,6 +177,7 @@ data "template_file" "cassandra_server_user_data_node" {
 
   vars {
     security_groups         = "${aws_security_group.cassandra_server.id}"
+    environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"

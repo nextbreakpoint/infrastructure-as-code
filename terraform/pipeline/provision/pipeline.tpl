@@ -15,6 +15,8 @@ mounts:
 runcmd:
   - sudo usermod -aG docker ubuntu
   - sudo mkdir -p /filebeat/config
+  - sudo mkdir -p /filebeat/secrets
+  - sudo mkdir -p /consul/secrets
   - sudo mkdir -p /consul/config
   - sudo mkdir -p /mysql/scripts
   - sudo mkdir -p /mysql/logs
@@ -32,11 +34,15 @@ runcmd:
   - sudo chown -R ubuntu:ubuntu /sonarqube
   - sudo chown -R ubuntu:ubuntu /artifactory
   - sudo chown -R ubuntu:ubuntu /pipeline
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_cert.pem /filebeat/secrets/client_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo curl -L -o mysql-connector-java-${mysqlconnector_version}.zip https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-${mysqlconnector_version}.zip
   - sudo unzip mysql-connector-java-${mysqlconnector_version}.zip
   - sudo -u ubuntu docker run -d --name=mysql --restart unless-stopped -e MYSQL_ALLOW_EMPTY_PASSWORD=1 -p 3306:3306 --net=host -v /pipeline/mysql:/var/lib/mysql -d mysql:latest
-  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=pipeline-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=pipeline-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
   - sudo -u ubuntu docker run -d --name=jenkins --restart unless-stopped -p 8080:8080 -p 50000:50000 --net=host -e JAVA_OPTS=-Djenkins.install.runSetupWizard=false -v /pipeline/jenkins:/var/jenkins_home jenkins/jenkins:lts
   - sudo -u ubuntu docker exec -i mysql bash -c "sleep 30"
   - sudo -u ubuntu docker exec -i mysql bash -c "mysql -u root" < /mysql/scripts/setup.sql
@@ -49,6 +55,8 @@ write_files:
     permissions: '0644'
     content: |
         {
+          "ca_file": "/consul/secrets/ca_cert.pem",
+          "verify_outgoing" : true,
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "dns_config": {
@@ -176,6 +184,9 @@ write_files:
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]
+          ssl.certificate_authorities: ["/filebeat/secrets/ca_cert.pem"]
+          ssl.certificate: "/filebeat/secrets/client_cert.pem"
+          ssl.key: "/filebeat/secrets/client_key.pem"
   - path: /mysql/scripts/setup.sql
     permissions: '0644'
     content: |

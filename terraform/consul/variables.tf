@@ -56,12 +56,24 @@ variable "base_version" {
 variable "account_id" {
 }
 
+variable "environment" {
+  default = "production"
+}
+
+### MANDATORY ###
+variable "secrets_bucket_name" {
+}
+
 ###################################################################
 # Consul configuration below
 ###################################################################
 
 ### MANDATORY ###
 variable "filebeat_version" {
+}
+
+### MANDATORY ###
+variable "consul_secret" {
 }
 
 variable "consul_instance_type" {

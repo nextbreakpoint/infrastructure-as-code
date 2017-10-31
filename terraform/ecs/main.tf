@@ -169,12 +169,15 @@ data "template_file" "ecs_launch_user_data" {
   template = "${file("provision/cluster.tpl")}"
 
   vars {
-    cluster_name        = "${aws_ecs_cluster.services.name}"
-    consul_datacenter   = "${var.consul_datacenter}"
-    consul_hostname     = "${var.consul_record}.${var.hosted_zone_name}"
-    consul_log_file     = "${var.consul_log_file}"
-    logstash_host       = "logstash.${var.hosted_zone_name}"
-    filebeat_version    = "${var.filebeat_version}"
+    environment             = "${var.environment}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    cluster_name            = "${aws_ecs_cluster.services.name}"
+    consul_secret           = "${var.consul_secret}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
   }
 }
 

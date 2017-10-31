@@ -3,14 +3,19 @@ manage_etc_hosts: True
 runcmd:
   - sudo usermod -aG docker ubuntu
   - sudo mkdir -p /filebeat/config
+  - sudo mkdir -p /filebeat/secrets
   - sudo mkdir -p /consul/config
   - sudo mkdir -p /kafka/config
   - sudo mkdir -p /kafka/logs
   - sudo chown -R ubuntu:ubuntu /filebeat
   - sudo chown -R ubuntu:ubuntu /consul
   - sudo chown -R ubuntu:ubuntu /kafka
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_cert.pem /filebeat/secrets/client_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kafka-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kafka-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
   - sudo -u ubuntu docker run -d --name=kafka --restart unless-stopped -p 9092:9092 -e BROKER_ID=${broker_id} -e ZK_CONNECT=zookeeper.internal:2181 -e ADVERTISED_HOST=$HOST_IP_ADDRESS -e ADVERTISED_PORT=9092 -e NUM_PARTITIONS=1 -v /kafka/logs:/var/log --net=host nextbreakpoint/kafka:${kafka_version}
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /kafka/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
@@ -18,6 +23,8 @@ write_files:
     permissions: '0644'
     content: |
         {
+          "ca_file": "/consul/secrets/ca_cert.pem",
+          "verify_outgoing" : true,
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "dns_config": {
@@ -66,3 +73,6 @@ write_files:
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]
+          ssl.certificate_authorities: ["/filebeat/secrets/ca_cert.pem"]
+          ssl.certificate: "/filebeat/secrets/client_cert.pem"
+          ssl.key: "/filebeat/secrets/client_key.pem"

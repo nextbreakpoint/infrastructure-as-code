@@ -86,6 +86,7 @@ data "template_file" "elasticsearch_server_user_data" {
     aws_region              = "${var.aws_region}"
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"

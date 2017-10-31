@@ -16,6 +16,7 @@ runcmd:
   - sudo sysctl -w vm.max_map_count=262144
   - sudo usermod -aG docker ubuntu
   - sudo mkdir -p /filebeat/config
+  - sudo mkdir -p /filebeat/secrets
   - sudo mkdir -p /consul/config
   - sudo mkdir -p /elasticsearch/config
   - sudo mkdir -p /elasticsearch/data
@@ -23,8 +24,12 @@ runcmd:
   - sudo chmod -R ubuntu.ubuntu /consul
   - sudo chmod -R ubuntu.ubuntu /filebeat
   - sudo chown -R ubuntu:ubuntu /elasticsearch
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_cert.pem /filebeat/secrets/client_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=elasticsearch-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=elasticsearch-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
   - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e xpack.security.enabled=true -e cluster.name=${cluster_name} -e network.host=0.0.0.0 -e network.publish_host=$HOST_IP_ADDRESS -e network.bind_host=0.0.0.0 -e http.port=9200 -e transport.tcp.port=9300 -e bootstrap.memory_lock=true -e discovery.zen.ping.unicast.hosts=${elasticsearch_nodes} -e discovery.zen.minimum_master_nodes=${minimum_master_nodes} -e ES_JAVA_OPTS="-Xms2048m -Xmx2048m -Dnetworkaddress.cache.ttl=1" --net=host -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /elasticsearch/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
@@ -32,6 +37,8 @@ write_files:
     permissions: '0644'
     content: |
         {
+          "ca_file": "/consul/secrets/ca_cert.pem",
+          "verify_outgoing" : true,
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "dns_config": {
@@ -93,3 +100,6 @@ write_files:
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]
+          ssl.certificate_authorities: ["/filebeat/secrets/ca_cert.pem"]
+          ssl.certificate: "/filebeat/secrets/client_cert.pem"
+          ssl.key: "/filebeat/secrets/client_key.pem"

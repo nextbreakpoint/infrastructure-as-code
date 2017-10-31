@@ -108,6 +108,10 @@ variable "minimum_master_nodes" {
 # Consul configuration below
 ###################################################################
 
+### MANDATORY ###
+variable "consul_secret" {
+}
+
 variable "consul_record" {
   default = "consul"
 }
