@@ -1,6 +1,6 @@
 #!/bin/bash
 DIR=$(pwd)
 
-export SECRET=$(docker run -i consul:latest keygen)
+export SECRET=$(docker run --rm -i consul:latest keygen)
 
 echo "{\"consul_secret\":\"$SECRET\"}" > consul.tfvars

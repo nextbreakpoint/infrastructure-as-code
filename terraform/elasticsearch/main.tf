@@ -122,6 +122,14 @@ resource "aws_iam_role" "elasticsearch_server_role" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -142,6 +150,13 @@ resource "aws_iam_role_policy" "elasticsearch_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+        "Action": [
+            "s3:GetObject"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }

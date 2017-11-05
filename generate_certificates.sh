@@ -71,6 +71,9 @@ keytool -noprompt -keystore $DIR/keystore-server.jks -exportcert -alias CARoot -
 cat $DIR/client_cert.pem $DIR/ca_cert.pem > $DIR/ca_and_client_cert.pem
 cat $DIR/server_cert.pem $DIR/ca_cert.pem > $DIR/ca_and_server_cert.pem
 
+openssl pkcs8 -in $DIR/server_key.pem -topk8 -inform PEM -nocrypt -out $DIR/server_key.pkcs8
+openssl pkcs8 -in $DIR/client_key.pem -topk8 -inform PEM -nocrypt -out $DIR/client_key.pkcs8
+
 export DST=terraform/secrets/environments/production/keystores
 
 mkdir -p $DST
@@ -99,6 +102,7 @@ mkdir -p $DST
 cp $DIR/ca_cert.pem $DST
 cp $DIR/server_cert.pem $DST
 cp $DIR/server_key.pem $DST
+cp $DIR/server_key.pkcs8 $DST
 
 export DST=terraform/secrets/environments/production/filebeat
 
@@ -107,10 +111,11 @@ mkdir -p $DST
 cp $DIR/ca_cert.pem $DST
 cp $DIR/client_cert.pem $DST
 cp $DIR/client_key.pem $DST
+cp $DIR/client_key.pkcs8 $DST
 
 docker build -t configure-consul docker/consul/.
-docker run -t -v $(pwd)/$DIR:/output configure-consul
-docker run -t -v $(pwd)/$DIR:/output configure-consul openssl x509 -noout -text -in /output/consul_server_cert.pem
+docker run --rm -t -v $(pwd)/$DIR:/output configure-consul
+docker run --rm -t -v $(pwd)/$DIR:/output configure-consul openssl x509 -noout -text -in /output/consul_server_cert.pem
 
 export DST=terraform/secrets/environments/production/consul
 

@@ -1,26 +1,27 @@
 #cloud-config
 manage_etc_hosts: True
 runcmd:
-  - sudo usermod -aG docker ubuntu
   - sudo mkdir -p /filebeat/config
   - sudo mkdir -p /filebeat/secrets
   - sudo mkdir -p /consul/config
+  - sudo mkdir -p /consul/secrets
   - sudo mkdir -p /nginx/logs
   - sudo mkdir -p /nginx/config
   - sudo mkdir -p /nginx/secrets
-  - sudo chmod -R ubuntu.ubuntu /nginx
-  - sudo chmod -R ubuntu.ubuntu /consul
-  - sudo chmod -R ubuntu.ubuntu /filebeat
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_cert.pem /filebeat/secrets/client_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/nginx/ca_and_server_cert.pem /nginx/secrets/ca_and_server_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/nginx/server_key.pem /nginx/secrets/server_key.pem
+  - sudo usermod -aG docker ubuntu
+  - sudo chmod -R ubuntu.ubuntu /nginx
+  - sudo chmod -R ubuntu.ubuntu /consul
+  - sudo chmod -R ubuntu.ubuntu /filebeat
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=webserver-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config -v /consul/secrets:/consul/secrets consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=webserver-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
   - sudo -u ubuntu docker run -d --name=nginx --restart unless-stopped --net=host --privileged -v /nginx/config/nginx.conf:/etc/nginx/nginx.conf -v /nginx/logs:/var/log/nginx -v /nginx/secrets:/nginx/secrets nginx:latest
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /nginx/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/secrets:/filebeat/secrets -v /nginx/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
   - path: /consul/config/consul.json
     permissions: '0644'

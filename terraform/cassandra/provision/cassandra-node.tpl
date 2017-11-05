@@ -1,24 +1,25 @@
 #cloud-config
 manage_etc_hosts: True
 runcmd:
-  - sudo usermod -aG docker ubuntu
   - sudo mkdir -p /filebeat/config
   - sudo mkdir -p /filebeat/secrets
   - sudo mkdir -p /consul/config
+  - sudo mkdir -p /consul/secrets
   - sudo mkdir -p /cassandra/config
   - sudo mkdir -p /cassandra/data
   - sudo mkdir -p /cassandra/logs
-  - sudo chown -R ubuntu:ubuntu /filebeat
-  - sudo chown -R ubuntu:ubuntu /consul
-  - sudo chown -R ubuntu:ubuntu /cassandra
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_cert.pem /filebeat/secrets/client_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
+  - sudo usermod -aG docker ubuntu
+  - sudo chown -R ubuntu:ubuntu /filebeat
+  - sudo chown -R ubuntu:ubuntu /consul
+  - sudo chown -R ubuntu:ubuntu /cassandra
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=cassandra-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config -v /consul/secrets:/consul/secrets consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=cassandra-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
   - sudo -u ubuntu docker run -d --name=cassandra --restart unless-stopped -p 7000:7000 -e CASSANDRA_BROADCAST_ADDRESS=$HOST_IP_ADDRESS -e CASSANDRA_RPC_ADDRESS=$HOST_IP_ADDRESS -e CASSANDRA_LISTEN_ADDRESS=$HOST_IP_ADDRESS -e CASSANDRA_RACK=RACK1 -e CASSANDRA_DC=DC1 -e CASSANDRA_SEEDS=${cassandra_nodes} --net=host -v /cassandra/data:/var/lib/cassandra -v /cassandra/logs:/var/log/cassandra cassandra:latest
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /cassandra/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/secrets:/filebeat/secrets -v /cassandra/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
   - sleep 60
   - sudo nodetool status
 write_files:

@@ -1,15 +1,25 @@
 #cloud-config
 manage_etc_hosts: True
 runcmd:
+  - sudo mkdir -p /filebeat/config
+  - sudo mkdir -p /filebeat/secrets
+  - sudo mkdir -p /consul/config
+  - sudo mkdir -p /consul/secrets
+  - sudo mkdir -p /nginx/logs
+  - sudo mkdir -p /nginx/config
+  - sudo mkdir -p /nginx/secrets
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_cert.pem /filebeat/secrets/client_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
   - sudo modprobe ip_vs
   - sudo usermod -aG docker ubuntu
   - sudo sysctl net.bridge.bridge-nf-call-iptables=1
-  - sudo mkdir -p /filebeat/config
-  - sudo mkdir -p /consul/config
   - sudo chmod -R ubuntu.ubuntu /nginx
   - sudo chmod -R ubuntu.ubuntu /consul
+  - sudo chmod -R ubuntu.ubuntu /filebeat
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kubernetes-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -v /consul/config:/consul/config -v /consul/secrets:/consul/secrets consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kubernetes-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
   - sudo mkdir -p /etc/cni/net.d/
   - sudo wget -O /etc/cni/net.d/10-kuberouter.conf https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/cni/10-kuberouter.conf
   - sudo kubeadm init --token ${kubernetes_token} --pod-network-cidr="${pod_network_cidr}" --apiserver-advertise-address=HOST_IP_ADDRESS --skip-preflight-checks

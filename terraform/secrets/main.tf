@@ -96,3 +96,80 @@ resource "aws_s3_bucket_object" "nginx-ca-certificate" {
   source = "environments/production/nginx/ca_cert.pem"
   etag   = "${md5(file("environments/production/nginx/ca_cert.pem"))}"
 }
+
+resource "aws_s3_bucket_object" "consul-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/consul/ca_cert.pem"
+  source = "environments/production/consul/ca_cert.pem"
+  etag   = "${md5(file("environments/production/consul/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "consul-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/consul/server_cert.pem"
+  source = "environments/production/consul/server_cert.pem"
+  etag   = "${md5(file("environments/production/consul/server_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "consul-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/consul/server_key.pem"
+  source = "environments/production/consul/server_key.pem"
+  etag   = "${md5(file("environments/production/consul/server_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "filebeat-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/filebeat/ca_cert.pem"
+  source = "environments/production/filebeat/ca_cert.pem"
+  etag   = "${md5(file("environments/production/filebeat/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "filebeat-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/filebeat/client_cert.pem"
+  source = "environments/production/filebeat/client_cert.pem"
+  etag   = "${md5(file("environments/production/filebeat/client_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "filebeat-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/filebeat/client_key.pem"
+  source = "environments/production/filebeat/client_key.pem"
+  etag   = "${md5(file("environments/production/filebeat/client_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "filebeat-private-key-k8" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/filebeat/client_key.pkcs8"
+  source = "environments/production/filebeat/client_key.pkcs8"
+  etag   = "${md5(file("environments/production/filebeat/client_key.pkcs8"))}"
+}
+
+resource "aws_s3_bucket_object" "logstash-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/logstash/ca_cert.pem"
+  source = "environments/production/logstash/ca_cert.pem"
+  etag   = "${md5(file("environments/production/logstash/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "logstash-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/logstash/server_cert.pem"
+  source = "environments/production/logstash/server_cert.pem"
+  etag   = "${md5(file("environments/production/logstash/server_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "logstash-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/logstash/server_key.pem"
+  source = "environments/production/logstash/server_key.pem"
+  etag   = "${md5(file("environments/production/logstash/server_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "logstash-private-key-k8" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/logstash/server_key.pkcs8"
+  source = "environments/production/logstash/server_key.pkcs8"
+  etag   = "${md5(file("environments/production/logstash/server_key.pkcs8"))}"
+}
