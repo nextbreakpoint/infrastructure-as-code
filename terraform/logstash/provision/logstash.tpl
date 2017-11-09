@@ -14,7 +14,7 @@ runcmd:
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/ca_cert.pem /logstash/secrets/ca_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/server_cert.pem /logstash/secrets/server_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/server_key_k8.pem /logstash/secrets/server_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/server_key.pkcs8 /logstash/secrets/server_key.pkcs8
   - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
   - sudo usermod -aG docker ubuntu
   - sudo chown -R ubuntu:ubuntu /consul
@@ -104,4 +104,4 @@ write_files:
           hosts: ["${logstash_host}:5044"]
           ssl.certificate_authorities: ["/filebeat/secrets/ca_cert.pem"]
           ssl.certificate: "/filebeat/secrets/client_cert.pem"
-          ssl.key: "/filebeat/secrets/client_key.pem"
+          ssl.key: "/filebeat/secrets/client_key.pkcs8"
