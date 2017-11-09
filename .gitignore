@@ -6,6 +6,7 @@
 *.cer
 *.pem
 *.pub
+*.pkcs8
 *.tf.bkp
 *.tfstate
 *.tfstate.backup
