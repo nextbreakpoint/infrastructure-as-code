@@ -9,8 +9,8 @@ runcmd:
   - sudo mkdir -p /zookeeper/data
   - sudo mkdir -p /zookeeper/config
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_cert.pem /filebeat/secrets/client_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_cert.pem /filebeat/secrets/filebeat_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_key.pem /filebeat/secrets/filebeat_key.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
   - sudo usermod -aG docker ubuntu
   - sudo chown -R ubuntu:ubuntu /consul
@@ -76,8 +76,8 @@ write_files:
         output.logstash:
           hosts: ["${logstash_host}:5044"]
           ssl.certificate_authorities: ["/filebeat/secrets/ca_cert.pem"]
-          ssl.certificate: "/filebeat/secrets/client_cert.pem"
-          ssl.key: "/filebeat/secrets/client_key.pem"
+          ssl.certificate: "/filebeat/secrets/filebeat_cert.pem"
+          ssl.key: "/filebeat/secrets/filebeat_key.pem"
   - path: /zookeeper/config/zoo.cfg
     permissions: '0644'
     content: |

@@ -25,6 +25,12 @@ keytool -noprompt -keystore $DIR/keystore-client.jks -genkey -alias selfsigned -
 ## Create server keystore
 keytool -noprompt -keystore $DIR/keystore-server.jks -genkey -alias selfsigned -dname "CN=myself,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
 
+## Create filebeat keystore
+keytool -noprompt -keystore $DIR/keystore-filebeat.jks -genkey -alias selfsigned -dname "CN=filebeat,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
+
+## Create logstash keystore
+keytool -noprompt -keystore $DIR/keystore-logstash.jks -genkey -alias selfsigned -dname "CN=logstash.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
+
 ## Sign client certificate
 keytool -noprompt -keystore $DIR/keystore-client.jks -alias selfsigned -certreq -file $DIR/client.unsigned -storepass secret
 openssl x509 -req -CA $DIR/ca-cert -CAkey $DIR/ca-key -in $DIR/client.unsigned -out $DIR/client.signed -days 365 -CAcreateserial -passin pass:secret
@@ -33,6 +39,14 @@ openssl x509 -req -CA $DIR/ca-cert -CAkey $DIR/ca-key -in $DIR/client.unsigned -
 keytool -noprompt -keystore $DIR/keystore-server.jks -alias selfsigned -certreq -file $DIR/server.unsigned -storepass secret
 openssl x509 -req -CA $DIR/ca-cert -CAkey $DIR/ca-key -in $DIR/server.unsigned -out $DIR/server.signed -days 365 -CAcreateserial -passin pass:secret
 
+## Sign filebeat certificate
+keytool -noprompt -keystore $DIR/keystore-filebeat.jks -alias selfsigned -certreq -file $DIR/filebeat.unsigned -storepass secret
+openssl x509 -req -CA $DIR/ca-cert -CAkey $DIR/ca-key -in $DIR/filebeat.unsigned -out $DIR/filebeat.signed -days 365 -CAcreateserial -passin pass:secret
+
+## Sign logstash certificate
+keytool -noprompt -keystore $DIR/keystore-logstash.jks -alias selfsigned -certreq -file $DIR/logstash.unsigned -storepass secret
+openssl x509 -req -CA $DIR/ca-cert -CAkey $DIR/ca-key -in $DIR/logstash.unsigned -out $DIR/logstash.signed -days 365 -CAcreateserial -passin pass:secret
+
 ## Import CA and client signed certificate into client keystore
 keytool -noprompt -keystore $DIR/keystore-client.jks -alias CARoot -import -file $DIR/ca-cert  -storepass secret
 keytool -noprompt -keystore $DIR/keystore-client.jks -alias selfsigned -import -file $DIR/client.signed -storepass secret
@@ -40,6 +54,14 @@ keytool -noprompt -keystore $DIR/keystore-client.jks -alias selfsigned -import -
 ## Import CA and server signed certificate into server keystore
 keytool -noprompt -keystore $DIR/keystore-server.jks -alias CARoot -import -file $DIR/ca-cert  -storepass secret
 keytool -noprompt -keystore $DIR/keystore-server.jks -alias selfsigned -import -file $DIR/server.signed -storepass secret
+
+## Import CA and filebeat signed certificate into filebeat keystore
+keytool -noprompt -keystore $DIR/keystore-filebeat.jks -alias CARoot -import -file $DIR/ca-cert  -storepass secret
+keytool -noprompt -keystore $DIR/keystore-filebeat.jks -alias selfsigned -import -file $DIR/filebeat.signed -storepass secret
+
+## Import CA and logstash signed certificate into logstash keystore
+keytool -noprompt -keystore $DIR/keystore-logstash.jks -alias CARoot -import -file $DIR/ca-cert  -storepass secret
+keytool -noprompt -keystore $DIR/keystore-logstash.jks -alias selfsigned -import -file $DIR/logstash.signed -storepass secret
 
 ## Import CA into client truststore
 keytool -noprompt -keystore $DIR/truststore-client.jks -alias CARoot -import -file $DIR/ca-cert -storepass secret
@@ -63,6 +85,20 @@ keytool -noprompt -keystore $DIR/keystore-server.jks -exportcert -alias selfsign
 keytool -noprompt -srckeystore $DIR/keystore-server.jks -importkeystore -srcalias selfsigned -destkeystore $DIR/server_cert_and_key.p12 -deststoretype PKCS12 -srcstorepass secret -storepass secret
 openssl pkcs12 -in $DIR/server_cert_and_key.p12 -nocerts -nodes -passin pass:secret -out $DIR/server_key.pem
 
+### Extract signed filebeat certificate
+keytool -noprompt -keystore $DIR/keystore-filebeat.jks -exportcert -alias selfsigned -rfc -storepass secret -file $DIR/filebeat_cert.pem
+
+### Extract filebeat key
+keytool -noprompt -srckeystore $DIR/keystore-filebeat.jks -importkeystore -srcalias selfsigned -destkeystore $DIR/filebeat_cert_and_key.p12 -deststoretype PKCS12 -srcstorepass secret -storepass secret
+openssl pkcs12 -in $DIR/filebeat_cert_and_key.p12 -nocerts -nodes -passin pass:secret -out $DIR/filebeat_key.pem
+
+### Extract signed logstash certificate
+keytool -noprompt -keystore $DIR/keystore-logstash.jks -exportcert -alias selfsigned -rfc -storepass secret -file $DIR/logstash_cert.pem
+
+### Extract logstash key
+keytool -noprompt -srckeystore $DIR/keystore-logstash.jks -importkeystore -srcalias selfsigned -destkeystore $DIR/logstash_cert_and_key.p12 -deststoretype PKCS12 -srcstorepass secret -storepass secret
+openssl pkcs12 -in $DIR/logstash_cert_and_key.p12 -nocerts -nodes -passin pass:secret -out $DIR/logstash_key.pem
+
 ### Extract CA certificate
 keytool -noprompt -keystore $DIR/keystore-server.jks -exportcert -alias CARoot -rfc -storepass secret -file $DIR/ca_cert.pem
 
@@ -71,8 +107,8 @@ keytool -noprompt -keystore $DIR/keystore-server.jks -exportcert -alias CARoot -
 cat $DIR/client_cert.pem $DIR/ca_cert.pem > $DIR/ca_and_client_cert.pem
 cat $DIR/server_cert.pem $DIR/ca_cert.pem > $DIR/ca_and_server_cert.pem
 
-openssl pkcs8 -in $DIR/server_key.pem -topk8 -inform PEM -nocrypt -out $DIR/server_key.pkcs8
-openssl pkcs8 -in $DIR/client_key.pem -topk8 -inform PEM -nocrypt -out $DIR/client_key.pkcs8
+openssl pkcs8 -in $DIR/filebeat_key.pem -topk8 -inform PEM -nocrypt -out $DIR/filebeat_key.pkcs8
+openssl pkcs8 -in $DIR/logstash_key.pem -topk8 -inform PEM -nocrypt -out $DIR/logstash_key.pkcs8
 
 export DST=terraform/secrets/environments/production/keystores
 
@@ -100,18 +136,18 @@ export DST=terraform/secrets/environments/production/logstash
 mkdir -p $DST
 
 cp $DIR/ca_cert.pem $DST
-cp $DIR/server_cert.pem $DST
-cp $DIR/server_key.pem $DST
-cp $DIR/server_key.pkcs8 $DST
+cp $DIR/logstash_cert.pem $DST
+cp $DIR/logstash_key.pem $DST
+cp $DIR/logstash_key.pkcs8 $DST
 
 export DST=terraform/secrets/environments/production/filebeat
 
 mkdir -p $DST
 
 cp $DIR/ca_cert.pem $DST
-cp $DIR/client_cert.pem $DST
-cp $DIR/client_key.pem $DST
-cp $DIR/client_key.pkcs8 $DST
+cp $DIR/filebeat_cert.pem $DST
+cp $DIR/filebeat_key.pem $DST
+cp $DIR/filebeat_key.pkcs8 $DST
 
 docker build -t configure-consul docker/consul/.
 docker run --rm -t -v $(pwd)/$DIR:/output configure-consul

@@ -10,11 +10,11 @@ runcmd:
   - sudo mkdir -p /logstash/secrets
   - sudo mkdir -p /logstash/pipeline
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_cert.pem /filebeat/secrets/client_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/client_key.pem /filebeat/secrets/client_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_cert.pem /filebeat/secrets/filebeat_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_key.pem /filebeat/secrets/filebeat_key.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/ca_cert.pem /logstash/secrets/ca_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/server_cert.pem /logstash/secrets/server_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/server_key.pkcs8 /logstash/secrets/server_key.pkcs8
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/logstash_cert.pem /logstash/secrets/logstash_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/logstash/logstash_key.pkcs8 /logstash/secrets/logstash_key.pkcs8
   - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
   - sudo usermod -aG docker ubuntu
   - sudo chown -R ubuntu:ubuntu /consul
@@ -77,8 +77,8 @@ write_files:
             port => 5044
             ssl => true
             ssl_certificate_authorities => ["/logstash/secrets/ca_cert.pem"]
-            ssl_certificate => "/logstash/secrets/server_cert.pem"
-            ssl_key => "/logstash/secrets/server_key.pem"
+            ssl_certificate => "/logstash/secrets/logstash_cert.pem"
+            ssl_key => "/logstash/secrets/logstash_key.pem"
             ssl_verify_mode => "force_peer"
           }
         }
@@ -103,5 +103,5 @@ write_files:
         output.logstash:
           hosts: ["${logstash_host}:5044"]
           ssl.certificate_authorities: ["/filebeat/secrets/ca_cert.pem"]
-          ssl.certificate: "/filebeat/secrets/client_cert.pem"
-          ssl.key: "/filebeat/secrets/client_key.pkcs8"
+          ssl.certificate: "/filebeat/secrets/filebeat_cert.pem"
+          ssl.key: "/filebeat/secrets/filebeat_key.pem"
