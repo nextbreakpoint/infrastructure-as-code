@@ -78,7 +78,7 @@ write_files:
             ssl => true
             ssl_certificate_authorities => ["/logstash/secrets/ca_cert.pem"]
             ssl_certificate => "/logstash/secrets/logstash_cert.pem"
-            ssl_key => "/logstash/secrets/logstash_key.pem"
+            ssl_key => "/logstash/secrets/logstash_key.pkcs8"
             ssl_verify_mode => "force_peer"
           }
         }

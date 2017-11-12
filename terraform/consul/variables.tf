@@ -76,6 +76,10 @@ variable "filebeat_version" {
 variable "consul_secret" {
 }
 
+### MANDATORY ###
+variable "consul_master_token" {
+}
+
 variable "consul_instance_type" {
   default = "t2.micro"
 }
