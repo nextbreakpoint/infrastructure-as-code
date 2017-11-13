@@ -173,3 +173,31 @@ resource "aws_s3_bucket_object" "logstash-private-key-k8" {
   source = "environments/production/logstash/logstash_key.pkcs8"
   etag   = "${md5(file("environments/production/logstash/logstash_key.pkcs8"))}"
 }
+
+resource "aws_s3_bucket_object" "elasticsearch-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/elasticsearch/ca_cert.pem"
+  source = "environments/production/elasticsearch/ca_cert.pem"
+  etag   = "${md5(file("environments/production/elasticsearch/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "elasticsearch-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/elasticsearch/elasticsearch_cert.pem"
+  source = "environments/production/elasticsearch/elasticsearch_cert.pem"
+  etag   = "${md5(file("environments/production/elasticsearch/elasticsearch_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "elasticsearch-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/elasticsearch/elasticsearch_key.pem"
+  source = "environments/production/elasticsearch/elasticsearch_key.pem"
+  etag   = "${md5(file("environments/production/elasticsearch/elasticsearch_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "elasticsearch-private-key-k8" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/elasticsearch/elasticsearch_key.pkcs8"
+  source = "environments/production/elasticsearch/elasticsearch_key.pkcs8"
+  etag   = "${md5(file("environments/production/elasticsearch/elasticsearch_key.pkcs8"))}"
+}

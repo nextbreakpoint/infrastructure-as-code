@@ -9,6 +9,8 @@ runcmd:
   - sudo mkdir -p /logstash/config
   - sudo mkdir -p /logstash/secrets
   - sudo mkdir -p /logstash/pipeline
+  - sudo mkdir -p /elasticsearch/secrets
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/elasticsearch/ca_cert.pem /elasticsearch/secrets/ca_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_cert.pem /filebeat/secrets/filebeat_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_key.pem /filebeat/secrets/filebeat_key.pem
@@ -22,7 +24,7 @@ runcmd:
   - sudo chown -R ubuntu:ubuntu /logstash
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config -v /consul/secrets:/consul/secrets consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=logstash-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
-  - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped -p 5044:5044 -e xpack.monitoring.elasticsearch.url=http://${elasticsearch_host}:9200 -e xpack.monitoring.elasticsearch.username=elastic -e xpack.monitoring.elasticsearch.password=changeme --net=host -v /logstash/pipeline:/usr/share/logstash/pipeline -v /logstash/secrets:/logstash/secrets -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
+  - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped -p 5044:5044 -e LS_JAVA_OPTS="-Dnetworkaddress.cache.ttl=1" --net=host -v /logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml -v /logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf -v /logstash/secrets:/usr/share/logstash/config/secrets -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/secrets:/filebeat/secrets -v /logstash/logs:/logs docker.elastic.co/beats/filebeat:${filebeat_version}
 write_files:
   - path: /consul/config/consul.json
@@ -69,29 +71,40 @@ write_files:
                 }]
             }]
         }
-  - path: /logstash/pipeline/pipeline.conf
+  - path: /logstash/pipeline/logstash.conf
     permissions: '0644'
     content: |
         input {
           beats {
             port => 5044
             ssl => true
-            ssl_certificate_authorities => ["/logstash/secrets/ca_cert.pem"]
-            ssl_certificate => "/logstash/secrets/logstash_cert.pem"
-            ssl_key => "/logstash/secrets/logstash_key.pkcs8"
+            ssl_certificate_authorities => ["/usr/share/logstash/config/secrets/ca_cert.pem"]
+            ssl_certificate => "/usr/share/logstash/config/secrets/logstash_cert.pem"
+            ssl_key => "/usr/share/logstash/config/secrets/logstash_key.pkcs8"
             ssl_verify_mode => "force_peer"
           }
         }
         output {
           elasticsearch {
-            hosts => ["http://${elasticsearch_host}:9200"]
-            user => elastic
-            password => changeme
+            hosts => ["https://${elasticsearch_host}:9200"]
+            user => "elastic"
+            password => "changeme"
             manage_template => false
             index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
             document_type => "%{[@metadata][type]}"
+            ssl => true
+            ssl_certificate_verification => false
+            cacert => "/usr/share/logstash/config/secrets/ca_cert.pem"
           }
         }
+  - path: /logstash/config/logstash.yml
+    permissions: '0644'
+    content: |
+        path.config: "/usr/share/logstash/pipeline"
+        xpack.monitoring.elasticsearch.url: "https://${elasticsearch_host}:9200"
+        xpack.monitoring.elasticsearch.username: "elastic"
+        xpack.monitoring.elasticsearch.password: "changeme"
+        xpack.monitoring.elasticsearch.ssl.ca: "/usr/share/logstash/config/secrets/ca_cert.pem"
   - path: /filebeat/config/filebeat.yml
     permissions: '0644'
     content: |
