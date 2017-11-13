@@ -93,7 +93,6 @@ write_files:
             index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
             document_type => "%{[@metadata][type]}"
             ssl => true
-            ssl_certificate_verification => false
             cacert => "/usr/share/logstash/config/secrets/ca_cert.pem"
           }
         }
@@ -104,7 +103,7 @@ write_files:
         xpack.monitoring.elasticsearch.url: "https://${elasticsearch_host}:9200"
         xpack.monitoring.elasticsearch.username: "elastic"
         xpack.monitoring.elasticsearch.password: "changeme"
-        xpack.monitoring.elasticsearch.ssl.ca: "/usr/share/logstash/config/secrets/ca_cert.pem"
+        xpack.monitoring.elasticsearch.ssl.certificateAuthorities: "/usr/share/logstash/config/secrets/ca_cert.pem"
   - path: /filebeat/config/filebeat.yml
     permissions: '0644'
     content: |

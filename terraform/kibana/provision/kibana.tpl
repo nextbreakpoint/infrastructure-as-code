@@ -28,9 +28,6 @@ runcmd:
   - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e ES_JAVA_OPTS="-Xms512m -Xmx512m -Dnetworkaddress.cache.ttl=1" -e network.publish_host=$HOST_IP_ADDRESS --net=host -v /elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs -v /elasticsearch/secrets:/usr/share/elasticsearch/config/secrets docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
   - sudo -u ubuntu docker run -d --name=kibana --restart unless-stopped -p 5601:5601 --net=host -v /kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml -v /elasticsearch/secrets:/usr/share/kibana/config/secrets -v /kibana/logs:/usr/share/kibana/logs docker.elastic.co/kibana/kibana:${kibana_version}
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/secrets:/filebeat/secrets -v /elasticsearch/logs:/logs/elasticsearch -v /kibana/logs:/logs/kibana docker.elastic.co/beats/filebeat:${filebeat_version}
-  - sudo -u ubuntu docker exec -i kibana sudo mkdir -p /usr/local/share/ca-certificates
-  - sudo -u ubuntu docker exec -i kibana openssl x509 -in /usr/share/kibana/config/secrets/ca_cert.pem -inform PEM -out /usr/local/share/ca-certificates/ca_cert.crt
-  - sudo -u ubuntu docker exec -i kibana sudo update-ca-certificates
 write_files:
   - path: /consul/config/consul.json
     permissions: '0644'
@@ -128,7 +125,7 @@ write_files:
         xpack.monitoring.elasticsearch.url: "https://${elasticsearch_host}:9200"
         xpack.monitoring.elasticsearch.username: "elastic"
         xpack.monitoring.elasticsearch.password: "changeme"
-        xpack.monitoring.elasticsearch.certificateAuthorities: ["/usr/share/kibana/config/secrets/ca_cert.pem"]
+        xpack.monitoring.elasticsearch.ssl.certificateAuthorities: ["/usr/share/kibana/config/secrets/ca_cert.pem"]
   - path: /filebeat/config/filebeat.yml
     permissions: '0644'
     content: |
@@ -148,14 +145,7 @@ write_files:
     content: |
         xpack.security.enabled: true
         xpack.security.http.ssl.enabled: true
-        xpack.security.http.ssl.key:  "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
-        xpack.security.http.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
-        xpack.security.http.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]
         xpack.security.transport.ssl.enabled: true
-        xpack.security.transport.ssl.key:  "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
-        xpack.security.transport.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
-        xpack.security.transport.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]
-        xpack.ssl.verification_mode: "none"
         xpack.ssl.key: "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
         xpack.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
         xpack.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]

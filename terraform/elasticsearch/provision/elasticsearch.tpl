@@ -113,14 +113,7 @@ write_files:
     content: |
         xpack.security.enabled: true
         xpack.security.http.ssl.enabled: true
-        xpack.security.http.ssl.key:  "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
-        xpack.security.http.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
-        xpack.security.http.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]
         xpack.security.transport.ssl.enabled: true
-        xpack.security.transport.ssl.key:  "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
-        xpack.security.transport.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
-        xpack.security.transport.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]
-        xpack.ssl.verification_mode: "none"
         xpack.ssl.key: "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
         xpack.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
         xpack.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]
