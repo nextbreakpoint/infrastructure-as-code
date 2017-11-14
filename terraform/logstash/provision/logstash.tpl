@@ -103,6 +103,7 @@ write_files:
         xpack.monitoring.elasticsearch.url: "https://${elasticsearch_host}:9200"
         xpack.monitoring.elasticsearch.username: "elastic"
         xpack.monitoring.elasticsearch.password: "changeme"
+        xpack.monitoring.elasticsearch.ssl.verificationMode: "certificate"
         xpack.monitoring.elasticsearch.ssl.certificateAuthorities: "/usr/share/logstash/config/secrets/ca_cert.pem"
   - path: /filebeat/config/filebeat.yml
     permissions: '0644'

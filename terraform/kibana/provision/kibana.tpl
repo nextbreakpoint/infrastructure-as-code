@@ -118,6 +118,9 @@ write_files:
         server.ssl.certificate: "/usr/share/kibana/config/secrets/elasticsearch_cert.pem"
         server.ssl.certificateAuthorities: ["/usr/share/kibana/config/secrets/ca_cert.pem"]
         elasticsearch.url: "https://${elasticsearch_host}:9200"
+        elasticsearch.username: "elastic"
+        elasticsearch.password: "changeme"
+        elasticsearch.ssl.verificationMode: "certificate"
         elasticsearch.ssl.key: "/usr/share/kibana/config/secrets/elasticsearch_key.pem"
         elasticsearch.ssl.certificate: "/usr/share/kibana/config/secrets/elasticsearch_cert.pem"
         elasticsearch.ssl.certificateAuthorities: ["/usr/share/kibana/config/secrets/ca_cert.pem"]
@@ -125,6 +128,7 @@ write_files:
         xpack.monitoring.elasticsearch.url: "https://${elasticsearch_host}:9200"
         xpack.monitoring.elasticsearch.username: "elastic"
         xpack.monitoring.elasticsearch.password: "changeme"
+        xpack.monitoring.elasticsearch.ssl.verificationMode: "certificate"
         xpack.monitoring.elasticsearch.ssl.certificateAuthorities: ["/usr/share/kibana/config/secrets/ca_cert.pem"]
   - path: /filebeat/config/filebeat.yml
     permissions: '0644'
@@ -146,6 +150,7 @@ write_files:
         xpack.security.enabled: true
         xpack.security.http.ssl.enabled: true
         xpack.security.transport.ssl.enabled: true
+        xpack.ssl.verification_mode: "certificate"
         xpack.ssl.key: "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
         xpack.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
         xpack.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]

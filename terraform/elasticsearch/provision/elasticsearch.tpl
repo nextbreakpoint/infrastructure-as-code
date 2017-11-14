@@ -114,6 +114,7 @@ write_files:
         xpack.security.enabled: true
         xpack.security.http.ssl.enabled: true
         xpack.security.transport.ssl.enabled: true
+        xpack.ssl.verification_mode: "certificate"
         xpack.ssl.key: "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
         xpack.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
         xpack.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]
