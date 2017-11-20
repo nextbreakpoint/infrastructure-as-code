@@ -15,9 +15,9 @@ runcmd:
   - aws s3 cp s3://${bucket_name}/environments/${environment}/nginx/ca_and_server_cert.pem /nginx/secrets/ca_and_server_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/nginx/server_key.pem /nginx/secrets/server_key.pem
   - sudo usermod -aG docker ubuntu
-  - sudo chmod -R ubuntu.ubuntu /nginx
-  - sudo chmod -R ubuntu.ubuntu /consul
-  - sudo chmod -R ubuntu.ubuntu /filebeat
+  - sudo chown -R ubuntu.ubuntu /nginx
+  - sudo chown -R ubuntu.ubuntu /consul
+  - sudo chown -R ubuntu.ubuntu /filebeat
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --env HOST_IP_ADDRESS=$HOST_IP_ADDRESS --net=host -v /consul/config:/consul/config -v /consul/secrets:/consul/secrets consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=webserver-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -encrypt=${consul_secret}
   - sudo -u ubuntu docker run -d --name=nginx --restart unless-stopped --net=host --privileged -v /nginx/config/nginx.conf:/etc/nginx/nginx.conf -v /nginx/logs:/var/log/nginx -v /nginx/secrets:/nginx/secrets nginx:latest
@@ -178,8 +178,8 @@ write_files:
             location / {
                 resolver 127.0.0.1;
                 set $$upstream_kibana kibana.internal;
-                proxy_pass http://$$upstream_kibana:5601;
-                proxy_redirect http://$$upstream_kibana:5601 https://kibana.${public_hosted_zone_name};
+                proxy_pass https://$$upstream_kibana:5601;
+                proxy_redirect https://$$upstream_kibana:5601 https://kibana.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;

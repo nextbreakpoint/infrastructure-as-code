@@ -12,8 +12,8 @@ runcmd:
   - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/server_cert.pem /consul/secrets/server_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/server_key.pem /consul/secrets/server_key.pem
   - sudo usermod -aG docker ubuntu
-  - sudo chmod -R ubuntu.ubuntu /consul
-  - sudo chmod -R ubuntu.ubuntu /filebeat
+  - sudo chown -R ubuntu.ubuntu /consul
+  - sudo chown -R ubuntu.ubuntu /filebeat
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -v /consul/config:/consul/config -v /consul/secrets:/consul/secrets consul:latest agent -server=true -ui=true -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=consul-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter} -bootstrap-expect=${consul_bootstrap_expect} -encrypt=${consul_secret}
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/secrets:/filebeat/secrets docker.elastic.co/beats/filebeat:${filebeat_version}

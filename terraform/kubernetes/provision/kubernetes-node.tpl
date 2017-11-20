@@ -13,8 +13,8 @@ runcmd:
   - sudo usermod -aG docker ubuntu
   - sudo sysctl net.bridge.bridge-nf-call-iptables=1
   - echo "source <(kubectl completion bash)" >> ~/.bashrc
-  - sudo chmod -R ubuntu.ubuntu /consul
-  - sudo chmod -R ubuntu.ubuntu /filebeat
+  - sudo chown -R ubuntu.ubuntu /consul
+  - sudo chown -R ubuntu.ubuntu /filebeat
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -v /consul/config:/consul/config -v /consul/secrets:/consul/secrets consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kubernetes-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
   - sudo mkdir -p /etc/cni/net.d/

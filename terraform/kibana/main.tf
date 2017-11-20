@@ -86,10 +86,6 @@ resource "aws_security_group" "kibana_server" {
   }
 }
 
-data "template_file" "kibana_server_filebeat_index" {
-  template = "${file("provision/filebeat-index.json")}"
-}
-
 data "template_file" "kibana_server_user_data" {
   template = "${file("provision/kibana.tpl")}"
 
@@ -111,7 +107,6 @@ data "template_file" "kibana_server_user_data" {
     elasticsearch_version   = "${var.elasticsearch_version}"
     filebeat_version        = "${var.filebeat_version}"
     kibana_version          = "${var.kibana_version}"
-    filebeat_index          = "${data.template_file.kibana_server_filebeat_index.rendered}"
     elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
   }
 }
