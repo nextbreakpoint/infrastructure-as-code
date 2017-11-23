@@ -33,7 +33,7 @@ runcmd:
   - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped --net=host -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e ES_JAVA_OPTS="-Xms256m -Xmx256m -Dnetworkaddress.cache.ttl=1" -e network.publish_host=$HOST_IP_ADDRESS -v /elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs -v /elasticsearch/config/secrets:/usr/share/elasticsearch/config/secrets docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
   - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped --net=host -p 5044:5044 -e LS_JAVA_OPTS="-Dnetworkaddress.cache.ttl=1" -e ELASTICSEARCH_URL=$HOST_IP_ADDRESS -v /logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml -v /logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf -v /logstash/config/secrets:/usr/share/logstash/config/secrets -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
   - sudo -u ubuntu docker build -t filebeat:${kibana_version} /filebeat/docker
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /logstash/logs:/logs filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -62,9 +62,9 @@ write_files:
     permissions: '0644'
     content: |
         {
-          "log-driver": "json-file",
+          "log-driver": "syslog",
           "log-opts": {
-            "labels": "production"
+            "tag": "Docker/{{.Name}}[{{.ImageName}}]({{.ID}})"
           }
         }
   - path: /filebeat/docker/Dockerfile
@@ -165,7 +165,7 @@ write_files:
         filebeat.prospectors:
         - input_type: log
           paths:
-          - /logs/*.log
+          - /var/log/docker
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]

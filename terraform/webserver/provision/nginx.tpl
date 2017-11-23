@@ -20,7 +20,7 @@ runcmd:
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=webserver-$HOST_IP_ADDRESS
   - sudo -u ubuntu docker run -d --name=nginx --restart unless-stopped --net=host --privileged -v /nginx/config/nginx.conf:/etc/nginx/nginx.conf -v /nginx/config/secrets:/nginx/config/secrets -v /nginx/logs:/var/log/nginx nginx:latest
   - sudo -u ubuntu docker build -t filebeat:${kibana_version} /filebeat/docker
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /nginx/logs:/logs filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker -v /nginx/logs:/var/log/nginx filebeat:${filebeat_version}
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -49,9 +49,9 @@ write_files:
     permissions: '0644'
     content: |
         {
-          "log-driver": "json-file",
+          "log-driver": "syslog",
           "log-opts": {
-            "labels": "production"
+            "tag": "Docker/{{.Name}}[{{.ImageName}}]({{.ID}})"
           }
         }
   - path: /filebeat/docker/Dockerfile
@@ -101,7 +101,8 @@ write_files:
         filebeat.prospectors:
         - input_type: log
           paths:
-          - /logs/*.log
+          - /var/log/docker
+          - /var/log/nginx/*.log
 
         output.logstash:
           hosts: ["${logstash_host}:5044"]

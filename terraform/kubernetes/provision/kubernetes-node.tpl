@@ -48,9 +48,9 @@ write_files:
     permissions: '0644'
     content: |
         {
-          "log-driver": "json-file",
+          "log-driver": "syslog",
           "log-opts": {
-            "labels": "production"
+            "tag": "Docker/{{.Name}}[{{.ImageName}}]({{.ID}})"
           }
         }
   - path: /filebeat/docker/Dockerfile
