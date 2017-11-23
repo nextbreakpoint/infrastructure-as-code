@@ -63,3 +63,21 @@ mkdir -p $DST
 cp $DIR/ca_cert.pem $DST
 cp $DIR/consul_cert.pem $DST/server_cert.pem
 cp $DIR/consul_key.pem $DST/server_key.pem
+
+export DST=terraform/secrets/environments/production/jenkins
+
+mkdir -p $DST
+
+cp $DIR/keystore-jenkins.pem $DST/keystore.jks
+
+export DST=terraform/secrets/environments/production/sonarqube
+
+mkdir -p $DST
+
+cp $DIR/keystore-sonarqube.pem $DST/keystore.jks
+
+export DST=terraform/secrets/environments/production/artifactory
+
+mkdir -p $DST
+
+cp $DIR/keystore-artifactory.pem $DST/keystore.jks

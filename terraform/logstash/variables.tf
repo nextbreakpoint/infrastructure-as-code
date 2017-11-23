@@ -92,8 +92,21 @@ variable "filebeat_version" {
 variable "logstash_version" {
 }
 
+### MANDATORY ###
+variable "elasticsearch_version" {
+}
+
 variable "logstash_instance_type" {
   default = "t2.small"
+}
+
+### MANDATORY ###
+variable "elasticsearch_cluster_name" {
+  description = "Elasticsearch cluster name"
+}
+
+variable "minimum_master_nodes" {
+  default = "2"
 }
 
 ###################################################################

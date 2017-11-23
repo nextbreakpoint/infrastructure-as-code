@@ -34,6 +34,15 @@ keytool -noprompt -keystore /output/keystore-elasticsearch.jks -genkey -alias se
 ## Create consul keystore
 keytool -noprompt -keystore /output/keystore-consul.jks -genkey -alias selfsigned -dname "CN=server.terraform.consul,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
 
+## Create jenkins keystore
+keytool -noprompt -keystore /output/keystore-jenkins.jks -genkey -alias selfsigned -dname "CN=jenkins.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
+
+## Create sonarqube keystore
+keytool -noprompt -keystore /output/keystore-sonarqube.jks -genkey -alias selfsigned -dname "CN=sonarqube.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
+
+## Create artifactory keystore
+keytool -noprompt -keystore /output/keystore-artifactory.jks -genkey -alias selfsigned -dname "CN=artifactory.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
+
 ## Sign client certificate
 keytool -noprompt -keystore /output/keystore-client.jks -alias selfsigned -certreq -file /output/client.unsigned -storepass secret
 openssl x509 -extfile /output/openssl.cnf -extensions extended -req -CA /output/ca-cert -CAkey /output/ca-key -in /output/client.unsigned -out /output/client.signed -days 365 -CAcreateserial -passin pass:secret

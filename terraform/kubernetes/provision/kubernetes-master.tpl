@@ -1,17 +1,16 @@
 #cloud-config
 manage_etc_hosts: True
 runcmd:
-  - sudo mkdir -p /filebeat/config
-  - sudo mkdir -p /filebeat/secrets
-  - sudo mkdir -p /consul/config
-  - sudo mkdir -p /consul/secrets
+  - sudo mkdir -p /filebeat/docker
+  - sudo mkdir -p /filebeat/config/secrets
+  - sudo mkdir -p /consul/config/secrets
   - sudo mkdir -p /nginx/logs
   - sudo mkdir -p /nginx/config
-  - sudo mkdir -p /nginx/secrets
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/secrets/ca_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_cert.pem /filebeat/secrets/filebeat_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_key.pem /filebeat/secrets/filebeat_key.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/secrets/ca_cert.pem
+  - sudo mkdir -p /nginx/config/secrets
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/config/secrets/ca_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_cert.pem /filebeat/config/secrets/filebeat_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_key.pem /filebeat/config/secrets/filebeat_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/consul/ca_cert.pem /consul/config/secrets/ca_cert.pem
   - sudo modprobe ip_vs
   - sudo usermod -aG docker ubuntu
   - sudo sysctl net.bridge.bridge-nf-call-iptables=1
@@ -19,7 +18,7 @@ runcmd:
   - sudo chown -R ubuntu.ubuntu /consul
   - sudo chown -R ubuntu.ubuntu /filebeat
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
-  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -v /consul/config:/consul/config -v /consul/secrets:/consul/secrets consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kubernetes-$HOST_IP_ADDRESS -retry-join=${consul_hostname} -datacenter=${consul_datacenter}
+  - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kubernetes-$HOST_IP_ADDRESS
   - sudo mkdir -p /etc/cni/net.d/
   - sudo wget -O /etc/cni/net.d/10-kuberouter.conf https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/cni/10-kuberouter.conf
   - sudo kubeadm init --token ${kubernetes_token} --pod-network-cidr="${pod_network_cidr}" --apiserver-advertise-address=HOST_IP_ADDRESS --skip-preflight-checks
@@ -34,12 +33,21 @@ runcmd:
   - sudo -u ubuntu kubectl get pods --all-namespaces
   - sudo -u ubuntu kubectl get secrets -n kube-system kubernetes-dashboard-token-5x65d -o 'jsonpath={.data.token}'
 write_files:
+  - path: /etc/profile.d/variables
+    permissions: '0644'
+    content: |
+        ENVIRONMENT=${environment}
   - path: /consul/config/consul.json
     permissions: '0644'
     content: |
         {
+          "ca_file": "/consul/config/secrets/ca_cert.pem",
+          "verify_outgoing" : true,
           "enable_script_checks": true,
           "leave_on_terminate": true,
+          "encrypt": "${consul_secret}",
+          "retry_join": "${consul_hostname}",
+          "datacenter": "${consul_datacenter}",
           "dns_config": {
             "allow_stale": true,
             "max_stale": "1s",
@@ -57,6 +65,14 @@ write_files:
             "labels": "production"
           }
         }
+  - path: /filebeat/docker/Dockerfile
+    permissions: '0755'
+    content: |
+        FROM docker.elastic.co/beats/filebeat:${filebeat_version}
+        USER root
+        RUN useradd -r syslog -u 104
+        RUN usermod -aG adm filebeat
+        USER filebeat
   - path: /tmp/kubernetes-dashboard.yaml
     permissions: '0644'
     content: |

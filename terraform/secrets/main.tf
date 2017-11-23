@@ -201,3 +201,24 @@ resource "aws_s3_bucket_object" "elasticsearch-private-key-k8" {
   source = "environments/production/elasticsearch/elasticsearch_key.pkcs8"
   etag   = "${md5(file("environments/production/elasticsearch/elasticsearch_key.pkcs8"))}"
 }
+
+resource "aws_s3_bucket_object" "jenkins-keystore" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/jenkins/keystore.jks"
+  source = "environments/production/jenkins/keystore.jks"
+  etag   = "${md5(file("environments/production/jenkins/keystore.jks"))}"
+}
+
+resource "aws_s3_bucket_object" "sonarqube-keystore" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/sonarqube/keystore.jks"
+  source = "environments/production/sonarqube/keystore.jks"
+  etag   = "${md5(file("environments/production/sonarqube/keystore.jks"))}"
+}
+
+resource "aws_s3_bucket_object" "artifactory-keystore" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/artifactory/keystore.jks"
+  source = "environments/production/artifactory/keystore.jks"
+  etag   = "${md5(file("environments/production/artifactory/keystore.jks"))}"
+}
