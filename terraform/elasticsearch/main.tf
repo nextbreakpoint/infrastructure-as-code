@@ -100,6 +100,9 @@ data "template_file" "elasticsearch_server_user_data" {
     filebeat_version        = "${var.filebeat_version}"
     elasticsearch_version   = "${var.elasticsearch_version}"
     elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
+    kibana_password         = "${var.kibana_password}"
+    logstash_password       = "${var.logstash_password}"
+    elasticsearch_password  = "${var.elasticsearch_password}"
   }
 }
 

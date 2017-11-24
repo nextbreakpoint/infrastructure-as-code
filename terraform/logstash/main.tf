@@ -98,7 +98,6 @@ data "template_file" "logstash_server_user_data" {
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
     security_groups         = "${aws_security_group.logstash_server.id}"
-    elasticsearch_host      = "elasticsearch.${var.hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
     hosted_zone_name        = "${var.hosted_zone_name}"
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
@@ -108,6 +107,8 @@ data "template_file" "logstash_server_user_data" {
     filebeat_version        = "${var.filebeat_version}"
     minimum_master_nodes    = "${var.minimum_master_nodes}"
     elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
+    logstash_password       = "${var.logstash_password}"
+    elasticsearch_password  = "${var.elasticsearch_password}"
   }
 }
 

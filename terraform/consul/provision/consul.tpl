@@ -15,8 +15,8 @@ runcmd:
   - sudo chown -R ubuntu.ubuntu /filebeat
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -server=true -ui=true -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=consul-$HOST_IP_ADDRESS
-  - sudo -u ubuntu docker build -t filebeat:${kibana_version} /filebeat/docker
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
+  - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -30,9 +30,9 @@ write_files:
           "cert_file": "/consul/config/secrets/server_cert.pem",
           "key_file": "/consul/config/secrets/server_key.pem",
           "encrypt": "${consul_secret}",
-          "retry_join": "${consul_hostname}",
+          "retry_join": ["${consul_hostname}"],
           "datacenter": "${consul_datacenter}",
-          "bootstrap_expect": "${consul_bootstrap_expect}",
+          "bootstrap_expect": ${consul_bootstrap_expect},
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "dns_config": {

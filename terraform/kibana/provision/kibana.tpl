@@ -9,9 +9,9 @@ runcmd:
   - sudo mkdir -p /elasticsearch/config/secrets
   - sudo mkdir -p /elasticsearch/data
   - sudo mkdir -p /elasticsearch/logs
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/elasticsearch/ca_cert.pem /elasticsearch/config/secrets/ca_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/elasticsearch/elasticsearch_cert.pem /elasticsearch/config/secrets/elasticsearch_cert.pem
-  - aws s3 cp s3://${bucket_name}/environments/${environment}/elasticsearch/elasticsearch_key.pem /elasticsearch/config/secrets/elasticsearch_key.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/kibana/ca_cert.pem /kibana/config/secrets/ca_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/kibana/kibana_cert.pem /kibana/config/secrets/kibana_cert.pem
+  - aws s3 cp s3://${bucket_name}/environments/${environment}/kibana/kibana_key.pem /kibana/config/secrets/kibana_key.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/ca_cert.pem /filebeat/config/secrets/ca_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_cert.pem /filebeat/config/secrets/filebeat_cert.pem
   - aws s3 cp s3://${bucket_name}/environments/${environment}/filebeat/filebeat_key.pem /filebeat/config/secrets/filebeat_key.pem
@@ -25,11 +25,10 @@ runcmd:
   - sudo chown -R ubuntu:ubuntu /elasticsearch
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kibana-$HOST_IP_ADDRESS
-  - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped --net=host -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e ES_JAVA_OPTS="-Xms256m -Xmx256m -Dnetworkaddress.cache.ttl=1" -e network.publish_host=$HOST_IP_ADDRESS -v /elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs -v /elasticsearch/config/secrets:/usr/share/elasticsearch/config/secrets docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
-  - sudo -u ubuntu docker run -d --name=kibana --restart unless-stopped -p 5601:5601 --net=host -e SERVER_HOST=$HOST_IP_ADDRESS -e ELASTICSEARCH_URL=$HOST_IP_ADDRESS -e NODE_TLS_REJECT_UNAUTHORIZED=0 -e NODE_EXTRA_CA_CERTS=/elasticsearch/config/secrets/ca_cert.pem -v /kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml -v /elasticsearch/config/secrets:/usr/share/kibana/config/secrets -v /kibana/logs:/usr/share/kibana/logs docker.elastic.co/kibana/kibana:${kibana_version}
-  - sudo -u ubuntu docker build -t filebeat:${kibana_version} /filebeat/docker
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
-  - sudo -u ubuntu curl -XPUT --cacert /elasticsearch/config/secrets/ca_cert.pem 'https://elastic:changeme@'$HOST_IP_ADDRESS':9200/.kibana/index-pattern/filebeat-*' -d@/kibana-index-patterns/filebeat-index.json
+  - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped --net=host -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e ES_JAVA_OPTS="-Xms256m -Xmx256m -Dnetworkaddress.cache.ttl=1" -e network.publish_host=$HOST_IP_ADDRESS -v /elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs -v /kibana/config/secrets:/usr/share/elasticsearch/config/secrets docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
+  - sudo -u ubuntu docker run -d --name=kibana --restart unless-stopped -p 5601:5601 --net=host -e SERVER_HOST=$HOST_IP_ADDRESS -e ELASTICSEARCH_URL=https://$HOST_IP_ADDRESS -e NODE_TLS_REJECT_UNAUTHORIZED=0 -e NODE_EXTRA_CA_CERTS=/elasticsearch/config/secrets/ca_cert.pem -v /kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml -v /kibana/config/secrets:/usr/share/kibana/config/secrets -v /kibana/logs:/usr/share/kibana/logs docker.elastic.co/kibana/kibana:${kibana_version}
+  - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -44,7 +43,7 @@ write_files:
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "encrypt": "${consul_secret}",
-          "retry_join": "${consul_hostname}",
+          "retry_join": ["${consul_hostname}"],
           "datacenter": "${consul_datacenter}",
           "dns_config": {
             "allow_stale": true,
@@ -131,18 +130,18 @@ write_files:
         kibana.defaultAppId: "discover"
         server.port: 5601
         server.ssl.enabled: true
-        server.ssl.key: "/usr/share/kibana/config/secrets/elasticsearch_key.pem"
-        server.ssl.certificate: "/usr/share/kibana/config/secrets/elasticsearch_cert.pem"
+        server.ssl.key: "/usr/share/kibana/config/secrets/kibana_key.pem"
+        server.ssl.certificate: "/usr/share/kibana/config/secrets/kibana_cert.pem"
         server.ssl.certificateAuthorities: ["/usr/share/kibana/config/secrets/ca_cert.pem"]
         elasticsearch.username: "kibana"
-        elasticsearch.password: "changeme"
+        elasticsearch.password: "${kibana_password}"
         elasticsearch.ssl.verificationMode: "certificate"
-        elasticsearch.ssl.key: "/usr/share/kibana/config/secrets/elasticsearch_key.pem"
-        elasticsearch.ssl.certificate: "/usr/share/kibana/config/secrets/elasticsearch_cert.pem"
+        elasticsearch.ssl.key: "/usr/share/kibana/config/secrets/kibana_key.pem"
+        elasticsearch.ssl.certificate: "/usr/share/kibana/config/secrets/kibana_cert.pem"
         elasticsearch.ssl.certificateAuthorities: ["/usr/share/kibana/config/secrets/ca_cert.pem"]
         xpack.reporting.encryptionKey: "cafebabe"
         xpack.monitoring.elasticsearch.username: "kibana"
-        xpack.monitoring.elasticsearch.password: "changeme"
+        xpack.monitoring.elasticsearch.password: "${kibana_password}"
         xpack.monitoring.elasticsearch.ssl.verificationMode: "certificate"
         xpack.monitoring.elasticsearch.ssl.certificateAuthorities: ["/usr/share/kibana/config/secrets/ca_cert.pem"]
   - path: /filebeat/config/filebeat.yml
@@ -165,8 +164,8 @@ write_files:
         xpack.security.http.ssl.enabled: true
         xpack.security.transport.ssl.enabled: true
         xpack.ssl.verification_mode: "certificate"
-        xpack.ssl.key: "/usr/share/elasticsearch/config/secrets/elasticsearch_key.pem"
-        xpack.ssl.certificate: "/usr/share/elasticsearch/config/secrets/elasticsearch_cert.pem"
+        xpack.ssl.key: "/usr/share/elasticsearch/config/secrets/kibana_key.pem"
+        xpack.ssl.certificate: "/usr/share/elasticsearch/config/secrets/kibana_cert.pem"
         xpack.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/secrets/ca_cert.pem"]
         cluster.name: "${cluster_name}"
         node.master: false

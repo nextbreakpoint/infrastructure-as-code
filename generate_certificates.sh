@@ -38,6 +38,15 @@ cp $DIR/filebeat_cert.pem $DST
 cp $DIR/filebeat_key.pem $DST
 cp $DIR/filebeat_key.pkcs8 $DST
 
+export DST=terraform/secrets/environments/production/kibana
+
+mkdir -p $DST
+
+cp $DIR/ca_cert.pem $DST
+cp $DIR/kibana_cert.pem $DST
+cp $DIR/kibana_key.pem $DST
+cp $DIR/kibana_key.pkcs8 $DST
+
 export DST=terraform/secrets/environments/production/logstash
 
 mkdir -p $DST
@@ -68,16 +77,4 @@ export DST=terraform/secrets/environments/production/jenkins
 
 mkdir -p $DST
 
-cp $DIR/keystore-jenkins.pem $DST/keystore.jks
-
-export DST=terraform/secrets/environments/production/sonarqube
-
-mkdir -p $DST
-
-cp $DIR/keystore-sonarqube.pem $DST/keystore.jks
-
-export DST=terraform/secrets/environments/production/artifactory
-
-mkdir -p $DST
-
-cp $DIR/keystore-artifactory.pem $DST/keystore.jks
+cp $DIR/keystore-jenkins.jks $DST/keystore.jks

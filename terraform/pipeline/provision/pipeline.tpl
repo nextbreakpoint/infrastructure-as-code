@@ -45,14 +45,14 @@ runcmd:
   - sudo unzip mysql-connector-java-${mysqlconnector_version}.zip
   - sudo -u ubuntu docker run -d --name=mysql --restart unless-stopped --net=host -p 3306:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=1 -v /pipeline/mysql:/var/lib/mysql -d mysql:latest
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=pipeline-$HOST_IP_ADDRESS
-  - sudo -u ubuntu docker run -d --name=jenkins --restart unless-stopped --net=host -p 8080:8080 -p 50000:50000 -e JAVA_OPTS=-Djenkins.install.runSetupWizard=false -v /pipeline/jenkins:/var/jenkins_home -v /jenkins/config/keystore.jks:/var/jenkins_home/keystore.jks jenkins/jenkins:lts --httpPort=-1 --httpsPort=8443 --httpsKeyStore=/var/jenkins_home/keystore.jks --httpsKeyStorePassword=secret
+  - sudo -u ubuntu docker run -d --name=jenkins --restart unless-stopped --net=host -p 8443:8443 -p 50000:50000 -e JAVA_OPTS=-Djenkins.install.runSetupWizard=false -v /pipeline/jenkins:/var/jenkins_home -v /jenkins/config/keystore.jks:/var/jenkins_home/keystore.jks jenkins/jenkins:lts --httpPort=-1 --httpsPort=8443 --httpsKeyStore=/var/jenkins_home/keystore.jks --httpsKeyStorePassword=secret
   - sudo -u ubuntu docker exec -i mysql bash -c "sleep 30"
   - sudo -u ubuntu docker exec -i mysql bash -c "mysql -u root" < /mysql/scripts/setup.sql
-  - sudo -u ubuntu docker exec -i mysql bash -c "mysqladmin -u root password 'changeme'"
-  - sudo -u ubuntu docker run -d --name=sonarqube --restart unless-stopped --net=host -p 9000:9000 -p 9092:9092 -e SONARQUBE_JDBC_USERNAME=sonarqube -e SONARQUBE_JDBC_PASSWORD=password -e SONARQUBE_JDBC_URL="jdbc:mysql://$HOST_IP_ADDRESS/sonar?useUnicode=true&characterEncoding=utf8&useSSL=false" sonarqube:latest
-  - sudo -u ubuntu docker run -d --name=artifactory --restart unless-stopped --net=host -p 8081:8081 -e DB_TYPE=mysql -e DB_HOST=$HOST_IP_ADDRESS -e DB_PORT=3306 -e DB_USER=artifactory -e DB_PASSWORD=password -v /mysql-connector-java-${mysqlconnector_version}/mysql-connector-java-${mysqlconnector_version}-bin.jar:/opt/jfrog/artifactory/tomcat/lib/mysql-connector-java-${mysqlconnector_version}-bin.jar -v /pipeline/artifactory:/var/opt/jfrog/artifactory docker.bintray.io/jfrog/artifactory-oss:latest
-  - sudo -u ubuntu docker build -t filebeat:${kibana_version} /filebeat/docker
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
+  - sudo -u ubuntu docker exec -i mysql bash -c "mysqladmin -u root password '${mysql_root_password}'"
+  - sudo -u ubuntu docker run -d --name=sonarqube --restart unless-stopped --net=host -p 9000:9000 -p 9092:9092 -e SONARQUBE_JDBC_USERNAME=sonarqube -e SONARQUBE_JDBC_PASSWORD=${mysql_sonarqube_password} -e SONARQUBE_JDBC_URL="jdbc:mysql://$HOST_IP_ADDRESS/sonar?useUnicode=true&characterEncoding=utf8&useSSL=false" sonarqube:latest
+  - sudo -u ubuntu docker run -d --name=artifactory --restart unless-stopped --net=host -p 8081:8081 -e DB_TYPE=mysql -e DB_HOST=$HOST_IP_ADDRESS -e DB_PORT=3306 -e DB_USER=artifactory -e DB_PASSWORD=${mysql_artifactory_password} -v /mysql-connector-java-${mysqlconnector_version}/mysql-connector-java-${mysqlconnector_version}-bin.jar:/opt/jfrog/artifactory/tomcat/lib/mysql-connector-java-${mysqlconnector_version}-bin.jar -v /pipeline/artifactory:/var/opt/jfrog/artifactory docker.bintray.io/jfrog/artifactory-oss:latest
+  - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -67,7 +67,7 @@ write_files:
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "encrypt": "${consul_secret}",
-          "retry_join": "${consul_hostname}",
+          "retry_join": ["${consul_hostname}"],
           "datacenter": "${consul_datacenter}",
           "dns_config": {
             "allow_stale": true,
@@ -187,11 +187,11 @@ write_files:
     permissions: '0644'
     content: |
         DROP DATABASE IF EXISTS `sonar`;
-        CREATE DATABASE `sonar` CHARACTER SET utf8 COLLATE utf8_bin;
         DROP DATABASE IF EXISTS `artdb`;
+        CREATE DATABASE `sonar` CHARACTER SET utf8 COLLATE utf8_bin;
         CREATE DATABASE `artdb` CHARACTER SET utf8 COLLATE utf8_bin;
-        CREATE USER IF NOT EXISTS 'sonarqube' IDENTIFIED BY 'password' PASSWORD EXPIRE NEVER;
-        CREATE USER IF NOT EXISTS 'artifactory' IDENTIFIED BY 'password' PASSWORD EXPIRE NEVER;
+        CREATE USER IF NOT EXISTS 'sonarqube' IDENTIFIED BY '${mysql_sonarqube_password}' PASSWORD EXPIRE NEVER;
+        CREATE USER IF NOT EXISTS 'artifactory' IDENTIFIED BY '${mysql_artifactory_password}' PASSWORD EXPIRE NEVER;
         GRANT ALL ON `sonar`.* TO 'sonarqube'@'%';
         GRANT ALL ON `artdb`.* TO 'artifactory'@'%';
         FLUSH PRIVILEGES;

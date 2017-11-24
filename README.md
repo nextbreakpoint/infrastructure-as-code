@@ -65,6 +65,15 @@ Create a file config.tfvars like this:
     # Secrets bucket
     secrets_bucket_name="secrets_bucket_name"
 
+    # Usernames and passwords
+    mysql_root_password="your_password"
+    mysql_sonarqube_password="your_password"
+    mysql_artifactory_password="your_password"
+
+    kibana_password="your_password"
+    logstash_password="your_password"
+    elasticsearch_password="your_password"
+
 Create a file config_vars.json like this:
 
     {

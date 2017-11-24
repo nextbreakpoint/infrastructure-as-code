@@ -19,8 +19,8 @@ runcmd:
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=webserver-$HOST_IP_ADDRESS
   - sudo -u ubuntu docker run -d --name=nginx --restart unless-stopped --net=host --privileged -v /nginx/config/nginx.conf:/etc/nginx/nginx.conf -v /nginx/config/secrets:/nginx/config/secrets -v /nginx/logs:/var/log/nginx nginx:latest
-  - sudo -u ubuntu docker build -t filebeat:${kibana_version} /filebeat/docker
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker -v /nginx/logs:/var/log/nginx filebeat:${filebeat_version}
+  - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker -v /nginx/logs:/var/log/nginx filebeat:${filebeat_version}
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -35,7 +35,7 @@ write_files:
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "encrypt": "${consul_secret}",
-          "retry_join": "${consul_hostname}",
+          "retry_join": ["${consul_hostname}"],
           "datacenter": "${consul_datacenter}",
           "dns_config": {
             "allow_stale": true,
@@ -213,8 +213,8 @@ write_files:
             location / {
                 resolver 127.0.0.1;
                 set $$upstream_jenkins jenkins.internal;
-                proxy_pass http://$$upstream_jenkins:8080$$request_uri;
-                proxy_redirect http://$$upstream_jenkins:8080 https://jenkins.${public_hosted_zone_name};
+                proxy_pass https://$$upstream_jenkins:8443$$request_uri;
+                proxy_redirect https://$$upstream_jenkins:8443 https://jenkins.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;

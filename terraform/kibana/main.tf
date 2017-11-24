@@ -100,7 +100,6 @@ data "template_file" "kibana_server_user_data" {
     security_groups         = "${aws_security_group.kibana_server.id}"
     hosted_zone_name        = "${var.hosted_zone_name}"
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
-    elasticsearch_host      = "elasticsearch.${var.hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
     cluster_name            = "${var.elasticsearch_cluster_name}"
     elasticsearch_version   = "${var.elasticsearch_version}"
@@ -108,6 +107,7 @@ data "template_file" "kibana_server_user_data" {
     kibana_version          = "${var.kibana_version}"
     minimum_master_nodes    = "${var.minimum_master_nodes}"
     elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
+    kibana_password         = "${var.kibana_password}"
   }
 }
 

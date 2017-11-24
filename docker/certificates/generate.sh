@@ -26,6 +26,9 @@ keytool -noprompt -keystore /output/keystore-server.jks -genkey -alias selfsigne
 keytool -noprompt -keystore /output/keystore-filebeat.jks -genkey -alias selfsigned -dname "CN=filebeat,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
 
 ## Create logstash keystore
+keytool -noprompt -keystore /output/keystore-kibana.jks -genkey -alias selfsigned -dname "CN=kibana.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
+
+## Create logstash keystore
 keytool -noprompt -keystore /output/keystore-logstash.jks -genkey -alias selfsigned -dname "CN=logstash.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
 
 ## Create elasticsearch keystore
@@ -36,12 +39,6 @@ keytool -noprompt -keystore /output/keystore-consul.jks -genkey -alias selfsigne
 
 ## Create jenkins keystore
 keytool -noprompt -keystore /output/keystore-jenkins.jks -genkey -alias selfsigned -dname "CN=jenkins.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
-
-## Create sonarqube keystore
-keytool -noprompt -keystore /output/keystore-sonarqube.jks -genkey -alias selfsigned -dname "CN=sonarqube.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
-
-## Create artifactory keystore
-keytool -noprompt -keystore /output/keystore-artifactory.jks -genkey -alias selfsigned -dname "CN=artifactory.internal,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
 
 ## Sign client certificate
 keytool -noprompt -keystore /output/keystore-client.jks -alias selfsigned -certreq -file /output/client.unsigned -storepass secret
@@ -54,6 +51,10 @@ openssl x509 -extfile /output/openssl.cnf -extensions extended -req -CA /output/
 ## Sign filebeat certificate
 keytool -noprompt -keystore /output/keystore-filebeat.jks -alias selfsigned -certreq -file /output/filebeat.unsigned -storepass secret
 openssl x509 -extfile /output/openssl.cnf -extensions extended -req -CA /output/ca-cert -CAkey /output/ca-key -in /output/filebeat.unsigned -out /output/filebeat.signed -days 365 -CAcreateserial -passin pass:secret
+
+## Sign kibana certificate
+keytool -noprompt -keystore /output/keystore-kibana.jks -alias selfsigned -certreq -file /output/kibana.unsigned -storepass secret
+openssl x509 -extfile /output/openssl.cnf -extensions extended -req -CA /output/ca-cert -CAkey /output/ca-key -in /output/kibana.unsigned -out /output/kibana.signed -days 365 -CAcreateserial -passin pass:secret
 
 ## Sign logstash certificate
 keytool -noprompt -keystore /output/keystore-logstash.jks -alias selfsigned -certreq -file /output/logstash.unsigned -storepass secret
@@ -78,6 +79,10 @@ keytool -noprompt -keystore /output/keystore-server.jks -alias selfsigned -impor
 ## Import CA and filebeat signed certificate into filebeat keystore
 keytool -noprompt -keystore /output/keystore-filebeat.jks -alias CARoot -import -file /output/ca-cert  -storepass secret
 keytool -noprompt -keystore /output/keystore-filebeat.jks -alias selfsigned -import -file /output/filebeat.signed -storepass secret
+
+## Import CA and kibana signed certificate into kibana keystore
+keytool -noprompt -keystore /output/keystore-kibana.jks -alias CARoot -import -file /output/ca-cert  -storepass secret
+keytool -noprompt -keystore /output/keystore-kibana.jks -alias selfsigned -import -file /output/kibana.signed -storepass secret
 
 ## Import CA and logstash signed certificate into logstash keystore
 keytool -noprompt -keystore /output/keystore-logstash.jks -alias CARoot -import -file /output/ca-cert  -storepass secret
@@ -120,6 +125,13 @@ keytool -noprompt -keystore /output/keystore-filebeat.jks -exportcert -alias sel
 keytool -noprompt -srckeystore /output/keystore-filebeat.jks -importkeystore -srcalias selfsigned -destkeystore /output/filebeat_cert_and_key.p12 -deststoretype PKCS12 -srcstorepass secret -storepass secret
 openssl pkcs12 -in /output/filebeat_cert_and_key.p12 -nocerts -nodes -passin pass:secret -out /output/filebeat_key.pem
 
+### Extract signed kibana certificate
+keytool -noprompt -keystore /output/keystore-kibana.jks -exportcert -alias selfsigned -rfc -storepass secret -file /output/kibana_cert.pem
+
+### Extract kibana key
+keytool -noprompt -srckeystore /output/keystore-kibana.jks -importkeystore -srcalias selfsigned -destkeystore /output/kibana_cert_and_key.p12 -deststoretype PKCS12 -srcstorepass secret -storepass secret
+openssl pkcs12 -in /output/kibana_cert_and_key.p12 -nocerts -nodes -passin pass:secret -out /output/kibana_key.pem
+
 ### Extract signed logstash certificate
 keytool -noprompt -keystore /output/keystore-logstash.jks -exportcert -alias selfsigned -rfc -storepass secret -file /output/logstash_cert.pem
 
@@ -150,10 +162,12 @@ cat /output/client_cert.pem /output/ca_cert.pem > /output/ca_and_client_cert.pem
 cat /output/server_cert.pem /output/ca_cert.pem > /output/ca_and_server_cert.pem
 
 openssl pkcs8 -in /output/filebeat_key.pem -topk8 -inform PEM -nocrypt -out /output/filebeat_key.pkcs8
+openssl pkcs8 -in /output/kibana_key.pem -topk8 -inform PEM -nocrypt -out /output/kibana_key.pkcs8
 openssl pkcs8 -in /output/logstash_key.pem -topk8 -inform PEM -nocrypt -out /output/logstash_key.pkcs8
 openssl pkcs8 -in /output/elasticsearch_key.pem -topk8 -inform PEM -nocrypt -out /output/elasticsearch_key.pkcs8
 
 openssl x509 -noout -text -in /output/consul_cert.pem
 openssl x509 -noout -text -in /output/filebeat_cert.pem
+openssl x509 -noout -text -in /output/kibana_cert.pem
 openssl x509 -noout -text -in /output/logstash_cert.pem
 openssl x509 -noout -text -in /output/elasticsearch_cert.pem

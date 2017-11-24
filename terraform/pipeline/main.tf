@@ -61,6 +61,13 @@ resource "aws_security_group" "pipeline_server" {
   }
 
   ingress {
+    from_port = 8443
+    to_port = 8443
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
     from_port = 8081
     to_port = 8081
     protocol = "tcp"
@@ -111,23 +118,26 @@ data "template_file" "pipeline_server_user_data" {
   template = "${file("provision/pipeline.tpl")}"
 
   vars {
-    aws_region              = "${var.aws_region}"
-    environment             = "${var.environment}"
-    bucket_name             = "${var.secrets_bucket_name}"
-    consul_secret           = "${var.consul_secret}"
-    consul_datacenter       = "${var.consul_datacenter}"
-    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
-    consul_log_file         = "${var.consul_log_file}"
-    security_groups         = "${aws_security_group.pipeline_server.id}"
-    hosted_zone_name        = "${var.hosted_zone_name}"
-    public_hosted_zone_name = "${var.public_hosted_zone_name}"
-    logstash_host           = "logstash.${var.hosted_zone_name}"
-    volume_name             = "${var.volume_name}"
-    filebeat_version        = "${var.filebeat_version}"
-    jenkins_version         = "${var.jenkins_version}"
-    sonarqube_version       = "${var.sonarqube_version}"
-    artifactory_version     = "${var.artifactory_version}"
-    mysqlconnector_version  = "${var.mysqlconnector_version}"
+    aws_region                    = "${var.aws_region}"
+    environment                   = "${var.environment}"
+    bucket_name                   = "${var.secrets_bucket_name}"
+    consul_secret                 = "${var.consul_secret}"
+    consul_datacenter             = "${var.consul_datacenter}"
+    consul_hostname               = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file               = "${var.consul_log_file}"
+    security_groups               = "${aws_security_group.pipeline_server.id}"
+    hosted_zone_name              = "${var.hosted_zone_name}"
+    public_hosted_zone_name       = "${var.public_hosted_zone_name}"
+    logstash_host                 = "logstash.${var.hosted_zone_name}"
+    volume_name                   = "${var.volume_name}"
+    filebeat_version              = "${var.filebeat_version}"
+    jenkins_version               = "${var.jenkins_version}"
+    sonarqube_version             = "${var.sonarqube_version}"
+    artifactory_version           = "${var.artifactory_version}"
+    mysqlconnector_version        = "${var.mysqlconnector_version}"
+    mysql_root_password           = "${var.mysql_root_password}"
+    mysql_sonarqube_password      = "${var.mysql_sonarqube_password}"
+    mysql_artifactory_password    = "${var.mysql_artifactory_password}"
   }
 }
 

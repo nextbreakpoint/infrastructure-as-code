@@ -146,6 +146,34 @@ resource "aws_s3_bucket_object" "filebeat-private-key-k8" {
   etag   = "${md5(file("environments/production/filebeat/filebeat_key.pkcs8"))}"
 }
 
+resource "aws_s3_bucket_object" "kibana-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/kibana/ca_cert.pem"
+  source = "environments/production/kibana/ca_cert.pem"
+  etag   = "${md5(file("environments/production/kibana/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "kibana-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/kibana/kibana_cert.pem"
+  source = "environments/production/kibana/kibana_cert.pem"
+  etag   = "${md5(file("environments/production/kibana/kibana_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "kibana-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/kibana/kibana_key.pem"
+  source = "environments/production/kibana/kibana_key.pem"
+  etag   = "${md5(file("environments/production/kibana/kibana_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "kibana-private-key-k8" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/kibana/kibana_key.pkcs8"
+  source = "environments/production/kibana/kibana_key.pkcs8"
+  etag   = "${md5(file("environments/production/kibana/kibana_key.pkcs8"))}"
+}
+
 resource "aws_s3_bucket_object" "logstash-ca-certificate" {
   bucket = "${aws_s3_bucket.secrets.id}"
   key    = "environments/production/logstash/ca_cert.pem"
@@ -207,18 +235,4 @@ resource "aws_s3_bucket_object" "jenkins-keystore" {
   key    = "environments/production/jenkins/keystore.jks"
   source = "environments/production/jenkins/keystore.jks"
   etag   = "${md5(file("environments/production/jenkins/keystore.jks"))}"
-}
-
-resource "aws_s3_bucket_object" "sonarqube-keystore" {
-  bucket = "${aws_s3_bucket.secrets.id}"
-  key    = "environments/production/sonarqube/keystore.jks"
-  source = "environments/production/sonarqube/keystore.jks"
-  etag   = "${md5(file("environments/production/sonarqube/keystore.jks"))}"
-}
-
-resource "aws_s3_bucket_object" "artifactory-keystore" {
-  bucket = "${aws_s3_bucket.secrets.id}"
-  key    = "environments/production/artifactory/keystore.jks"
-  source = "environments/production/artifactory/keystore.jks"
-  etag   = "${md5(file("environments/production/artifactory/keystore.jks"))}"
 }

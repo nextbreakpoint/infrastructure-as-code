@@ -120,6 +120,18 @@ variable "artifactory_version" {
 variable "mysqlconnector_version" {
 }
 
+### MANDATORY ###
+variable "mysql_root_password" {
+}
+
+### MANDATORY ###
+variable "mysql_sonarqube_password" {
+}
+
+### MANDATORY ###
+variable "mysql_artifactory_password" {
+}
+
 ###################################################################
 # Consul configuration below
 ###################################################################

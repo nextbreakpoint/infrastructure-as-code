@@ -104,6 +104,10 @@ variable "minimum_master_nodes" {
   default = "2"
 }
 
+### MANDATORY ###
+variable "kibana_password" {
+}
+
 ###################################################################
 # Consul configuration below
 ###################################################################
