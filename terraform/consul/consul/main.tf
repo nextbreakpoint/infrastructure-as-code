@@ -11,6 +11,7 @@ variable "user_data" {}
 variable "bastion_user" {}
 variable "bastion_host" {}
 variable "instance_profile" {}
+variable "private_ip" {}
 
 resource "aws_instance" "consul" {
   instance_type = "${var.instance_type}"
@@ -27,6 +28,8 @@ resource "aws_instance" "consul" {
   iam_instance_profile = "${var.instance_profile}"
 
   user_data = "${var.user_data}"
+
+  private_ip = "${var.private_ip}"
 
   connection {
     user = "ubuntu"

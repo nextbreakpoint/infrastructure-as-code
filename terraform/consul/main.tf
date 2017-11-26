@@ -219,6 +219,7 @@ module "consul_servers_a" {
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
   instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")}"
 }
 
 module "consul_servers_b" {
@@ -237,6 +238,7 @@ module "consul_servers_b" {
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
   instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")}"
 }
 
 module "consul_servers_c" {
@@ -255,6 +257,7 @@ module "consul_servers_c" {
   bastion_user = "ec2-user"
   bastion_host = "bastion.${var.public_hosted_zone_name}"
   instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
+  private_ip = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
 }
 
 ##############################################################################
