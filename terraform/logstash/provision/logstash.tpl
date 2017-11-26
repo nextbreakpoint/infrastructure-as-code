@@ -28,7 +28,7 @@ runcmd:
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=logstash-$HOST_IP_ADDRESS
   - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped --net=host -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e ES_JAVA_OPTS="-Xms256m -Xmx256m -Dnetworkaddress.cache.ttl=1" -e network.publish_host=$HOST_IP_ADDRESS -v /elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs -v /logstash/config/secrets:/usr/share/elasticsearch/config/secrets docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
-  - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped --net=host -p 5044:5044 -e LS_JAVA_OPTS="-Dnetworkaddress.cache.ttl=1" -e ELASTICSEARCH_URL=logstash.internal -v /logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml -v /logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf -v /logstash/config/secrets:/usr/share/logstash/config/secrets -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
+  - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped --net=host -p 5044:5044 -e LS_JAVA_OPTS="-Dnetworkaddress.cache.ttl=1" -e ENVIRONMENT=${environment} -e ELASTICSEARCH_URL=logstash.internal -v /logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml -v /logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf -v /logstash/config/secrets:/usr/share/logstash/config/secrets -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
   - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
 write_files:
@@ -134,6 +134,23 @@ write_files:
             ssl_certificate => "/usr/share/logstash/config/secrets/logstash_cert.pem"
             ssl_key => "/usr/share/logstash/config/secrets/logstash_key.pkcs8"
             ssl_verify_mode => "force_peer"
+          }
+        }
+        filter {
+          grok {
+            match => {
+              "message" => "%{SYSLOGTIMESTAMP:timestamp} %{DATA:hostname} Docker/%{WORD:container_name}\[%{DATA:image_name}:%{DATA:container_version}\]\(%{DATA:container_id}\)\[%{NUMBER:container_pid}\]: %{DATA:message}"
+            }
+            overwrite => [ "message" ]
+            add_field => {
+              "environment" => "$${ENVIRONMENT}"
+              "timestamp" => "%{timestamp}"
+              "hostname" => "%{hostname}"
+              "container_name" => "%{container_name}"
+              "container_version" => "%{container_version}"
+              "container_id" => "%{container_id}"
+              "container_pid" => "%{container_pid}"
+            }
           }
         }
         output {

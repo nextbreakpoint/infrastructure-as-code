@@ -110,11 +110,11 @@ variable "minimum_master_nodes" {
 }
 
 ### MANDATORY ###
-variable "kibana_password" {
+variable "logstash_password" {
 }
 
 ### MANDATORY ###
-variable "logstash_password" {
+variable "elasticsearch_password" {
 }
 
 ###################################################################
