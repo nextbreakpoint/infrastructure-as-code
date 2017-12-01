@@ -212,17 +212,3 @@ Integrate your build pipeline with Artifactory and manage your artifacts:
 Deploy your application in ECS or EC2. You can manually deploy your application or create your own scripts.
 Your application might use ZooKeeper, Kafka, Cassandra clusters or it might use any other resource reachable
 from a subnet.
-
-ZooKeeper, Kafka and Cassandra are reachable using the private hostname:
-
-    zookeeper.internal
-    cassandra.internal
-    kafka.internal
-
-Ship your logs to Logstash. Logstash is reachable using the private hostname:
-
-    logstash.internal
-
-Monitor your services using Consul. Consul is reachable using the private hostname:
-
-    consul.internal
