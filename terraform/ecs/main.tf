@@ -201,7 +201,7 @@ data "aws_ami" "ecs_cluster" {
 
   filter {
     name = "name"
-    values = ["amzn-ami-2017.03.f-amazon-ecs-optimized"]
+    values = ["ecs-${var.base_version}-*"]
   }
 
   filter {

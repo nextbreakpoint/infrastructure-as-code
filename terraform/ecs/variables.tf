@@ -62,6 +62,10 @@ variable "secrets_bucket_name" {
 ###################################################################
 
 ### MANDATORY ###
+variable "base_version" {
+}
+
+### MANDATORY ###
 variable "filebeat_version" {
 }
 

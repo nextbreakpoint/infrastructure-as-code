@@ -209,24 +209,24 @@ resource "aws_instance" "kibana_server_a" {
   }
 }
 
-resource "aws_instance" "kibana_server_b" {
-  instance_type = "${var.kibana_instance_type}"
-
-  ami = "${data.aws_ami.kibana.id}"
-
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
-  associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.kibana_server.id}"]
-  key_name = "${var.key_name}"
-
-  iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.name}"
-
-  user_data = "${data.template_file.kibana_server_user_data.rendered}"
-
-  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "40")}"
-
-  tags {
-    Name = "kibana-server-b"
-    Stream = "${var.stream_tag}"
-  }
-}
+# resource "aws_instance" "kibana_server_b" {
+#   instance_type = "${var.kibana_instance_type}"
+#
+#   ami = "${data.aws_ami.kibana.id}"
+#
+#   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+#   associate_public_ip_address = "false"
+#   security_groups = ["${aws_security_group.kibana_server.id}"]
+#   key_name = "${var.key_name}"
+#
+#   iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.name}"
+#
+#   user_data = "${data.template_file.kibana_server_user_data.rendered}"
+#
+#   private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "40")}"
+#
+#   tags {
+#     Name = "kibana-server-b"
+#     Stream = "${var.stream_tag}"
+#   }
+# }
