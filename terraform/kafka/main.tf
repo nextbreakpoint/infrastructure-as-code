@@ -289,20 +289,3 @@ resource "aws_instance" "kafka_server_c" {
     Stream = "${var.stream_tag}"
   }
 }
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "kafka" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "kafka.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-
-   records = [
-     "${aws_instance.kafka_server_a.private_ip}",
-     "${aws_instance.kafka_server_b.private_ip}",
-     "${aws_instance.kafka_server_c.private_ip}"
-   ]
-}

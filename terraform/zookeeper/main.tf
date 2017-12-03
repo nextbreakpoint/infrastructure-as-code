@@ -297,20 +297,3 @@ resource "aws_instance" "zookeeper_server_c" {
     Stream = "${var.stream_tag}"
   }
 }
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "zookeeper" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "zookeeper.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-
-   records = [
-     "${aws_instance.zookeeper_server_a.private_ip}",
-     "${aws_instance.zookeeper_server_b.private_ip}",
-     "${aws_instance.zookeeper_server_c.private_ip}"
-   ]
-}

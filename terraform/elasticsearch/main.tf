@@ -330,19 +330,3 @@ resource "aws_autoscaling_group" "elasticsearch_asg_b" {
     delete = "15m"
   }
 }
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "elasticsearch" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "elasticsearch.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-
-   records = [
-     "${aws_instance.elasticsearch_server_a.private_ip}",
-     "${aws_instance.elasticsearch_server_b.private_ip}"
-   ]
-}

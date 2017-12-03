@@ -246,39 +246,3 @@ resource "aws_instance" "pipeline_server_a" {
     Stream = "${var.stream_tag}"
   }
 }
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "mysql" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "mysql.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
-}
-
-resource "aws_route53_record" "jenkins" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "jenkins.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
-}
-
-resource "aws_route53_record" "sonarqube" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "sonarqube.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
-}
-
-resource "aws_route53_record" "artifactory" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "artifactory.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
-}

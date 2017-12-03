@@ -491,14 +491,3 @@ resource "aws_route53_record" "kubernetes_elb" {
     evaluate_target_health = true
   }
 }
-
-resource "aws_route53_record" "kubernetes_dns" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "kubernetes.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "300"
-
-  records = [
-    "${aws_instance.kubernetes_server_a.private_ip}"
-  ]
-}

@@ -230,18 +230,3 @@ resource "aws_instance" "kibana_server_b" {
     Stream = "${var.stream_tag}"
   }
 }
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "kibana_dns" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "kibana.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-
-  records = [
-    "${aws_instance.kibana_server_a.private_ip}"
-  ]
-}
