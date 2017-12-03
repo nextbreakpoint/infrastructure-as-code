@@ -197,7 +197,7 @@ write_files:
                   # Uncomment the following line to manually specify Kubernetes API server Host
                   # If not specified, Dashboard will attempt to auto discover the API server and connect
                   # to it. Uncomment only if the default does not work.
-                  #- --apiserver-host=https://kubernetes.internal:6443
+                  #- --apiserver-host=https://kubernetes.service.terraform.consul:6443
                 volumeMounts:
                 #- name: kubernetes-dashboard-certs
                 #  mountPath: /certs

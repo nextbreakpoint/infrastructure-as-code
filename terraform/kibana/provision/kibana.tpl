@@ -26,9 +26,11 @@ runcmd:
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kibana-$HOST_IP_ADDRESS
   - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped --net=host -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e ES_JAVA_OPTS="-Xms256m -Xmx256m -Dnetworkaddress.cache.ttl=1" -e network.publish_host=$HOST_IP_ADDRESS -v /elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs -v /kibana/config/secrets:/usr/share/elasticsearch/config/secrets docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
-  - sudo -u ubuntu docker run -d --name=kibana --restart unless-stopped -p 5601:5601 --net=host -e SERVER_HOST=$HOST_IP_ADDRESS -e ELASTICSEARCH_URL=https://$HOST_IP_ADDRESS:9200 -e NODE_TLS_REJECT_UNAUTHORIZED=0 -e NODE_EXTRA_CA_CERTS=/elasticsearch/config/secrets/ca_cert.pem -v /kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml -v /kibana/config/secrets:/usr/share/kibana/config/secrets -v /kibana/logs:/usr/share/kibana/logs docker.elastic.co/kibana/kibana:${kibana_version}
+  - sudo -u ubuntu docker run -d --name=kibana --restart unless-stopped -p 5601:5601 --net=host -e SERVER_HOST=$HOST_IP_ADDRESS -e ELASTICSEARCH_URL=https://kibana.service.terraform.consul:9200 -e NODE_TLS_REJECT_UNAUTHORIZED=0 -e NODE_EXTRA_CA_CERTS=/elasticsearch/config/secrets/ca_cert.pem -v /kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml -v /kibana/config/secrets:/usr/share/kibana/config/secrets -v /kibana/logs:/usr/share/kibana/logs docker.elastic.co/kibana/kibana:${kibana_version}
   - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
+  - sudo sed -e 's/$HOST_IP_ADDRESS/'$HOST_IP_ADDRESS'/g' /tmp/10-consul > /etc/dnsmasq.d/10-consul
+  - sudo service dnsmasq restart
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -75,7 +77,7 @@ write_files:
     content: |
         {
             "services": [{
-                "name": "elasticsearch-query",
+                "name": "elasticsearch-kibana-http",
                 "tags": [
                     "https", "query"
                 ],
@@ -88,7 +90,7 @@ write_files:
                     "interval": "60s"
                 }]
             },{
-                "name": "elasticsearch-index",
+                "name": "elasticsearch-kibana-tcp",
                 "tags": [
                     "tcp", "index"
                 ],
@@ -153,7 +155,7 @@ write_files:
           - /var/log/docker
 
         output.logstash:
-          hosts: ["${logstash_host}:5044"]
+          hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]
           ssl.certificate: "/filebeat/config/secrets/filebeat_cert.pem"
           ssl.key: "/filebeat/config/secrets/filebeat_key.pem"
@@ -171,6 +173,7 @@ write_files:
         node.master: false
         node.ingest: false
         node.data: false
+        node.ml: false
         network.host: "0.0.0.0"
         network.bind_host: "0.0.0.0"
         http.port: 9200
@@ -178,3 +181,7 @@ write_files:
         bootstrap.memory_lock: true
         discovery.zen.ping.unicast.hosts: "${elasticsearch_nodes}"
         discovery.zen.minimum_master_nodes: ${minimum_master_nodes}
+  - path: /tmp/10-consul
+    permissions: '0644'
+    content: |
+        server=/consul/$HOST_IP_ADDRESS#8600

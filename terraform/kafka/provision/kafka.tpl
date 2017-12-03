@@ -15,9 +15,11 @@ runcmd:
   - sudo chown -R ubuntu:ubuntu /kafka
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=kafka-$HOST_IP_ADDRESS
-  - sudo -u ubuntu docker run -d --name=kafka --restart unless-stopped --net=host -p 9092:9092 -e BROKER_ID=${broker_id} -e ZK_CONNECT=zookeeper.internal:2181 -e ADVERTISED_HOST=$HOST_IP_ADDRESS -e ADVERTISED_PORT=9092 -e NUM_PARTITIONS=1 -v /kafka/logs:/var/log nextbreakpoint/kafka:${kafka_version}
+  - sudo -u ubuntu docker run -d --name=kafka --restart unless-stopped --net=host -p 9092:9092 -e BROKER_ID=${broker_id} -e ZK_CONNECT=zookeeper.service.terraform.consul:2181 -e ADVERTISED_HOST=$HOST_IP_ADDRESS -e ADVERTISED_PORT=9092 -e NUM_PARTITIONS=1 -v /kafka/logs:/var/log nextbreakpoint/kafka:${kafka_version}
   - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
+  - sudo sed -e 's/$HOST_IP_ADDRESS/'$HOST_IP_ADDRESS'/g' /tmp/10-consul > /etc/dnsmasq.d/10-consul
+  - sudo service dnsmasq restart
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -87,7 +89,11 @@ write_files:
           - /var/log/docker
 
         output.logstash:
-          hosts: ["${logstash_host}:5044"]
+          hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]
           ssl.certificate: "/filebeat/config/secrets/filebeat_cert.pem"
           ssl.key: "/filebeat/config/secrets/filebeat_key.pem"
+  - path: /tmp/10-consul
+    permissions: '0644'
+    content: |
+        server=/consul/$HOST_IP_ADDRESS#8600

@@ -21,6 +21,8 @@ runcmd:
   - sudo -u ubuntu docker run -d --name=nginx --restart unless-stopped --net=host --privileged -v /nginx/config/nginx.conf:/etc/nginx/nginx.conf -v /nginx/config/secrets:/nginx/config/secrets -v /nginx/logs:/var/log/nginx nginx:latest
   - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker -v /nginx/logs:/var/log/nginx filebeat:${filebeat_version}
+  - sudo sed -e 's/$HOST_IP_ADDRESS/'$HOST_IP_ADDRESS'/g' /tmp/10-consul > /etc/dnsmasq.d/10-consul
+  - sudo service dnsmasq restart
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -102,10 +104,11 @@ write_files:
         - input_type: log
           paths:
           - /var/log/docker
-          - /var/log/nginx/*.log
-
+          - /var/log/nginx/access.log*
+          - /var/log/nginx/error.log*
+        exclude_files: [".gz$"]
         output.logstash:
-          hosts: ["${logstash_host}:5044"]
+          hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]
           ssl.certificate: "/filebeat/config/secrets/filebeat_cert.pem"
           ssl.key: "/filebeat/config/secrets/filebeat_key.pem"
@@ -192,7 +195,7 @@ write_files:
 
             location / {
                 resolver 127.0.0.1;
-                set $$upstream_kibana kibana.internal;
+                set $$upstream_kibana kibana.service.terraform.consul;
                 proxy_pass https://$$upstream_kibana:5601;
                 proxy_redirect https://$$upstream_kibana:5601 https://kibana.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
@@ -212,7 +215,7 @@ write_files:
 
             location / {
                 resolver 127.0.0.1;
-                set $$upstream_jenkins jenkins.internal;
+                set $$upstream_jenkins jenkins.service.terraform.consul;
                 proxy_pass https://$$upstream_jenkins:8443$$request_uri;
                 proxy_redirect https://$$upstream_jenkins:8443 https://jenkins.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
@@ -232,7 +235,7 @@ write_files:
 
             location / {
                 resolver 127.0.0.1;
-                set $$upstream_sonarqube sonarqube.internal;
+                set $$upstream_sonarqube sonarqube.service.terraform.consul;
                 proxy_pass http://$$upstream_sonarqube:9000$$request_uri;
                 proxy_redirect http://$$upstream_sonarqube:9000 https://sonarqube.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
@@ -252,7 +255,7 @@ write_files:
 
             location / {
                 resolver 127.0.0.1;
-                set $$upstream_artifactory artifactory.internal;
+                set $$upstream_artifactory artifactory.service.terraform.consul;
                 proxy_pass http://$$upstream_artifactory:8081$$request_uri;
                 proxy_redirect http://$$upstream_artifactory:8081 https://artifactory.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
@@ -272,7 +275,7 @@ write_files:
 
             location / {
                 resolver 127.0.0.1;
-                set $$upstream_kubernetes kubernetes.internal;
+                set $$upstream_kubernetes kubernetes.service.terraform.consul;
                 proxy_pass http://$$upstream_kubernetes:8081$$request_uri;
                 proxy_redirect http://$$upstream_kubernetes:8081 https://kubernetes.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
@@ -285,3 +288,7 @@ write_files:
     permissions: '0644'
     content: |
         server=/consul/127.0.0.1#8600
+  - path: /tmp/10-consul
+    permissions: '0644'
+    content: |
+        server=/consul/$HOST_IP_ADDRESS#8600

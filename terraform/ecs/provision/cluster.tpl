@@ -63,11 +63,11 @@ write_files:
           - /var/log/docker
 
         output.logstash:
-          hosts: ["${logstash_host}:5044"]
+          hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]
           ssl.certificate: "/filebeat/config/secrets/filebeat_cert.pem"
           ssl.key: "/filebeat/config/secrets/filebeat_key.pem"
   - path: /tmp/10-consul
     permissions: '0644'
     content: |
-        echo server=/consul/$HOST_IP_ADDRESS#8600
+        server=/consul/$HOST_IP_ADDRESS#8600

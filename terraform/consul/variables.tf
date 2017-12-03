@@ -49,6 +49,21 @@ variable "aws_network_vpc_cidr" {
 }
 
 ### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_c" {
+  description = "Private subnet C cidr block"
+}
+
+### MANDATORY ###
 variable "base_version" {
 }
 

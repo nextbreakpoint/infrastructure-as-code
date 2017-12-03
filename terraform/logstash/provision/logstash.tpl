@@ -28,9 +28,11 @@ runcmd:
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo -u ubuntu docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=logstash-$HOST_IP_ADDRESS
   - sudo -u ubuntu docker run -d --name=elasticsearch --restart unless-stopped --net=host -p 9200:9200 -p 9300:9300 --ulimit nofile=65536:65536 --ulimit memlock=-1:-1 -e ES_JAVA_OPTS="-Xms256m -Xmx256m -Dnetworkaddress.cache.ttl=1" -e network.publish_host=$HOST_IP_ADDRESS -v /elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v /elasticsearch/data:/usr/share/elasticsearch/data -v /elasticsearch/logs:/usr/share/elasticsearch/logs -v /logstash/config/secrets:/usr/share/elasticsearch/config/secrets docker.elastic.co/elasticsearch/elasticsearch:${elasticsearch_version}
-  - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped --net=host -p 5044:5044 -e LS_JAVA_OPTS="-Dnetworkaddress.cache.ttl=1" -e ENVIRONMENT=${environment} -e ELASTICSEARCH_URL=logstash.internal -v /logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml -v /logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf -v /logstash/config/secrets:/usr/share/logstash/config/secrets -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
+  - sudo -u ubuntu docker run -d --name=logstash --restart unless-stopped --net=host -p 5044:5044 -e LS_JAVA_OPTS="-Dnetworkaddress.cache.ttl=1" -e ENVIRONMENT=${environment} -e ELASTICSEARCH_URL=https://logstash.service.terraform.consul:9200 -v /logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml -v /logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf -v /logstash/config/secrets:/usr/share/logstash/config/secrets -v /logstash/logs:/usr/share/logstash/logs docker.elastic.co/logstash/logstash:${logstash_version}
   - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
+  - sudo sed -e 's/$HOST_IP_ADDRESS/'$HOST_IP_ADDRESS'/g' /tmp/10-consul > /etc/dnsmasq.d/10-consul
+  - sudo service dnsmasq restart
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
@@ -77,7 +79,7 @@ write_files:
     content: |
         {
             "services": [{
-                "name": "elasticsearch-query",
+                "name": "elasticsearch-logstash-http",
                 "tags": [
                     "https", "query"
                 ],
@@ -90,7 +92,7 @@ write_files:
                     "interval": "60s"
                 }]
             },{
-                "name": "elasticsearch-index",
+                "name": "elasticsearch-logstash-tcp",
                 "tags": [
                     "tcp", "index"
                 ],
@@ -139,29 +141,65 @@ write_files:
         filter {
           grok {
             match => {
-              "message" => "%{SYSLOGTIMESTAMP:timestamp} %{DATA:hostname} Docker/%{WORD:container_name}\[%{DATA:image_name}:%{DATA:container_version}\]\(%{DATA:container_id}\)\[%{NUMBER:container_pid}\]: %{DATA:message}"
+              "message" => [ "%{SYSLOGTIMESTAMP:[system][syslog][timestamp]} %{SYSLOGHOST:[system][syslog][hostname]} Docker/%{WORD:[docker][container][name]}\[%{DATA:[docker][image][name]}:%{DATA:[docker][image][version]}\]\(%{DATA:[docker][container][id]}\)\[%{NUMBER:[docker][container][pid]}\]: %{GREEDYMULTILINE:[system][syslog][message]}" ]
             }
-            overwrite => [ "message" ]
+            pattern_definitions => {
+              "GREEDYMULTILINE" => "(.|\n)*"
+            }
+            remove_field => "message"
             add_field => {
               "environment" => "$${ENVIRONMENT}"
-              "timestamp" => "%{timestamp}"
-              "hostname" => "%{hostname}"
-              "container_name" => "%{container_name}"
-              "container_version" => "%{container_version}"
-              "container_id" => "%{container_id}"
-              "container_pid" => "%{container_pid}"
+            }
+          }
+          date {
+            match => [ "[system][syslog][timestamp]", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+          }
+        }
+        filter {
+          grok {
+            match => {
+              "message" => [ "%{SYSLOGTIMESTAMP:[system][syslog][timestamp]} %{SYSLOGHOST:[system][syslog][hostname]} %{DATA:[system][syslog][program]}(?:\[%{POSINT:[system][syslog][pid]}\])?: %{GREEDYMULTILINE:[system][syslog][message]}" ]
+            }
+            pattern_definitions => {
+              "GREEDYMULTILINE" => "(.|\n)*"
+            }
+            remove_field => "message"
+            add_field => {
+              "environment" => "$${ENVIRONMENT}"
+            }
+          }
+          date {
+            match => [ "[system][syslog][timestamp]", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+          }
+        }
+        filter {
+          grok {
+            match => { "message" => ["%{IPORHOST:[nginx][access][remote_ip]} - %{DATA:[nginx][access][user_name]} \[%{HTTPDATE:[nginx][access][time]}\] \"%{WORD:[nginx][access][method]} %{DATA:[nginx][access][url]} HTTP/%{NUMBER:[nginx][access][http_version]}\" %{NUMBER:[nginx][access][response_code]} %{NUMBER:[nginx][access][body_sent][bytes]} \"%{DATA:[nginx][access][referrer]}\" \"%{DATA:[nginx][access][agent]}\""] }
+            remove_field => "message"
+            add_field => {
+              "environment" => "$${ENVIRONMENT}"
+            }
+          }
+        }
+        filter {
+          grok {
+            match => { "message" => ["%{DATA:[nginx][error][time]} \[%{DATA:[nginx][error][level]}\] %{NUMBER:[nginx][error][pid]}#%{NUMBER:[nginx][error][tid]}: (\*%{NUMBER:[nginx][error][connection_id]} )?%{GREEDYDATA:[nginx][error][message]}"] }
+            remove_field => "message"
+            add_field => {
+              "environment" => "$${ENVIRONMENT}"
             }
           }
         }
         output {
           elasticsearch {
-            hosts => ["https://$${ELASTICSEARCH_URL}:9200"]
+            hosts => ["$${ELASTICSEARCH_URL}"]
             user => "elastic"
             password => "${elasticsearch_password}"
             manage_template => false
             index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
             document_type => "%{[@metadata][type]}"
             ssl => true
+            ssl_certificate_verification => true
             cacert => "/usr/share/logstash/config/secrets/ca_cert.pem"
           }
         }
@@ -169,7 +207,7 @@ write_files:
     permissions: '0644'
     content: |
         path.config: "/usr/share/logstash/pipeline"
-        xpack.monitoring.elasticsearch.url: "https://$${ELASTICSEARCH_URL}:9200"
+        xpack.monitoring.elasticsearch.url: "$${ELASTICSEARCH_URL}"
         xpack.monitoring.elasticsearch.username: "logstash_system"
         xpack.monitoring.elasticsearch.password: "${logstash_password}"
         xpack.monitoring.elasticsearch.ssl.ca: "/usr/share/logstash/config/secrets/ca_cert.pem"
@@ -182,7 +220,7 @@ write_files:
           - /var/log/docker
 
         output.logstash:
-          hosts: ["${logstash_host}:5044"]
+          hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]
           ssl.certificate: "/filebeat/config/secrets/filebeat_cert.pem"
           ssl.key: "/filebeat/config/secrets/filebeat_key.pem"
@@ -207,3 +245,7 @@ write_files:
         bootstrap.memory_lock: true
         discovery.zen.ping.unicast.hosts: "${elasticsearch_nodes}"
         discovery.zen.minimum_master_nodes: ${minimum_master_nodes}
+  - path: /tmp/10-consul
+    permissions: '0644'
+    content: |
+        server=/consul/$HOST_IP_ADDRESS#8600
