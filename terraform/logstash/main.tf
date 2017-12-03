@@ -93,16 +93,22 @@ data "template_file" "logstash_server_user_data" {
     aws_region              = "${var.aws_region}"
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
     security_groups         = "${aws_security_group.logstash_server.id}"
-    elasticsearch_host      = "elasticsearch.${var.hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
     hosted_zone_name        = "${var.hosted_zone_name}"
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
+    cluster_name            = "${var.elasticsearch_cluster_name}"
+    elasticsearch_version   = "${var.elasticsearch_version}"
     logstash_version        = "${var.logstash_version}"
     filebeat_version        = "${var.filebeat_version}"
+    minimum_master_nodes    = "${var.minimum_master_nodes}"
+    elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
+    logstash_password       = "${var.logstash_password}"
+    elasticsearch_password  = "${var.elasticsearch_password}"
   }
 }
 
@@ -122,6 +128,14 @@ resource "aws_iam_role" "logstash_server_role" {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -145,6 +159,13 @@ resource "aws_iam_role_policy" "logstash_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+        "Action": [
+            "s3:GetObject"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
@@ -209,20 +230,4 @@ resource "aws_instance" "logstash_server_b" {
     Name = "logstash-server-b"
     Stream = "${var.stream_tag}"
   }
-}
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "logstash" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "logstash.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-
-   records = [
-     "${aws_instance.logstash_server_a.private_ip}",
-     "${aws_instance.logstash_server_b.private_ip}"
-   ]
 }

@@ -96,3 +96,143 @@ resource "aws_s3_bucket_object" "nginx-ca-certificate" {
   source = "environments/production/nginx/ca_cert.pem"
   etag   = "${md5(file("environments/production/nginx/ca_cert.pem"))}"
 }
+
+resource "aws_s3_bucket_object" "consul-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/consul/ca_cert.pem"
+  source = "environments/production/consul/ca_cert.pem"
+  etag   = "${md5(file("environments/production/consul/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "consul-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/consul/server_cert.pem"
+  source = "environments/production/consul/server_cert.pem"
+  etag   = "${md5(file("environments/production/consul/server_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "consul-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/consul/server_key.pem"
+  source = "environments/production/consul/server_key.pem"
+  etag   = "${md5(file("environments/production/consul/server_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "filebeat-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/filebeat/ca_cert.pem"
+  source = "environments/production/filebeat/ca_cert.pem"
+  etag   = "${md5(file("environments/production/filebeat/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "filebeat-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/filebeat/filebeat_cert.pem"
+  source = "environments/production/filebeat/filebeat_cert.pem"
+  etag   = "${md5(file("environments/production/filebeat/filebeat_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "filebeat-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/filebeat/filebeat_key.pem"
+  source = "environments/production/filebeat/filebeat_key.pem"
+  etag   = "${md5(file("environments/production/filebeat/filebeat_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "filebeat-private-key-k8" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/filebeat/filebeat_key.pkcs8"
+  source = "environments/production/filebeat/filebeat_key.pkcs8"
+  etag   = "${md5(file("environments/production/filebeat/filebeat_key.pkcs8"))}"
+}
+
+resource "aws_s3_bucket_object" "kibana-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/kibana/ca_cert.pem"
+  source = "environments/production/kibana/ca_cert.pem"
+  etag   = "${md5(file("environments/production/kibana/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "kibana-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/kibana/kibana_cert.pem"
+  source = "environments/production/kibana/kibana_cert.pem"
+  etag   = "${md5(file("environments/production/kibana/kibana_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "kibana-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/kibana/kibana_key.pem"
+  source = "environments/production/kibana/kibana_key.pem"
+  etag   = "${md5(file("environments/production/kibana/kibana_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "kibana-private-key-k8" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/kibana/kibana_key.pkcs8"
+  source = "environments/production/kibana/kibana_key.pkcs8"
+  etag   = "${md5(file("environments/production/kibana/kibana_key.pkcs8"))}"
+}
+
+resource "aws_s3_bucket_object" "logstash-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/logstash/ca_cert.pem"
+  source = "environments/production/logstash/ca_cert.pem"
+  etag   = "${md5(file("environments/production/logstash/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "logstash-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/logstash/logstash_cert.pem"
+  source = "environments/production/logstash/logstash_cert.pem"
+  etag   = "${md5(file("environments/production/logstash/logstash_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "logstash-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/logstash/logstash_key.pem"
+  source = "environments/production/logstash/logstash_key.pem"
+  etag   = "${md5(file("environments/production/logstash/logstash_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "logstash-private-key-k8" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/logstash/logstash_key.pkcs8"
+  source = "environments/production/logstash/logstash_key.pkcs8"
+  etag   = "${md5(file("environments/production/logstash/logstash_key.pkcs8"))}"
+}
+
+resource "aws_s3_bucket_object" "elasticsearch-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/elasticsearch/ca_cert.pem"
+  source = "environments/production/elasticsearch/ca_cert.pem"
+  etag   = "${md5(file("environments/production/elasticsearch/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "elasticsearch-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/elasticsearch/elasticsearch_cert.pem"
+  source = "environments/production/elasticsearch/elasticsearch_cert.pem"
+  etag   = "${md5(file("environments/production/elasticsearch/elasticsearch_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "elasticsearch-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/elasticsearch/elasticsearch_key.pem"
+  source = "environments/production/elasticsearch/elasticsearch_key.pem"
+  etag   = "${md5(file("environments/production/elasticsearch/elasticsearch_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "elasticsearch-private-key-k8" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/elasticsearch/elasticsearch_key.pkcs8"
+  source = "environments/production/elasticsearch/elasticsearch_key.pkcs8"
+  etag   = "${md5(file("environments/production/elasticsearch/elasticsearch_key.pkcs8"))}"
+}
+
+resource "aws_s3_bucket_object" "jenkins-keystore" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/jenkins/keystore.jks"
+  source = "environments/production/jenkins/keystore.jks"
+  etag   = "${md5(file("environments/production/jenkins/keystore.jks"))}"
+}

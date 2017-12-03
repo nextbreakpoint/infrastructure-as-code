@@ -6,13 +6,16 @@
 *.cer
 *.pem
 *.pub
+*.pkcs8
 *.tf.bkp
 *.tfstate
 *.tfstate.backup
 config_vars.json
 config.tfvars
+consul.tfvars
 terraform.tfstate*
 .terraform
 network_vars.json
 /secrets
 **/*ftplan
+docker/consul/output

@@ -17,3 +17,6 @@ cd $DIR/packer/base && pk_create
 
 # Create Kubernetes image
 cd $DIR/packer/kubernetes && pk_create
+
+# Create ECS image
+cd $DIR/packer/ecs && pk_create

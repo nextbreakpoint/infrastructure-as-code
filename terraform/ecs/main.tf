@@ -119,6 +119,14 @@ resource "aws_iam_role" "ecs_server_role" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -155,6 +163,13 @@ resource "aws_iam_role_policy" "ecs_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+        "Action": [
+            "s3:GetObject"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
@@ -169,12 +184,15 @@ data "template_file" "ecs_launch_user_data" {
   template = "${file("provision/cluster.tpl")}"
 
   vars {
-    cluster_name        = "${aws_ecs_cluster.services.name}"
-    consul_datacenter   = "${var.consul_datacenter}"
-    consul_hostname     = "${var.consul_record}.${var.hosted_zone_name}"
-    consul_log_file     = "${var.consul_log_file}"
-    logstash_host       = "logstash.${var.hosted_zone_name}"
-    filebeat_version    = "${var.filebeat_version}"
+    environment             = "${var.environment}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    cluster_name            = "${aws_ecs_cluster.services.name}"
+    consul_secret           = "${var.consul_secret}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file         = "${var.consul_log_file}"
+    logstash_host           = "logstash.${var.hosted_zone_name}"
+    filebeat_version        = "${var.filebeat_version}"
   }
 }
 
@@ -183,7 +201,7 @@ data "aws_ami" "ecs_cluster" {
 
   filter {
     name = "name"
-    values = ["amzn-ami-2017.03.f-amazon-ecs-optimized"]
+    values = ["ecs-${var.base_version}-*"]
   }
 
   filter {

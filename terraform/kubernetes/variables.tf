@@ -112,6 +112,10 @@ variable "kubernetes_elb_private_key_path" {
 # Consul configuration below
 ###################################################################
 
+### MANDATORY ###
+variable "consul_secret" {
+}
+
 variable "consul_record" {
   default = "consul"
 }

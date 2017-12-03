@@ -86,7 +86,9 @@ data "template_file" "kafka_server_user_data_a" {
     broker_id               = "1"
     aws_region              = "${var.aws_region}"
     security_groups         = "${aws_security_group.kafka_server.id}"
+    environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
@@ -107,7 +109,9 @@ data "template_file" "kafka_server_user_data_b" {
     broker_id               = "2"
     aws_region              = "${var.aws_region}"
     security_groups         = "${aws_security_group.kafka_server.id}"
+    environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
@@ -128,7 +132,9 @@ data "template_file" "kafka_server_user_data_c" {
     broker_id               = "3"
     aws_region              = "${var.aws_region}"
     security_groups         = "${aws_security_group.kafka_server.id}"
+    environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
@@ -161,6 +167,14 @@ resource "aws_iam_role" "kafka_server_role" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -181,6 +195,13 @@ resource "aws_iam_role_policy" "kafka_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+        "Action": [
+            "s3:GetObject"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
@@ -267,21 +288,4 @@ resource "aws_instance" "kafka_server_c" {
     Name = "kafka-server-c"
     Stream = "${var.stream_tag}"
   }
-}
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "kafka" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "kafka.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-
-   records = [
-     "${aws_instance.kafka_server_a.private_ip}",
-     "${aws_instance.kafka_server_b.private_ip}",
-     "${aws_instance.kafka_server_c.private_ip}"
-   ]
 }

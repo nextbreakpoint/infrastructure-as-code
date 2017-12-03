@@ -61,6 +61,13 @@ resource "aws_security_group" "pipeline_server" {
   }
 
   ingress {
+    from_port = 8443
+    to_port = 8443
+    protocol = "tcp"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
     from_port = 8081
     to_port = 8081
     protocol = "tcp"
@@ -111,22 +118,26 @@ data "template_file" "pipeline_server_user_data" {
   template = "${file("provision/pipeline.tpl")}"
 
   vars {
-    aws_region              = "${var.aws_region}"
-    environment             = "${var.environment}"
-    bucket_name             = "${var.secrets_bucket_name}"
-    consul_datacenter       = "${var.consul_datacenter}"
-    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
-    consul_log_file         = "${var.consul_log_file}"
-    security_groups         = "${aws_security_group.pipeline_server.id}"
-    hosted_zone_name        = "${var.hosted_zone_name}"
-    public_hosted_zone_name = "${var.public_hosted_zone_name}"
-    logstash_host           = "logstash.${var.hosted_zone_name}"
-    volume_name             = "${var.volume_name}"
-    filebeat_version        = "${var.filebeat_version}"
-    jenkins_version         = "${var.jenkins_version}"
-    sonarqube_version       = "${var.sonarqube_version}"
-    artifactory_version     = "${var.artifactory_version}"
-    mysqlconnector_version  = "${var.mysqlconnector_version}"
+    aws_region                    = "${var.aws_region}"
+    environment                   = "${var.environment}"
+    bucket_name                   = "${var.secrets_bucket_name}"
+    consul_secret                 = "${var.consul_secret}"
+    consul_datacenter             = "${var.consul_datacenter}"
+    consul_hostname               = "${var.consul_record}.${var.hosted_zone_name}"
+    consul_log_file               = "${var.consul_log_file}"
+    security_groups               = "${aws_security_group.pipeline_server.id}"
+    hosted_zone_name              = "${var.hosted_zone_name}"
+    public_hosted_zone_name       = "${var.public_hosted_zone_name}"
+    logstash_host                 = "logstash.${var.hosted_zone_name}"
+    volume_name                   = "${var.volume_name}"
+    filebeat_version              = "${var.filebeat_version}"
+    jenkins_version               = "${var.jenkins_version}"
+    sonarqube_version             = "${var.sonarqube_version}"
+    artifactory_version           = "${var.artifactory_version}"
+    mysqlconnector_version        = "${var.mysqlconnector_version}"
+    mysql_root_password           = "${var.mysql_root_password}"
+    mysql_sonarqube_password      = "${var.mysql_sonarqube_password}"
+    mysql_artifactory_password    = "${var.mysql_artifactory_password}"
   }
 }
 
@@ -146,6 +157,14 @@ resource "aws_iam_role" "pipeline_server_role" {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -169,6 +188,13 @@ resource "aws_iam_role_policy" "pipeline_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+        "Action": [
+            "s3:GetObject"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
@@ -219,40 +245,4 @@ resource "aws_instance" "pipeline_server_a" {
     Name = "pipeline-server-a"
     Stream = "${var.stream_tag}"
   }
-}
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "mysql" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "mysql.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
-}
-
-resource "aws_route53_record" "jenkins" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "jenkins.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
-}
-
-resource "aws_route53_record" "sonarqube" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "sonarqube.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
-}
-
-resource "aws_route53_record" "artifactory" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "artifactory.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-  records = ["${aws_instance.pipeline_server_a.*.private_ip}"]
 }

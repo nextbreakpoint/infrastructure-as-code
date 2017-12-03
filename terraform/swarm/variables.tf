@@ -49,6 +49,10 @@ variable "hosted_zone_name" {
 }
 
 ### MANDATORY ###
+variable "public_hosted_zone_id" {
+}
+
+### MANDATORY ###
 variable "public_hosted_zone_name" {
 }
 
@@ -71,6 +75,11 @@ variable "aws_network_private_subnet_cidr_b" {
 }
 
 ### MANDATORY ###
+variable "aws_network_private_subnet_cidr_c" {
+  description = "Private subnet C cidr block"
+}
+
+### MANDATORY ###
 variable "account_id" {
 }
 
@@ -84,7 +93,7 @@ variable "secrets_bucket_name" {
 }
 
 ###################################################################
-# Elasticsearch configuration below
+# Swarm configuration below
 ###################################################################
 
 ### MANDATORY ###
@@ -95,33 +104,8 @@ variable "base_version" {
 variable "filebeat_version" {
 }
 
-### MANDATORY ###
-variable "elasticsearch_version" {
-}
-
-variable "elasticsearch_instance_type" {
-  default = "t2.medium"
-}
-
-### MANDATORY ###
-variable "elasticsearch_cluster_name" {
-  description = "Elasticsearch cluster name"
-}
-
-variable "minimum_master_nodes" {
-  default = "2"
-}
-
-### MANDATORY ###
-variable "kibana_password" {
-}
-
-### MANDATORY ###
-variable "logstash_password" {
-}
-
-### MANDATORY ###
-variable "elasticsearch_password" {
+variable "swarm_instance_type" {
+  default  = "t2.medium"
 }
 
 ###################################################################

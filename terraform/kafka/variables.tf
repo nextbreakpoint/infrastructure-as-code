@@ -104,6 +104,10 @@ variable "kafka_instance_type" {
 # Consul configuration below
 ###################################################################
 
+### MANDATORY ###
+variable "consul_secret" {
+}
+
 variable "consul_record" {
   default = "consul"
 }

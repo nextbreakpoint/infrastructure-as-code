@@ -65,6 +65,15 @@ Create a file config.tfvars like this:
     # Secrets bucket
     secrets_bucket_name="secrets_bucket_name"
 
+    # Usernames and passwords
+    mysql_root_password="your_password"
+    mysql_sonarqube_password="your_password"
+    mysql_artifactory_password="your_password"
+
+    kibana_password="your_password"
+    logstash_password="your_password"
+    elasticsearch_password="your_password"
+
 Create a file config_vars.json like this:
 
     {
@@ -203,17 +212,3 @@ Integrate your build pipeline with Artifactory and manage your artifacts:
 Deploy your application in ECS or EC2. You can manually deploy your application or create your own scripts.
 Your application might use ZooKeeper, Kafka, Cassandra clusters or it might use any other resource reachable
 from a subnet.
-
-ZooKeeper, Kafka and Cassandra are reachable using the private hostname:
-
-    zookeeper.internal
-    cassandra.internal
-    kafka.internal
-
-Ship your logs to Logstash. Logstash is reachable using the private hostname:
-
-    logstash.internal
-
-Monitor your services using Consul. Consul is reachable using the private hostname:
-
-    consul.internal

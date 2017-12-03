@@ -86,10 +86,6 @@ resource "aws_security_group" "kibana_server" {
   }
 }
 
-data "template_file" "kibana_server_filebeat_index" {
-  template = "${file("provision/filebeat-index.json")}"
-}
-
 data "template_file" "kibana_server_user_data" {
   template = "${file("provision/kibana.tpl")}"
 
@@ -97,21 +93,21 @@ data "template_file" "kibana_server_user_data" {
     aws_region              = "${var.aws_region}"
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
     security_groups         = "${aws_security_group.kibana_server.id}"
-    minimum_master_nodes    = "${var.minimum_master_nodes}"
     hosted_zone_name        = "${var.hosted_zone_name}"
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
-    elasticsearch_host      = "elasticsearch.${var.hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
     cluster_name            = "${var.elasticsearch_cluster_name}"
     elasticsearch_version   = "${var.elasticsearch_version}"
     filebeat_version        = "${var.filebeat_version}"
     kibana_version          = "${var.kibana_version}"
-    filebeat_index          = "${data.template_file.kibana_server_filebeat_index.rendered}"
+    minimum_master_nodes    = "${var.minimum_master_nodes}"
     elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
+    kibana_password         = "${var.kibana_password}"
   }
 }
 
@@ -131,6 +127,14 @@ resource "aws_iam_role" "kibana_server_role" {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -154,6 +158,13 @@ resource "aws_iam_role_policy" "kibana_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+        "Action": [
+            "s3:GetObject"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
@@ -198,39 +209,24 @@ resource "aws_instance" "kibana_server_a" {
   }
 }
 
-resource "aws_instance" "kibana_server_b" {
-  instance_type = "${var.kibana_instance_type}"
-
-  ami = "${data.aws_ami.kibana.id}"
-
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
-  associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.kibana_server.id}"]
-  key_name = "${var.key_name}"
-
-  iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.name}"
-
-  user_data = "${data.template_file.kibana_server_user_data.rendered}"
-
-  private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "40")}"
-
-  tags {
-    Name = "kibana-server-b"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "kibana_dns" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "kibana.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-
-  records = [
-    "${aws_instance.kibana_server_a.private_ip}"
-  ]
-}
+# resource "aws_instance" "kibana_server_b" {
+#   instance_type = "${var.kibana_instance_type}"
+#
+#   ami = "${data.aws_ami.kibana.id}"
+#
+#   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+#   associate_public_ip_address = "false"
+#   security_groups = ["${aws_security_group.kibana_server.id}"]
+#   key_name = "${var.key_name}"
+#
+#   iam_instance_profile = "${aws_iam_instance_profile.kibana_server_profile.name}"
+#
+#   user_data = "${data.template_file.kibana_server_user_data.rendered}"
+#
+#   private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "40")}"
+#
+#   tags {
+#     Name = "kibana-server-b"
+#     Stream = "${var.stream_tag}"
+#   }
+# }

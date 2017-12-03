@@ -84,6 +84,14 @@ resource "aws_iam_role" "kubernetes_server_role" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -131,6 +139,7 @@ data "template_file" "kubernetes_launch_user_data_master_a" {
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     security_groups         = "${aws_security_group.kubernetes_server.id}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
@@ -152,6 +161,7 @@ data "template_file" "kubernetes_launch_user_data_master_b" {
     bucket_name             = "${var.secrets_bucket_name}"
     security_groups         = "${aws_security_group.kubernetes_server.id}"
     consul_datacenter       = "${var.consul_datacenter}"
+    consul_secret           = "${var.consul_secret}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
     hosted_zone_name        = "${var.hosted_zone_name}"
@@ -171,6 +181,7 @@ data "template_file" "kubernetes_launch_user_data_node_a" {
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     security_groups         = "${aws_security_group.kubernetes_server.id}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
@@ -192,6 +203,7 @@ data "template_file" "kubernetes_launch_user_data_node_b" {
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     security_groups         = "${aws_security_group.kubernetes_server.id}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
@@ -478,15 +490,4 @@ resource "aws_route53_record" "kubernetes_elb" {
     zone_id = "${aws_elb.kubernetes_elb.zone_id}"
     evaluate_target_health = true
   }
-}
-
-resource "aws_route53_record" "kubernetes_dns" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "kubernetes.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "300"
-
-  records = [
-    "${aws_instance.kubernetes_server_a.private_ip}"
-  ]
 }

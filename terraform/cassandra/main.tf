@@ -126,6 +126,14 @@ resource "aws_iam_role" "cassandra_server_role" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -146,6 +154,13 @@ resource "aws_iam_role_policy" "cassandra_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+        "Action": [
+            "s3:GetObject"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
@@ -157,10 +172,12 @@ data "template_file" "cassandra_server_user_data_seed" {
 
   vars {
     security_groups         = "${aws_security_group.cassandra_server.id}"
+    environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
+    consul_secret           = "${var.consul_secret}"
     hosted_zone_name        = "${var.hosted_zone_name}"
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
@@ -175,10 +192,12 @@ data "template_file" "cassandra_server_user_data_node" {
 
   vars {
     security_groups         = "${aws_security_group.cassandra_server.id}"
+    environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
+    consul_secret           = "${var.consul_secret}"
     hosted_zone_name        = "${var.hosted_zone_name}"
     public_hosted_zone_name = "${var.public_hosted_zone_name}"
     logstash_host           = "logstash.${var.hosted_zone_name}"
@@ -334,24 +353,4 @@ resource "aws_instance" "cassandra_server_c2" {
     Name = "cassandra-server-c2"
     Stream = "${var.stream_tag}"
   }
-}
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "cassandra" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "cassandra.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-
-   records = [
-     "${aws_instance.cassandra_server_a1.private_ip}",
-     "${aws_instance.cassandra_server_b1.private_ip}",
-     "${aws_instance.cassandra_server_c1.private_ip}",
-     "${aws_instance.cassandra_server_a2.private_ip}",
-     "${aws_instance.cassandra_server_b2.private_ip}",
-     "${aws_instance.cassandra_server_c2.private_ip}"
-   ]
 }

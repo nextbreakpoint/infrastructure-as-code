@@ -86,6 +86,7 @@ data "template_file" "elasticsearch_server_user_data" {
     aws_region              = "${var.aws_region}"
     environment             = "${var.environment}"
     bucket_name             = "${var.secrets_bucket_name}"
+    consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
     consul_log_file         = "${var.consul_log_file}"
@@ -99,6 +100,9 @@ data "template_file" "elasticsearch_server_user_data" {
     filebeat_version        = "${var.filebeat_version}"
     elasticsearch_version   = "${var.elasticsearch_version}"
     elasticsearch_nodes     = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
+    kibana_password         = "${var.kibana_password}"
+    logstash_password       = "${var.logstash_password}"
+    elasticsearch_password  = "${var.elasticsearch_password}"
   }
 }
 
@@ -118,6 +122,14 @@ resource "aws_iam_role" "elasticsearch_server_role" {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -141,6 +153,13 @@ resource "aws_iam_role_policy" "elasticsearch_server_role_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+        "Action": [
+            "s3:GetObject"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
     }
   ]
 }
@@ -310,20 +329,4 @@ resource "aws_autoscaling_group" "elasticsearch_asg_b" {
   timeouts {
     delete = "15m"
   }
-}
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "elasticsearch" {
-   zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-   name = "elasticsearch.${var.hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-
-   records = [
-     "${aws_instance.elasticsearch_server_a.private_ip}",
-     "${aws_instance.elasticsearch_server_b.private_ip}"
-   ]
 }

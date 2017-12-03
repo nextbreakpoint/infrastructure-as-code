@@ -49,11 +49,34 @@ variable "aws_network_vpc_cidr" {
 }
 
 ### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_c" {
+  description = "Private subnet C cidr block"
+}
+
+### MANDATORY ###
 variable "base_version" {
 }
 
 ### MANDATORY ###
 variable "account_id" {
+}
+
+variable "environment" {
+  default = "production"
+}
+
+### MANDATORY ###
+variable "secrets_bucket_name" {
 }
 
 ###################################################################
@@ -62,6 +85,14 @@ variable "account_id" {
 
 ### MANDATORY ###
 variable "filebeat_version" {
+}
+
+### MANDATORY ###
+variable "consul_secret" {
+}
+
+### MANDATORY ###
+variable "consul_master_token" {
 }
 
 variable "consul_instance_type" {
