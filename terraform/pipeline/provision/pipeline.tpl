@@ -69,7 +69,7 @@ write_files:
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "encrypt": "${consul_secret}",
-          "retry_join": ["${consul_hostname}"],
+          "retry_join": ["${element(split(",", consul_nodes), 0)}","${element(split(",", consul_nodes), 1)}","${element(split(",", consul_nodes), 2)}"],
           "datacenter": "${consul_datacenter}",
           "dns_config": {
             "allow_stale": true,

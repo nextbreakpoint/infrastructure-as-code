@@ -59,7 +59,7 @@ write_files:
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "encrypt": "${consul_secret}",
-          "retry_join": ["${consul_hostname}"],
+          "retry_join": ["${element(split(",", consul_nodes), 0)}","${element(split(",", consul_nodes), 1)}","${element(split(",", consul_nodes), 2)}"],
           "datacenter": "${consul_datacenter}",
           "dns_config": {
             "allow_stale": true,
@@ -113,7 +113,7 @@ write_files:
                     "id": "1",
                     "name": "Elasticsearch TCP",
                     "notes": "Use nc to check the tcp port every 60 seconds",
-                    "script": "nc -zv $HOST_IP_ADDRESS 9300 >/dev/null 2>&1 ",
+                    "script": "nc -zv $HOST_IP_ADDRESS 9300 >/dev/null 2>&1",
                     "interval": "60s"
                 }]
             }]

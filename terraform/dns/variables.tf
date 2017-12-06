@@ -64,10 +64,13 @@ variable "aws_network_private_subnet_cidr_c" {
 }
 
 ### MANDATORY ###
-variable "account_id" {
+variable "base_version" {
 }
 
 ### MANDATORY ###
+variable "account_id" {
+}
+
 variable "environment" {
   default = "production"
 }
@@ -76,63 +79,6 @@ variable "environment" {
 variable "secrets_bucket_name" {
 }
 
-###################################################################
-# Logstash configuration below
-###################################################################
-
-### MANDATORY ###
-variable "base_version" {
-}
-
-### MANDATORY ###
-variable "filebeat_version" {
-}
-
-### MANDATORY ###
-variable "logstash_version" {
-}
-
-### MANDATORY ###
-variable "elasticsearch_version" {
-}
-
-variable "logstash_instance_type" {
-  default = "t2.small"
-}
-
-### MANDATORY ###
-variable "elasticsearch_cluster_name" {
-  description = "Elasticsearch cluster name"
-}
-
-variable "minimum_master_nodes" {
-  default = "2"
-}
-
-### MANDATORY ###
-variable "logstash_password" {
-}
-
-### MANDATORY ###
-variable "elasticsearch_password" {
-}
-
-###################################################################
-# Consul configuration below
-###################################################################
-
-### MANDATORY ###
-variable "consul_secret" {
-}
-
-variable "consul_record" {
-  default = "consul"
-}
-
 variable "consul_datacenter" {
   default = "terraform"
-}
-
-variable "consul_logfile" {
-  default = "/var/log/consul.log"
 }

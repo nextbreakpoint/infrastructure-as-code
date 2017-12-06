@@ -117,8 +117,8 @@ data "template_file" "consul_server_user_data" {
     consul_secret           = "${var.consul_secret}"
     consul_datacenter       = "${var.consul_datacenter}"
     consul_master_token     = "${var.consul_master_token}"
-    consul_hostname         = "${var.consul_record}.${var.hosted_zone_name}"
-    consul_log_file         = "${var.consul_log_file}"
+    consul_nodes            = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
+    consul_logfile          = "${var.consul_logfile}"
     consul_bootstrap_expect = "3"
     log_group_name          = "${var.log_group_name}"
     log_stream_name         = "${var.log_stream_name}"
@@ -258,21 +258,4 @@ module "consul_servers_c" {
   bastion_host = "bastion.${var.public_hosted_zone_name}"
   instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
   private_ip = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
-}
-
-##############################################################################
-# Route 53
-##############################################################################
-
-resource "aws_route53_record" "consul_dns" {
-  zone_id = "${data.terraform_remote_state.vpc.hosted-zone-id}"
-  name = "${var.consul_record}.${var.hosted_zone_name}"
-  type = "A"
-  ttl = "60"
-
-  records = [
-    "${module.consul_servers_a.private-ips}",
-    "${module.consul_servers_b.private-ips}",
-    "${module.consul_servers_c.private-ips}"
-  ]
 }

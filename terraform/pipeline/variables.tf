@@ -148,6 +148,6 @@ variable "consul_datacenter" {
   default = "terraform"
 }
 
-variable "consul_log_file" {
+variable "consul_logfile" {
   default = "/var/log/consul.log"
 }

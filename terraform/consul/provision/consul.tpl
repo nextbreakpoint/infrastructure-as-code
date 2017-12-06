@@ -32,7 +32,7 @@ write_files:
           "cert_file": "/consul/config/secrets/server_cert.pem",
           "key_file": "/consul/config/secrets/server_key.pem",
           "encrypt": "${consul_secret}",
-          "retry_join": ["${consul_hostname}"],
+          "retry_join": ["${element(split(",", consul_nodes), 0)}","${element(split(",", consul_nodes), 1)}","${element(split(",", consul_nodes), 2)}"],
           "datacenter": "${consul_datacenter}",
           "bootstrap_expect": ${consul_bootstrap_expect},
           "enable_script_checks": true,
@@ -47,7 +47,21 @@ write_files:
           "ports": {
               "https": 8500,
               "http": -1
-          }
+          },
+          "services": [{
+              "name": "consul",
+              "tags": [
+                  "tcp", "dns"
+              ],
+              "port": 8600,
+              "checks": [{
+                  "id": "1",
+                  "name": "Consul DNS",
+                  "notes": "Use nc to check the dns service every 20 seconds",
+                  "script": "nc -zv $HOST_IP_ADDRESS 8600 >/dev/null 2>&1",
+                  "interval": "20s"
+              }]
+          }]
         }
   - path: /etc/docker/daemon.json
     permissions: '0644'
