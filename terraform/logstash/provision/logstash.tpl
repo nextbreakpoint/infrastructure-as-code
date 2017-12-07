@@ -139,12 +139,33 @@ write_files:
           }
         }
         filter {
-          if "syslog" in [tags] {
+          if ("syslog" in [tags]) {
             grok {
               match => {
-                "tags" =>
                 "message" => [
-                  "%{SYSLOGTIMESTAMP:[system][syslog][timestamp]} %{SYSLOGHOST:[system][syslog][hostname]} Docker/%{WORD:[docker][container][name]}\[%{DATA:[docker][image][name]}:%{DATA:[docker][image][version]}\]\(%{DATA:[docker][container][id]}\)\[%{NUMBER:[docker][container][pid]}\]: %{GREEDYMULTILINE:[system][syslog][message]}",
+                  "%{SYSLOGTIMESTAMP:[system][syslog][timestamp]} %{SYSLOGHOST:[system][syslog][hostname]} Docker/%{WORD:[docker][container][name]}\[%{DATA:[docker][image][name]}:%{DATA:[docker][image][version]}\]\(%{DATA:[docker][container][id]}\)\[%{NUMBER:[docker][container][pid]}\]: %{GREEDYMULTILINE:[system][syslog][message]}"
+                ]
+              }
+              remove_field => [ "message" ]
+              pattern_definitions => {
+                "GREEDYMULTILINE" => "(.|\n)*"
+              }
+              add_field => {
+                "environment" => "$${ENVIRONMENT}"
+                "[system][syslog][program]" => "Docker"
+                "[system][syslog][program]" => "%{[docker][container][pid]}"
+              }
+            }
+            date {
+              match => [ "[system][syslog][timestamp]", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+            }
+          }
+        }
+        filter {
+          if ("syslog" in [tags]) {
+            grok {
+              match => {
+                "message" => [
                   "%{SYSLOGTIMESTAMP:[system][syslog][timestamp]} %{SYSLOGHOST:[system][syslog][hostname]} %{DATA:[system][syslog][program]}(?:\[%{POSINT:[system][syslog][pid]}\])?: %{GREEDYMULTILINE:[system][syslog][message]}"
                 ]
               }
@@ -178,7 +199,7 @@ write_files:
               }
             }
             date {
-              match => [ "[nginx][access][time]", "DD/MMM/YYYY:HH:mm:ss ZZZ" ]
+              match => [ "[nginx][access][time]", "dd/MMM/yyyy:HH:mm:ss Z" ]
             }
           }
         }
@@ -199,43 +220,13 @@ write_files:
               }
             }
             date {
-              match => [ "[nginx][error][time]", "DD/MMM/YYYY:HH:mm:ss ZZZ" ]
+              match => [ "[nginx][error][time]", "dd/MMM/yyyy:HH:mm:ss Z" ]
             }
           }
         }
         filter {
           if ("ecs" in [tags] and "json" in [tags]) {
             grok {
-              match => {
-                "log" => [
-                  "[ ]*%{LOGDATE:[date]} %{TIME:[time]} %{GOROUTINE}: %{LOGLEVEL:[loglevel]} %{GREEDYMULTILINE:[message]}"
-                ]
-              }
-              remove_field => [ "log" ]
-              pattern_definitions => {
-                "LOGDATE" => "%{YEAR}[/]%{MONTHNUM}[/]%{MONTHDAY}"
-                "GOROUTINE" => "%{DATA:[golang][routine]}[.]go:%{INT:[golang][line]}"
-                "GREEDYMULTILINE" => "(.|\n)*"
-              }
-              add_field => {
-                "environment" => "$${ENVIRONMENT}"
-              }
-            }
-          }
-        }
-        filter {
-          if ("ecs" in [tags] and "json" in [tags]) {
-            grok {
-              match => {
-                "log" => [
-                  "[ ]*%{LOGDATE}T%{TIME:[time]}Z \[%{LOGLEVEL:[loglevel]}\] %{GREEDYMULTILINE:[message]}"
-                ]
-              }
-              remove_field => [ "log" ]
-              pattern_definitions => {
-                "LOGDATE" => "%{YEAR}[-]%{MONTHNUM}[-]%{MONTHDAY}"
-                "GREEDYMULTILINE" => "(.|\n)*"
-              }
               add_field => {
                 "environment" => "$${ENVIRONMENT}"
               }
