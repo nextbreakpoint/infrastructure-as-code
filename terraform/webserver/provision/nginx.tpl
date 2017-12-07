@@ -104,9 +104,17 @@ write_files:
         - input_type: log
           paths:
           - /var/log/docker
+          tags: ["nginx","syslog"]
+        - input_type: log
+          paths:
           - /var/log/nginx/access.log*
+          tags: ["nginx","access"]
+          exclude_files: [".gz$"]
+        - input_type: log
+          paths:
           - /var/log/nginx/error.log*
-        exclude_files: [".gz$"]
+          tags: ["nginx","error"]
+          exclude_files: [".gz$"]
         output.logstash:
           hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]

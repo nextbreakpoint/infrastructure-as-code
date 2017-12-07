@@ -52,7 +52,7 @@ runcmd:
   - sudo -u ubuntu docker run -d --name=sonarqube --restart unless-stopped --net=host -p 9000:9000 -p 9092:9092 -e SONARQUBE_JDBC_USERNAME=sonarqube -e SONARQUBE_JDBC_PASSWORD=${mysql_sonarqube_password} -e SONARQUBE_JDBC_URL="jdbc:mysql://$HOST_IP_ADDRESS/sonar?useUnicode=true&characterEncoding=utf8&useSSL=false" sonarqube:latest
   - sudo -u ubuntu docker run -d --name=artifactory --restart unless-stopped --net=host -p 8081:8081 -e DB_TYPE=mysql -e DB_HOST=$HOST_IP_ADDRESS -e DB_PORT=3306 -e DB_USER=artifactory -e DB_PASSWORD=${mysql_artifactory_password} -v /mysql-connector-java-${mysqlconnector_version}/mysql-connector-java-${mysqlconnector_version}-bin.jar:/opt/jfrog/artifactory/tomcat/lib/mysql-connector-java-${mysqlconnector_version}-bin.jar -v /pipeline/artifactory:/var/opt/jfrog/artifactory docker.bintray.io/jfrog/artifactory-oss:latest
   - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
-  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker filebeat:${filebeat_version}
+  - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/syslog filebeat:${filebeat_version}
   - sudo sed -e 's/$HOST_IP_ADDRESS/'$HOST_IP_ADDRESS'/g' /tmp/10-consul > /etc/dnsmasq.d/10-consul
   - sudo service dnsmasq restart
 write_files:
@@ -178,7 +178,8 @@ write_files:
         filebeat.prospectors:
         - input_type: log
           paths:
-          - /var/log/docker
+          - /var/log/syslog
+          tags: ["pipeline","syslog"]
 
         output.logstash:
           hosts: ["logstash.service.terraform.consul:5044"]

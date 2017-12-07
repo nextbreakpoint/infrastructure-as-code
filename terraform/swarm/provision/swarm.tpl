@@ -15,7 +15,7 @@ runcmd:
   - sudo docker run -d --name=consul --restart unless-stopped --net=host -e HOST_IP_ADDRESS=$HOST_IP_ADDRESS -v /consul/config:/consul/config consul:latest agent -bind=$HOST_IP_ADDRESS -client=$HOST_IP_ADDRESS -node=ecs-$HOST_IP_ADDRESS
   - sudo docker run -d --name=registrator --restart unless-stopped --net=host --volume=/var/run/docker.sock:/tmp/docker.sock gliderlabs/registrator:latest consul://$HOST_IP_ADDRESS:8500
   - sudo docker build -t filebeat:${filebeat_version} /filebeat/docker
-  - sudo docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/docker:/var/log/docker filebeat:${filebeat_version}
+  - sudo docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/docker:/var/log/syslog filebeat:${filebeat_version}
   - sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config_original
   - sudo sed -e 's/^Port 22$/Port 2200/' /etc/ssh/sshd_config_original >/etc/ssh/sshd_config
   - sudo service sshd restart
@@ -58,6 +58,7 @@ write_files:
         - input_type: log
           paths:
           - /var/log/docker
+          tags: ["swarm","syslog"]
 
         output.logstash:
           hosts: ["logstash.service.terraform.consul:5044"]
