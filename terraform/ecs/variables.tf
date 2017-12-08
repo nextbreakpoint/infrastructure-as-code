@@ -45,6 +45,21 @@ variable "aws_network_vpc_cidr" {
 }
 
 ### MANDATORY ###
+variable "aws_network_private_subnet_cidr_a" {
+  description = "Private subnet A cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_b" {
+  description = "Private subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_private_subnet_cidr_c" {
+  description = "Private subnet C cidr block"
+}
+
+### MANDATORY ###
 variable "account_id" {
 }
 
@@ -89,6 +104,6 @@ variable "consul_datacenter" {
   default = "terraform"
 }
 
-variable "consul_log_file" {
+variable "consul_logfile" {
   default = "/var/log/consul.log"
 }

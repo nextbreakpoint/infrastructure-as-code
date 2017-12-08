@@ -15,8 +15,5 @@ echo "{\"aws_vpc_id\":\"$VPC\",\"aws_subnet_id\":\"$SUBNET\"}" > network_vars.js
 # Create Base image
 cd $DIR/packer/base && pk_create
 
-# Create Kubernetes image
-cd $DIR/packer/kubernetes && pk_create
-
 # Create ECS image
 cd $DIR/packer/ecs && pk_create

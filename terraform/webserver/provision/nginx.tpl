@@ -37,7 +37,7 @@ write_files:
           "enable_script_checks": true,
           "leave_on_terminate": true,
           "encrypt": "${consul_secret}",
-          "retry_join": ["${consul_hostname}"],
+          "retry_join": ["${element(split(",", consul_nodes), 0)}","${element(split(",", consul_nodes), 1)}","${element(split(",", consul_nodes), 2)}"],
           "datacenter": "${consul_datacenter}",
           "dns_config": {
             "allow_stale": true,
@@ -104,9 +104,17 @@ write_files:
         - input_type: log
           paths:
           - /var/log/docker
+          tags: ["nginx","syslog"]
+        - input_type: log
+          paths:
           - /var/log/nginx/access.log*
+          tags: ["nginx","access"]
+          exclude_files: [".gz$"]
+        - input_type: log
+          paths:
           - /var/log/nginx/error.log*
-        exclude_files: [".gz$"]
+          tags: ["nginx","error"]
+          exclude_files: [".gz$"]
         output.logstash:
           hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]
@@ -175,7 +183,7 @@ write_files:
 
             location / {
                 resolver 127.0.0.1;
-                set $$upstream_consul consul.internal;
+                set $$upstream_consul consul.service.terraform.consul;
                 proxy_pass https://$$upstream_consul:8500$$request_uri;
                 proxy_redirect https://$$upstream_consul:8500 https://consul.${public_hosted_zone_name};
                 proxy_set_header Host $$host;
