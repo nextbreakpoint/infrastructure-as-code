@@ -2,7 +2,7 @@
 
 THIS PROJECT IS WORK IN PROGRESS
 
-This repository contains scripts for creating a production-ready cloud-based infrastructure for running micro services.
+This repository contains scripts for creating a production-ready cloud-based infrastructure for running micro-services.
 
 The scripts use several tools including Docker, Terraform and Packer, and they target AWS.
 
@@ -17,7 +17,7 @@ The generated infrastructure provides the following key components:
 - Consul for services discovery
 
 The scripts provided in this repository aim to automate a very complex process which involves several components and requires many steps.
-The ultimate goal is to be able to rapidly and reliably create a scalable and secure infrastructure for running micro services.
+The ultimate goal is to be able to rapidly and reliably create a scalable and secure infrastructure for running micro-services.
 
 ### Install tools and prepare environment
 
