@@ -2,34 +2,28 @@
 
 THIS PROJECT IS WORK IN PROGRESS
 
-This repository contains scripts for creating a production-ready
-cloud-based infrastructure for micro services.
+This repository contains scripts for creating a production-ready cloud-based infrastructure for running micro services.
 
-The scripts are based on Terraform and Packer and they target AWS.
+The scripts use several tools including Docker, Terraform and Packer, and they target AWS.
 
-The infrastructure provides key components such like:
+The generated infrastructure provides the following key components:
 
-- Logstash, Elasticsearch and Kibana for collecting and analysing logs
+- Logstash, Elasticsearch and Kibana for collecting and visualising logs
 
-- ZooKeeper, Cassandra and Kafka for creating reactive services with CQRS and event sourcing
+- Jenkins, SonarQube and Artifactory for creating a delivery pipeline
 
-- Jenkins, SonarQube and Artifactory for creating a continuous delivery pipeline
+- ECS for orchestrating Docker containers
 
 - Consul for services discovery
 
-- Kubernetes and ECS for orchestrating Docker containers
-
-## How to create the infrastructure
-
-The scripts provided in this repository aim to simplify a process which involves
-many steps and it requires some understanding of AWS platform and tools such
-like Terraform and Packer.
+The scripts provided in this repository aim to automate a very complex process which involves several components and requires many steps.
+The ultimate goal is to be able to rapidly and reliably create a scalable and secure infrastructure for running micro services.
 
 ### Install tools and prepare environment
 
 Before you start, you need to prepare your environment.
 
-Prepare your environment installing Terraform and Packer.
+Prepare your environment installing Docker, Terraform and Packer.
 
 Install the command line tool jq required to manipulate json.
 
@@ -37,15 +31,15 @@ Install the AWS command line tools. Follow instruction here https://aws.amazon.c
 
 You must have a valid AWS account. You can create a new account here https://aws.amazon.com.
 
-Configure your credentials according to AWS CLI documentation.
+    Configure your credentials according to AWS CLI documentation
 
-Check you have valid credentials in file ~/.aws/credentials:
+Check you have valid AWS credentials in file ~/.aws/credentials:
 
     [default]
     aws_access_key_id = ???
     aws_secret_access_key = ???
 
-Export your active profile:
+Export your active profile when you create a new terminal:
 
     export AWS_PROFILE=default
 
@@ -84,9 +78,10 @@ Create a file config_vars.json like this:
     }
 
 The domain yourdomain.com must be a domain hosted in a Route53 public zone.
-Create a new public zone and register a new domain if you don't have one already.
 
-### Configure remote state backend
+    Create a new public zone and register a new domain if you don't have one already
+
+### Configure Terraform backend
 
 Terraform requires a S3 Bucket to store the remote state.
 
@@ -96,23 +91,23 @@ Create a S3 bucket with the command:
 
 Please note that the bucket name must be unique among all S3 buckets.
 
-Once that the bucket has been created, execute the command:
+Once the bucket has been created, execute the command:
 
     sh config_bucket.sh your_bucket_name eu-west-1
 
 The script will set the bucket name and region in all remote_state.tf files.
 
-### Generate deployer key
+### Generate SSH key
 
 A keypair is required in order to access EC2 instances.
 
-For simplicity we will use the same keypair for all the remaining steps.
+For simplicity we will use the same keypair for our tasks.
 
 Create a new keypair using the script:
 
     sh create_keys.sh
 
-The deployer key can be destroyed when it is not used anymore.
+The keypair can be destroyed when it is not used anymore.
 
 Destroy the keypair using the script:
 
@@ -120,26 +115,22 @@ Destroy the keypair using the script:
 
 ### Generate certificates
 
-A certificate is required in order to secure access via HTTPS.
+Several certificates are required in order to secure HTTP connections between servers.
 
-Create a certificate using the script:
+Create the certificates using the script:
 
     sh generate_certificates.sh
 
 ### Create VPCs and subnets
 
-VPCs and subnets are required to run EC2 instances, including the instances
-used to build AMIs with Packer. Also a Bastion server is required in order to
-access machines which don't have a public IP address for security reason.
+VPCs and subnets are required to run EC2 instances, including the instances used to build AMI images with Packer.
+Also a Bastion server is required in order to access machines which don't have a public IP address.
 
-A simple network configuration which is suitable for production have
-one VPC with three public subnets in three different availability zones
-and three private subnets in three different availability zones, and an
-additional VPC with at least one public subnet for the Bastion server.
-The public subnets must have an internet gateway, and the private subnets
-must have a NAT box each to prevent uncontrolled access.
+The simplest network configuration which is suitable for production requires one VPC with three public subnets and three private subnets, in different availability zones.
+Also the public subnets must have an internet gateway, and the private subnets must have a NAT box each to prevent uncontrolled access.
+An additional VPC with one public subnet is required for the Bastion server.
 
-PLEASE BE AWARE OF COSTS OF RUNNING EC2 INSTANCES ON AWS
+    PLEASE BE AWARE OF COSTS OF RUNNING EC2 INSTANCES ON AWS
 
 Create VPCs and subnets using the script:
 
@@ -151,13 +142,12 @@ Destroy VPCs and subnets using the script:
 
     sh destroy_network.sh
 
-### Build AMIs
+### Build AMI images
 
-Images are useful to simplify the provisioning of a EC2 instance and
-also they accelerate the operations because the same image can be used
-to create multiple EC2 instances.
+AMI images are useful to simplify the provisioning of EC2 instances.
+Also they accelerate the operations because the same image can be used to provision multiple machines.
 
-Create AMIs using the script:
+Create AMI images using the script:
 
     sh build_images.sh
 
@@ -169,13 +159,10 @@ Remove all your images using the script:
 
 ### Create stack
 
-After we have created all base components and we have configured
-the required VPCs and subnets with routing tables and security groups,
-we can create the remaining components of our infrastructure.
-Those components depends on AMIs we created in previous step,
-and they can be created and destroyed as many time as we want.
+After creating AMI images and configuring VPCs and subnets with routing tables and security groups, we can create
+the remaining components of our infrastructure. Those components can be created and destroyed as many time as we want.
 
-PLEASE BE AWARE OF COSTS OF RUNNING EC2 INSTANCES ON AWS
+    PLEASE BE AWARE OF COSTS OF RUNNING EC2 INSTANCES ON AWS
 
 Create stack using the script:
 
@@ -201,14 +188,15 @@ Create your build pipelines using Jenkins:
 
     jenkins.yourdomain.com
 
-Integrate your build pipeline with SonarQube and analyse your code:
+Integrate your build pipeline with SonarQube to analyse your code:
 
     sonarqube.yourdomain.com
 
-Integrate your build pipeline with Artifactory and manage your artifacts:
+Integrate your build pipeline with Artifactory to manage your artifacts:
 
     artifactory.yourdomain.com
 
-Deploy your application in ECS or EC2. You can manually deploy your application or create your own scripts.
-Your application might use ZooKeeper, Kafka, Cassandra clusters or it might use any other resource reachable
-from a subnet.
+Deploy your application in ECS or EC2. You can manually deploy your application or create scripts to run from Jenkins.
+Your application might use Consul for service discovery. If your application is running in a Docker container managed
+by ECS, the logs will be automatically collected and sent to Logstash. Alternatively you can ship your logs directly
+to Logstash or use Filebeat to collect your logs.
