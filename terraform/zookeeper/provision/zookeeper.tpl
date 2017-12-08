@@ -90,7 +90,6 @@ write_files:
           paths:
           - /var/log/docker
           tags: ["zookeeper","syslog"]
-
         output.logstash:
           hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]

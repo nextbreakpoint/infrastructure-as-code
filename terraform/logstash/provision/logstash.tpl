@@ -143,7 +143,7 @@ write_files:
             grok {
               match => {
                 "message" => [
-                  "%{SYSLOGTIMESTAMP:[system][syslog][timestamp]} %{SYSLOGHOST:[system][syslog][hostname]} Docker/%{WORD:[docker][container][name]}\[%{DATA:[docker][image][name]}:%{DATA:[docker][image][version]}\]\(%{DATA:[docker][container][id]}\)\[%{NUMBER:[docker][container][pid]}\]: %{GREEDYMULTILINE:[system][syslog][message]}"
+                  "%{SYSLOGTIMESTAMP:[system][syslog][timestamp]} %{SYSLOGHOST:[system][syslog][hostname]} Docker/%{DATA:[docker][container][name]}\[%{DATA:[docker][image][name]}:%{DATA:[docker][image][version]}\]\(%{DATA:[docker][container][id]}\)(?:\[%{POSINT:[system][syslog][pid]}\])?: %{GREEDYMULTILINE:[system][syslog][message]}"
                 ]
               }
               remove_field => [ "message" ]
@@ -153,7 +153,6 @@ write_files:
               add_field => {
                 "environment" => "$${ENVIRONMENT}"
                 "[system][syslog][program]" => "Docker"
-                "[system][syslog][program]" => "%{[docker][container][pid]}"
               }
             }
             date {
@@ -226,7 +225,7 @@ write_files:
         }
         filter {
           if ("ecs" in [tags] and "json" in [tags]) {
-            grok {
+            mutate {
               add_field => {
                 "environment" => "$${ENVIRONMENT}"
               }
@@ -262,7 +261,6 @@ write_files:
           paths:
           - /var/log/syslog
           tags: ["logstash","syslog"]
-
         output.logstash:
           hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]

@@ -88,7 +88,6 @@ write_files:
           paths:
           - /var/log/syslog
           tags: ["consul","syslog"]
-
         output.logstash:
           hosts: ["logstash.service.terraform.consul:5044"]
           ssl.certificate_authorities: ["/filebeat/config/secrets/ca_cert.pem"]
