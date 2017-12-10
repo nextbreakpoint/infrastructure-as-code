@@ -1,14 +1,8 @@
-#!/bin/bash
-export DIR=secrets
+#!/bin/sh
 
-rm -fR $DIR
+export DIR=$ROOT/secrets
 
-mkdir -p $DIR
-
-docker build -t generate-certificates docker/certificates/.
-docker run --rm -t -v $(pwd)/$DIR:/output generate-certificates
-
-export DST=terraform/secrets/environments/production/keystores
+export DST=$ROOT/terraform/secrets/environments/production/keystores
 
 mkdir -p $DST
 
@@ -20,7 +14,7 @@ cp $DIR/truststore-server.jks $DST
 
 ### Copy certificates and keys
 
-export DST=terraform/secrets/environments/production/nginx
+export DST=$ROOT/terraform/secrets/environments/production/nginx
 
 mkdir -p $DST
 
@@ -29,7 +23,7 @@ cp $DIR/server_cert.pem $DST
 cp $DIR/server_key.pem $DST
 cp $DIR/ca_and_server_cert.pem $DST
 
-export DST=terraform/secrets/environments/production/filebeat
+export DST=$ROOT/terraform/secrets/environments/production/filebeat
 
 mkdir -p $DST
 
@@ -38,7 +32,7 @@ cp $DIR/filebeat_cert.pem $DST
 cp $DIR/filebeat_key.pem $DST
 cp $DIR/filebeat_key.pkcs8 $DST
 
-export DST=terraform/secrets/environments/production/kibana
+export DST=$ROOT/terraform/secrets/environments/production/kibana
 
 mkdir -p $DST
 
@@ -47,7 +41,7 @@ cp $DIR/kibana_cert.pem $DST
 cp $DIR/kibana_key.pem $DST
 cp $DIR/kibana_key.pkcs8 $DST
 
-export DST=terraform/secrets/environments/production/logstash
+export DST=$ROOT/terraform/secrets/environments/production/logstash
 
 mkdir -p $DST
 
@@ -56,7 +50,7 @@ cp $DIR/logstash_cert.pem $DST
 cp $DIR/logstash_key.pem $DST
 cp $DIR/logstash_key.pkcs8 $DST
 
-export DST=terraform/secrets/environments/production/elasticsearch
+export DST=$ROOT/terraform/secrets/environments/production/elasticsearch
 
 mkdir -p $DST
 
@@ -65,7 +59,7 @@ cp $DIR/elasticsearch_cert.pem $DST
 cp $DIR/elasticsearch_key.pem $DST
 cp $DIR/elasticsearch_key.pkcs8 $DST
 
-export DST=terraform/secrets/environments/production/consul
+export DST=$ROOT/terraform/secrets/environments/production/consul
 
 mkdir -p $DST
 
@@ -73,7 +67,7 @@ cp $DIR/ca_cert.pem $DST
 cp $DIR/consul_cert.pem $DST/server_cert.pem
 cp $DIR/consul_key.pem $DST/server_key.pem
 
-export DST=terraform/secrets/environments/production/jenkins
+export DST=$ROOT/terraform/secrets/environments/production/jenkins
 
 mkdir -p $DST
 

@@ -16,22 +16,20 @@ The generated infrastructure provides the following key components:
 
 - Consul for services discovery
 
+- OpenVPN for connecting to private servers.
+
 The scripts provided in this repository aim to automate a very complex process which involves several components and requires many steps.
 The ultimate goal is to be able to rapidly and reliably create a scalable and secure infrastructure for running micro-services.
 
-### Install tools and prepare environment
+### Configure your environment
 
-Before you start, you need to prepare your environment.
+Before you start, you need to configure your environment.
 
-Prepare your environment installing Docker, Terraform and Packer.
-
-Install the command line tool jq required to manipulate json.
-
-Install the AWS command line tools. Follow instruction here https://aws.amazon.com/cli.
+Prepare your environment installing Docker CE. Follow instructions on page https://docs.docker.com/engine/installation.
 
 You must have a valid AWS account. You can create a new account here https://aws.amazon.com.
 
-    Configure your credentials according to AWS CLI documentation
+    Configure your credentials according to AWS documentation
 
 Check you have valid AWS credentials in file ~/.aws/credentials:
 
@@ -39,22 +37,17 @@ Check you have valid AWS credentials in file ~/.aws/credentials:
     aws_access_key_id = ???
     aws_secret_access_key = ???
 
-Export your active profile when you create a new terminal:
-
-    export AWS_PROFILE=default
-
-Create a file config.tfvars like this:
+Create a file config.tfvars in folder config. The file should look like:
 
     # AWS Account
     account_id="your_account_id"
 
-    # SSH key
-    key_name="deployer_key"
-    key_path="../../deployer_key.pem"
-
     # Public Hosted Zone
     public_hosted_zone_name="yourdomain.com"
     public_hosted_zone_id="your_public_zone_id"
+
+    # Private Hosted Zone
+    hosted_zone_name="yourprivatedomain.com"
 
     # Secrets bucket
     secrets_bucket_name="secrets_bucket_name"
@@ -68,18 +61,34 @@ Create a file config.tfvars like this:
     logstash_password="your_password"
     elasticsearch_password="your_password"
 
+    # OpenVPN AMI (with license for 10 connected devices)
+    openvpn_ami = "ami-1a8a6b63"
+
 Create a file config_vars.json like this:
 
     {
       "account_id": "your_account_id",
-      "key_name": "deployer_key",
-      "key_path": "../../deployer_key.pem",
       "bastion_host": "bastion.yourdomain.com"
     }
 
-The domain yourdomain.com must be a domain hosted in a Route53 public zone.
+The domain yourdomain.com must be a domain hosted in a Route53 public zone and must support HTTPS.
 
     Create a new public zone and register a new domain if you don't have one already
+
+Create or copy a HTTPS certificate and server key at location:
+
+    certificates/fullchain.pem
+    certificates/serverkey.pem
+
+Certificate must be valid for all domains:
+
+    consul.yourprivatedomain.com
+    kibana.yourprivatedomain.com
+    jenkins.yourprivatedomain.com
+    sonarqube.yourprivatedomain.com
+    artifactory.yourprivatedomain.com
+
+Those certificate and key will be used for the private ELB.
 
 ### Configure Terraform backend
 
@@ -87,114 +96,81 @@ Terraform requires a S3 Bucket to store the remote state.
 
 Create a S3 bucket with the command:
 
-    sh create_bucket.sh your_bucket_name eu-west-1
+    sh scripts/create_bucket.sh your_bucket_name eu-west-1
 
 Please note that the bucket name must be unique among all S3 buckets.
 
 Once the bucket has been created, execute the command:
 
-    sh config_bucket.sh your_bucket_name eu-west-1
+    sh scripts/configure_bucket.sh your_bucket_name eu-west-1
 
 The script will set the bucket name and region in all remote_state.tf files.
 
-### Generate SSH key
+### Create Docker image
 
-A keypair is required in order to access EC2 instances.
+Execute script run_build.sh to create the Docker image required to build the infrastructure:
 
-For simplicity we will use the same keypair for our tasks.
+    sh run_build.sh
 
-Create a new keypair using the script:
+The image will contain the required tools, including AWS CLI, Terraform, Packer, and others.
 
-    sh create_keys.sh
+### Create infrastructure
 
-The keypair can be destroyed when it is not used anymore.
+Execute script run_create.sh to create the infrastructure:
 
-Destroy the keypair using the script:
+    sh run_create.sh /path_of_aws_folder
 
-    sh destroy_keys.sh
+### Destroy infrastructure
 
-### Generate certificates
+Execute script run_destroy.sh to destroy the infrastructure:
 
-Several certificates are required in order to secure HTTP connections between servers.
+    sh run_destroy.sh /path_of_aws_folder
 
-Create the certificates using the script:
+### Configure OpenVPN
 
-    sh generate_certificates.sh
+Login via SSH to OpenVPN server using hostname openvpn.yourdomain.com:
 
-### Create VPCs and subnets
+    ssh -i deployer_key.pem openvpnas@openvpn.yourdomain.com
 
-VPCs and subnets are required to run EC2 instances, including the instances used to build AMI images with Packer.
-Also a Bastion server is required in order to access machines which don't have a public IP address.
+The OpenVPN server will ask you to answer a few questions. The output should look like:
 
-The simplest network configuration which is suitable for production requires one VPC with three public subnets and three private subnets, in different availability zones.
-Also the public subnets must have an internet gateway, and the private subnets must have a NAT box each to prevent uncontrolled access.
-An additional VPC with one public subnet is required for the Bastion server.
+    ...
 
-    PLEASE BE AWARE OF COSTS OF RUNNING EC2 INSTANCES ON AWS
+After initialising the OpenVPN server, you have to reset the openvpn user password:
 
-Create VPCs and subnets using the script:
+    sudo passwd openvpn
 
-    sh create_network.sh
+Then you can access the admin panel at https://openvpn.yourdomain.com:943/admin to change the configuration if required.
 
-VPCs and subnets can be destroyed when they are not used anymore.
+Download the locked profile on https://openvpn.yourdomain.com:943 and configure your OpenVPN client.
 
-Destroy VPCs and subnets using the script:
-
-    sh destroy_network.sh
-
-### Build AMI images
-
-AMI images are useful to simplify the provisioning of EC2 instances.
-Also they accelerate the operations because the same image can be used to provision multiple machines.
-
-Create AMI images using the script:
-
-    sh build_images.sh
-
-Images can be removed when they are not required anymore.
-
-Remove all your images using the script:
-
-  sh delete_images.sh
-
-### Create stack
-
-After creating AMI images and configuring VPCs and subnets with routing tables and security groups, we can create
-the remaining components of our infrastructure. Those components can be created and destroyed as many time as we want.
-
-    PLEASE BE AWARE OF COSTS OF RUNNING EC2 INSTANCES ON AWS
-
-Create stack using the script:
-
-    sh create_stack.sh
-
-Destroy stack using the script:
-
-    sh destroy_stack.sh
+From your client, you can now connect to the any machine in public or private subnets.
 
 ## How to use the infrastructure
 
-Congratulation, you managed to create the entire infrastructure!
+Use OpenVPN to create a connection:
 
-Use Consul UI to check the state of your servers and services:
+    https://openvpn.yourdomain.com:943
 
-    consul.yourdomain.com
+Use Consul UI to check the state of your services:
+
+    https://consul.yourprivatedomain.com
 
 Use Kibana to analyse the log files of yours servers:
 
-    kibana.yourdomain.com
+    https://kibana.yourprivatedomain.com
 
 Create your build pipelines using Jenkins:
 
-    jenkins.yourdomain.com
+    https://jenkins.yourprivatedomain.com
 
 Integrate your build pipeline with SonarQube to analyse your code:
 
-    sonarqube.yourdomain.com
+    https://sonarqube.yourprivatedomain.com
 
 Integrate your build pipeline with Artifactory to manage your artifacts:
 
-    artifactory.yourdomain.com
+    https://artifactory.yourprivatedomain.com
 
 Deploy your application in ECS or EC2. You can manually deploy your application or create scripts to run from Jenkins.
 Your application might use Consul for service discovery. If your application is running in a Docker container managed
