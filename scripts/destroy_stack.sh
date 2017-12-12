@@ -2,27 +2,27 @@
 
 . $ROOT/bash_aliases
 
-export DIR=$ROOT
+cd $ROOT/terraform/elb && tf_destroy
 
-cd $DIR/terraform/webserver && tf_destroy &
+cd $ROOT/terraform/webserver && tf_destroy &
 webserver_pid=$!
 
-cd $DIR/terraform/pipeline && tf_destroy &
+cd $ROOT/terraform/pipeline && tf_destroy &
 pipeline_pid=$!
 
-cd $DIR/terraform/ecs && tf_destroy &
+cd $ROOT/terraform/ecs && tf_destroy &
 ecs_pid=$!
 
-cd $DIR/terraform/kibana && tf_destroy &
+cd $ROOT/terraform/kibana && tf_destroy &
 kibana_pid=$!
 
-cd $DIR/terraform/logstash && tf_destroy &
+cd $ROOT/terraform/logstash && tf_destroy &
 logstash_pid=$!
 
-cd $DIR/terraform/elasticsearch && tf_destroy &
+cd $ROOT/terraform/elasticsearch && tf_destroy &
 elasticsearch_pid=$!
 
-cd $DIR/terraform/consul && tf_destroy &
+cd $ROOT/terraform/consul && tf_destroy &
 consul_pid=$!
 
 wait $webserver_pid
@@ -33,6 +33,6 @@ wait $logstash_pid
 wait $elasticsearch_pid
 wait $consul_pid
 
-cd $DIR/terraform/secrets && tf_destroy
+cd $ROOT/terraform/secrets && tf_destroy
 
-cd $DIR/terraform/dns && tf_destroy
+cd $ROOT/terraform/dns && tf_destroy

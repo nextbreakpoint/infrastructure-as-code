@@ -80,37 +80,13 @@ variable "secrets_bucket_name" {
 }
 
 ###################################################################
-# Nginx configuration below
+# ELB configuration below
 ###################################################################
 
 ### MANDATORY ###
-variable "base_version" {
+variable "webserver_elb_certificate_path" {
 }
 
 ### MANDATORY ###
-variable "filebeat_version" {
-}
-
-variable "web_instance_type" {
-  default = "t2.small"
-}
-
-###################################################################
-# Consul configuration below
-###################################################################
-
-### MANDATORY ###
-variable "consul_secret" {
-}
-
-variable "consul_record" {
-  default = "consul"
-}
-
-variable "consul_datacenter" {
-  default = "terraform"
-}
-
-variable "consul_logfile" {
-  default = "/var/log/consul.log"
+variable "webserver_elb_private_key_path" {
 }

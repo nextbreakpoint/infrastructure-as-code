@@ -1,3 +1,3 @@
-output "webserver-elb" {
-  value = "${aws_elb.webserver_elb.dns_name}"
+output "webserver-asg-id" {
+  value = "${aws_autoscaling_group.webserver_asg.id}"
 }

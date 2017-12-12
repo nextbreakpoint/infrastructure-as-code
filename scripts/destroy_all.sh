@@ -11,7 +11,3 @@ echo "done."
 echo "Destroying keys..."
 sh scripts/destroy_keys.sh
 echo "done."
-
-echo "Deleting images..."
-sh scripts/delete_images.sh
-echo "done."

@@ -188,6 +188,7 @@ data "aws_ami" "logstash" {
   owners = ["${var.account_id}"]
 }
 
+/*
 resource "aws_instance" "logstash_server_a" {
   instance_type = "${var.logstash_instance_type}"
 
@@ -229,5 +230,62 @@ resource "aws_instance" "logstash_server_b" {
   tags {
     Name = "logstash-server-b"
     Stream = "${var.stream_tag}"
+  }
+}
+*/
+
+resource "aws_launch_configuration" "logstash_launch_configuration" {
+  name_prefix   = "logstash-server"
+  instance_type = "${var.logstash_instance_type}"
+
+  image_id = "${data.aws_ami.logstash.id}"
+
+  associate_public_ip_address = "false"
+  security_groups = ["${aws_security_group.logstash_server.id}"]
+  key_name = "${var.key_name}"
+
+  iam_instance_profile = "${aws_iam_instance_profile.logstash_server_profile.name}"
+
+  user_data = "${data.template_file.logstash_server_user_data.rendered}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_autoscaling_group" "logstash_asg" {
+  name                      = "logstash-asg"
+  max_size                  = 6
+  min_size                  = 0
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  desired_capacity          = 2
+  force_delete              = true
+  launch_configuration      = "${aws_launch_configuration.logstash_launch_configuration.name}"
+
+  vpc_zone_identifier = [
+    "${data.terraform_remote_state.vpc.network-private-subnet-a-id}",
+    "${data.terraform_remote_state.vpc.network-private-subnet-b-id}",
+    "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
+  ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tag {
+    key                 = "Stream"
+    value               = "${var.stream_tag}"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "logstash-server"
+    propagate_at_launch = true
+  }
+
+  timeouts {
+    delete = "15m"
   }
 }

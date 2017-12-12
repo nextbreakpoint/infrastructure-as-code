@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export KEYFILE=$ROOT/deployer_key.pem
+KEYFILE=$ROOT/deployer_key.pem
 
 if [ ! -f "$KEYFILE" ]; then
 

@@ -22,6 +22,12 @@ RUN curl -o packer.zip https://releases.hashicorp.com/packer/1.1.3/packer_1.1.3_
     rm packer.zip && \
     packer --version
 
+RUN curl -o consul.zip https://releases.hashicorp.com/consul/1.0.1/consul_1.0.1_linux_amd64.zip && \
+    unzip consul.zip && \
+    mv consul /usr/bin && \
+    rm consul.zip && \
+    consul --version
+
 WORKDIR /terraform
 
 CMD ["bash", "-c", "./create_all.sh"]

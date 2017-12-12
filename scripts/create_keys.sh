@@ -2,8 +2,6 @@
 
 . $ROOT/bash_aliases
 
-export DIR=$ROOT
+cd $ROOT/terraform/keys && tf_init && tf_plan && tf_apply
 
-cd $DIR/terraform/keys && tf_init && tf_plan && tf_apply
-
-cd $DIR/terraform/keys && terraform output -json
+cd $ROOT/terraform/keys && terraform output -json

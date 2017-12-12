@@ -19,3 +19,4 @@ network_vars.json
 /secrets
 **/*ftplan
 docker/consul/output
+images.json

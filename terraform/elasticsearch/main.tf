@@ -243,7 +243,7 @@ resource "aws_instance" "elasticsearch_server_b" {
 }
 
 resource "aws_launch_configuration" "elasticsearch_launch_configuration" {
-  name_prefix   = "elasticsearch-server-"
+  name_prefix   = "elasticsearch-server"
   instance_type = "${var.elasticsearch_instance_type}"
 
   image_id = "${data.aws_ami.elasticsearch.id}"
@@ -261,9 +261,9 @@ resource "aws_launch_configuration" "elasticsearch_launch_configuration" {
   }
 }
 
-resource "aws_autoscaling_group" "elasticsearch_asg_a" {
-  name                      = "elasticsearch-asg-a"
-  max_size                  = 4
+resource "aws_autoscaling_group" "elasticsearch_asg" {
+  name                      = "elasticsearch-asg"
+  max_size                  = 6
   min_size                  = 0
   health_check_grace_period = 300
   health_check_type         = "ELB"
@@ -272,7 +272,9 @@ resource "aws_autoscaling_group" "elasticsearch_asg_a" {
   launch_configuration      = "${aws_launch_configuration.elasticsearch_launch_configuration.name}"
 
   vpc_zone_identifier = [
-    "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+    "${data.terraform_remote_state.vpc.network-private-subnet-a-id}",
+    "${data.terraform_remote_state.vpc.network-private-subnet-b-id}",
+    "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
   ]
 
   lifecycle {
@@ -287,42 +289,7 @@ resource "aws_autoscaling_group" "elasticsearch_asg_a" {
 
   tag {
     key                 = "Name"
-    value               = "elasticsearch-server-a"
-    propagate_at_launch = true
-  }
-
-  timeouts {
-    delete = "15m"
-  }
-}
-
-resource "aws_autoscaling_group" "elasticsearch_asg_b" {
-  name                      = "elasticsearch-asg-b"
-  max_size                  = 4
-  min_size                  = 0
-  health_check_grace_period = 300
-  health_check_type         = "ELB"
-  desired_capacity          = 0
-  force_delete              = true
-  launch_configuration      = "${aws_launch_configuration.elasticsearch_launch_configuration.name}"
-
-  vpc_zone_identifier = [
-    "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
-  ]
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tag {
-    key                 = "Stream"
-    value               = "${var.stream_tag}"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "Name"
-    value               = "elasticsearch-server-b"
+    value               = "elasticsearch-server"
     propagate_at_launch = true
   }
 
