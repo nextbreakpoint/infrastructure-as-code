@@ -9,17 +9,17 @@ variable "subnet_id" {}
 
 resource "aws_instance" "bastion" {
   instance_type = "${var.instance_type}"
-  
-  ami = "${var.ami}"  
+
+  ami = "${var.ami}"
 
   key_name = "${var.key_name}"
   
   security_groups = ["${var.security_groups}"]  
   subnet_id = "${var.subnet_id}"
   source_dest_check = false
-  
+
   # temporary
-  associate_public_ip_address = true  
+  associate_public_ip_address = true
 
   connection {
     user = "ec2-user"
