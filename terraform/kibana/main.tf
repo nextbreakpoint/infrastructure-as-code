@@ -29,7 +29,7 @@ resource "aws_security_group" "kibana_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
@@ -191,7 +191,7 @@ resource "aws_instance" "kibana_server_a" {
 
   ami = "${data.aws_ami.kibana.id}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.kibana_server.id}"]
   key_name = "${var.key_name}"
@@ -213,7 +213,7 @@ resource "aws_instance" "kibana_server_a" {
 #
 #   ami = "${data.aws_ami.kibana.id}"
 #
-#   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+#   subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
 #   associate_public_ip_address = "false"
 #   security_groups = ["${aws_security_group.kibana_server.id}"]
 #   key_name = "${var.key_name}"

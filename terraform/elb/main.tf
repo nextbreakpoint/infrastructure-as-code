@@ -25,14 +25,14 @@ resource "aws_security_group" "webserver_elb" {
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
     from_port = 443
     to_port = 443
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   egress {
@@ -63,9 +63,9 @@ resource "aws_elb" "webserver_elb" {
   security_groups = ["${aws_security_group.webserver_elb.id}"]
 
   subnets = [
-    "${data.terraform_remote_state.vpc.network-public-subnet-a-id}",
-    "${data.terraform_remote_state.vpc.network-public-subnet-b-id}",
-    "${data.terraform_remote_state.vpc.network-public-subnet-c-id}"
+    "${data.terraform_remote_state.network.network-private-subnet-a-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-b-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   ]
 
   listener {
@@ -95,7 +95,7 @@ resource "aws_elb" "webserver_elb" {
   idle_timeout = 400
   connection_draining = true
   connection_draining_timeout = 400
-  internal = false
+  internal = true
 
   tags {
     Stream = "${var.stream_tag}"

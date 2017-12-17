@@ -21,29 +21,29 @@ provider "template" {
 ##############################################################################
 
 resource "aws_security_group" "webserver" {
-  name = "webserver-security-group"
-  description = "webserver security group"
+  name = "nginx-security-group"
+  description = "NGINX security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 443
     to_port = 443
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
@@ -105,12 +105,12 @@ data "template_file" "webserver_user_data" {
 }
 
 resource "aws_iam_instance_profile" "webserver_profile" {
-    name = "webserver-profile"
+    name = "nginx-server-profile"
     role = "${aws_iam_role.webserver_role.name}"
 }
 
 resource "aws_iam_role" "webserver_role" {
-  name = "webserver-role"
+  name = "nginx-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -138,7 +138,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "webserver_role_policy" {
-  name = "webserver-role-policy"
+  name = "nginx-server-role-policy"
   role = "${aws_iam_role.webserver_role.id}"
 
   policy = <<EOF
@@ -174,7 +174,7 @@ data "aws_ami" "webserver" {
 }
 
 resource "aws_launch_configuration" "webserver_launch_configuration" {
-  name_prefix   = "webserver"
+  name_prefix   = "nginx-server"
   instance_type = "${var.web_instance_type}"
 
   image_id = "${data.aws_ami.webserver.id}"
@@ -193,7 +193,7 @@ resource "aws_launch_configuration" "webserver_launch_configuration" {
 }
 
 resource "aws_autoscaling_group" "webserver_asg" {
-  name                      = "webserver-asg"
+  name                      = "nginx-server-asg"
   max_size                  = 6
   min_size                  = 0
   health_check_grace_period = 300
@@ -203,9 +203,9 @@ resource "aws_autoscaling_group" "webserver_asg" {
   launch_configuration      = "${aws_launch_configuration.webserver_launch_configuration.name}"
 
   vpc_zone_identifier = [
-    "${data.terraform_remote_state.vpc.network-private-subnet-a-id}",
-    "${data.terraform_remote_state.vpc.network-private-subnet-b-id}",
-    "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
+    "${data.terraform_remote_state.network.network-private-subnet-a-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-b-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   ]
 
   lifecycle {
@@ -220,7 +220,7 @@ resource "aws_autoscaling_group" "webserver_asg" {
 
   tag {
     key                 = "Name"
-    value               = "webserver"
+    value               = "nginx-server"
     propagate_at_launch = true
   }
 

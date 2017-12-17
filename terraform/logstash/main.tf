@@ -29,7 +29,7 @@ resource "aws_security_group" "logstash_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
@@ -193,7 +193,7 @@ resource "aws_instance" "logstash_server_a" {
 
   ami = "${data.aws_ami.logstash.id}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.logstash_server.id}"]
   key_name = "${var.key_name}"
@@ -215,7 +215,7 @@ resource "aws_instance" "logstash_server_b" {
 
   ami = "${data.aws_ami.logstash.id}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
   security_groups = ["${aws_security_group.logstash_server.id}"]
   key_name = "${var.key_name}"
@@ -263,9 +263,9 @@ resource "aws_autoscaling_group" "logstash_asg" {
   launch_configuration      = "${aws_launch_configuration.logstash_launch_configuration.name}"
 
   vpc_zone_identifier = [
-    "${data.terraform_remote_state.vpc.network-private-subnet-a-id}",
-    "${data.terraform_remote_state.vpc.network-private-subnet-b-id}",
-    "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
+    "${data.terraform_remote_state.network.network-private-subnet-a-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-b-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   ]
 
   lifecycle {

@@ -40,6 +40,18 @@ resource "aws_vpc" "bastion" {
   }
 }
 
+resource "aws_vpc" "openvpn" {
+  cidr_block = "${var.aws_openvpn_vpc_cidr}"
+  instance_tenancy = "default"
+  enable_dns_support = "true"
+  enable_dns_hostnames = "true"
+
+  tags {
+    Name = "openvpn-vpc"
+    Stream = "${var.stream_tag}"
+  }
+}
+
 resource "aws_internet_gateway" "network" {
   vpc_id = "${aws_vpc.network.id}"
 
@@ -58,12 +70,44 @@ resource "aws_internet_gateway" "bastion" {
   }
 }
 
+resource "aws_internet_gateway" "openvpn" {
+  vpc_id = "${aws_vpc.openvpn.id}"
+
+  tags {
+      Name = "openvpn-internet-gateway"
+      Stream = "${var.stream_tag}"
+  }
+}
+
 resource "aws_vpc_dhcp_options" "network" {
+  domain_name = "${var.aws_region}.compute.internal"
+  domain_name_servers  = ["127.0.0.1", "AmazonProvidedDNS"]
+  ntp_servers          = ["127.0.0.1"]
+  netbios_name_servers = ["127.0.0.1"]
+  netbios_node_type    = 2
+
+  tags {
+    Name = "network-internal"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_vpc_dhcp_options" "bastion" {
   domain_name = "${var.aws_region}.compute.internal"
   domain_name_servers = ["AmazonProvidedDNS"]
 
   tags {
-    Name = "network-internal"
+    Name = "bastion-internal"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_vpc_dhcp_options" "openvpn" {
+  domain_name = "${var.aws_region}.compute.internal"
+  domain_name_servers = ["AmazonProvidedDNS", "8.8.4.4", "8.8.8.8"]
+
+  tags {
+    Name = "openvpn-internal"
     Stream = "${var.stream_tag}"
   }
 }
@@ -73,18 +117,14 @@ resource "aws_vpc_dhcp_options_association" "dns_network" {
   dhcp_options_id = "${aws_vpc_dhcp_options.network.id}"
 }
 
-##############################################################################
-# Route 53
-##############################################################################
+resource "aws_vpc_dhcp_options_association" "dns_bastion" {
+  vpc_id = "${aws_vpc.bastion.id}"
+  dhcp_options_id = "${aws_vpc_dhcp_options.bastion.id}"
+}
 
-resource "aws_route53_zone" "network" {
-  name = "${var.hosted_zone_name}"
-  vpc_id = "${aws_vpc.network.id}"
-
-  tags {
-    Name = "network-private-zone"
-    Stream = "${var.stream_tag}"
-  }
+resource "aws_vpc_dhcp_options_association" "dns_openvpn" {
+  vpc_id = "${aws_vpc.openvpn.id}"
+  dhcp_options_id = "${aws_vpc_dhcp_options.openvpn.id}"
 }
 
 ##############################################################################
@@ -102,72 +142,27 @@ resource "aws_vpc_peering_connection" "network_to_bastion" {
   }
 }
 
+resource "aws_vpc_peering_connection" "network_to_openvpn" {
+  peer_vpc_id = "${aws_vpc.openvpn.id}"
+  vpc_id = "${aws_vpc.network.id}"
+  auto_accept = true
+
+  tags {
+    Name = "network-to-openvpn-peering"
+    Stream = "${var.stream_tag}"
+  }
+}
+
 ##############################################################################
-# Subnets
+# Route 53
 ##############################################################################
 
-resource "aws_subnet" "network_public_a" {
-  vpc_id = "${aws_vpc.network.id}"
-  availability_zone = "${format("%s%s", var.aws_region, "a")}"
-  cidr_block = "${var.aws_network_public_subnet_cidr_a}"
+resource "aws_route53_zone" "openvpn" {
+  name = "${var.hosted_zone_name}"
+  vpc_id = "${aws_vpc.openvpn.id}"
 
   tags {
-    Name = "public-subnet-a"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_public_b" {
-  vpc_id = "${aws_vpc.network.id}"
-  availability_zone = "${format("%s%s", var.aws_region, "b")}"
-  cidr_block = "${var.aws_network_public_subnet_cidr_b}"
-
-  tags {
-    Name = "public-subnet-b"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_public_c" {
-  vpc_id = "${aws_vpc.network.id}"
-  availability_zone = "${format("%s%s", var.aws_region, "c")}"
-  cidr_block = "${var.aws_network_public_subnet_cidr_c}"
-
-  tags {
-    Name = "public-subnet-c"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_private_a" {
-  vpc_id = "${aws_vpc.network.id}"
-  availability_zone = "${format("%s%s", var.aws_region, "a")}"
-  cidr_block = "${var.aws_network_private_subnet_cidr_a}"
-
-  tags {
-    Name = "private-subnet-a"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_private_b" {
-  vpc_id = "${aws_vpc.network.id}"
-  availability_zone = "${format("%s%s", var.aws_region, "b")}"
-  cidr_block = "${var.aws_network_private_subnet_cidr_b}"
-
-  tags {
-    Name = "private-subnet-b"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_subnet" "network_private_c" {
-  vpc_id = "${aws_vpc.network.id}"
-  availability_zone = "${format("%s%s", var.aws_region, "c")}"
-  cidr_block = "${var.aws_network_private_subnet_cidr_c}"
-
-  tags {
-    Name = "private-subnet-c"
+    Name = "openvpn-private-zone"
     Stream = "${var.stream_tag}"
   }
 }

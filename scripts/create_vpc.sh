@@ -2,5 +2,8 @@
 
 . $ROOT/bash_aliases
 
-# Create VPC and subnets
-cd $ROOT/terraform/vpc && tf_init && tf_plan && tf_apply
+cd $ROOT/terraform/vpc && tf_init
+
+cd $ROOT/terraform/vpc && tf_plan
+
+cd $ROOT/terraform/vpc && tf_apply

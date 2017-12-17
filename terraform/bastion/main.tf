@@ -13,7 +13,7 @@ provider "terraform" {
 }
 
 ##############################################################################
-# Public Subnets
+# Subnets
 ##############################################################################
 
 resource "aws_security_group" "bastion" {
@@ -71,7 +71,6 @@ resource "aws_subnet" "bastion_a" {
   }
 }
 
-/*
 resource "aws_subnet" "bastion_b" {
   vpc_id = "${data.terraform_remote_state.vpc.bastion-vpc-id}"
   availability_zone = "${format("%s%s", var.aws_region, "b")}"
@@ -82,19 +81,16 @@ resource "aws_subnet" "bastion_b" {
     Stream = "${var.stream_tag}"
   }
 }
-*/
 
 resource "aws_route_table_association" "bastion_a" {
   subnet_id = "${aws_subnet.bastion_a.id}"
   route_table_id = "${aws_route_table.bastion.id}"
 }
 
-/*
 resource "aws_route_table_association" "bastion_b" {
   subnet_id = "${aws_subnet.bastion_b.id}"
   route_table_id = "${aws_route_table.bastion.id}"
 }
-*/
 
 ##############################################################################
 # Bastion Servers

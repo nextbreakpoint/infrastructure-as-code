@@ -40,6 +40,10 @@ variable "public_hosted_zone_name" {
 variable "public_hosted_zone_id" {
 }
 
+###################################################################
+# OpenVPN configuration below
+###################################################################
+
 ### MANDATORY ###
 variable "openvpn_ami" {
 }
@@ -47,4 +51,18 @@ variable "openvpn_ami" {
 ### MANDATORY ###
 variable "openvpn_instance_type" {
   default = "t2.micro"
+}
+
+###################################################################
+# Subnets configuration below
+###################################################################
+
+### MANDATORY ###
+variable "aws_openvpn_subnet_cidr_a" {
+  description = "OpenVPN subnet A cidr block"
+}
+
+### MANDATORY ###
+variable "aws_openvpn_subnet_cidr_b" {
+  description = "OpenVPN subnet B cidr block"
 }

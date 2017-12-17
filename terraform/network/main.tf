@@ -13,6 +13,76 @@ provider "terraform" {
 }
 
 ##############################################################################
+# Subnets
+##############################################################################
+
+resource "aws_subnet" "network_public_a" {
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+  availability_zone = "${format("%s%s", var.aws_region, "a")}"
+  cidr_block = "${var.aws_network_public_subnet_cidr_a}"
+
+  tags {
+    Name = "public-subnet-a"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_public_b" {
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+  availability_zone = "${format("%s%s", var.aws_region, "b")}"
+  cidr_block = "${var.aws_network_public_subnet_cidr_b}"
+
+  tags {
+    Name = "public-subnet-b"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_public_c" {
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+  availability_zone = "${format("%s%s", var.aws_region, "c")}"
+  cidr_block = "${var.aws_network_public_subnet_cidr_c}"
+
+  tags {
+    Name = "public-subnet-c"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_private_a" {
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+  availability_zone = "${format("%s%s", var.aws_region, "a")}"
+  cidr_block = "${var.aws_network_private_subnet_cidr_a}"
+
+  tags {
+    Name = "private-subnet-a"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_private_b" {
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+  availability_zone = "${format("%s%s", var.aws_region, "b")}"
+  cidr_block = "${var.aws_network_private_subnet_cidr_b}"
+
+  tags {
+    Name = "private-subnet-b"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_subnet" "network_private_c" {
+  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+  availability_zone = "${format("%s%s", var.aws_region, "c")}"
+  cidr_block = "${var.aws_network_private_subnet_cidr_c}"
+
+  tags {
+    Name = "private-subnet-c"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+##############################################################################
 # Public Subnets
 ##############################################################################
 
@@ -22,6 +92,11 @@ resource "aws_route_table" "network_public" {
   route {
     vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-bastion-peering-connection-id}"
     cidr_block = "${data.terraform_remote_state.vpc.bastion-vpc-cidr}"
+  }
+
+  route {
+    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
+    cidr_block = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
   }
 
   route {
@@ -36,17 +111,17 @@ resource "aws_route_table" "network_public" {
 }
 
 resource "aws_route_table_association" "network_public_a" {
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
+  subnet_id = "${aws_subnet.network_public_a.id}"
   route_table_id = "${aws_route_table.network_public.id}"
 }
 
 resource "aws_route_table_association" "network_public_b" {
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
+  subnet_id = "${aws_subnet.network_public_b.id}"
   route_table_id = "${aws_route_table.network_public.id}"
 }
 
 resource "aws_route_table_association" "network_public_c" {
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-c-id}"
+  subnet_id = "${aws_subnet.network_public_c.id}"
   route_table_id = "${aws_route_table.network_public.id}"
 }
 
@@ -98,7 +173,7 @@ resource "aws_instance" "network_nat_a" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-a-id}"
+  subnet_id = "${aws_subnet.network_public_a.id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
@@ -124,7 +199,7 @@ resource "aws_instance" "network_nat_b" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-b-id}"
+  subnet_id = "${aws_subnet.network_public_b.id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
@@ -150,7 +225,7 @@ resource "aws_instance" "network_nat_c" {
   # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
-  subnet_id = "${data.terraform_remote_state.vpc.network-public-subnet-c-id}"
+  subnet_id = "${aws_subnet.network_public_c.id}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.network_nat.id}"]
   key_name = "${var.key_name}"
@@ -209,6 +284,11 @@ resource "aws_route_table" "network_private_a" {
   }
 
   route {
+    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
+    cidr_block = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
+  }
+
+  route {
     cidr_block = "0.0.0.0/0"
     instance_id = "${aws_instance.network_nat_a.id}"
     #nat_gateway_id = "${aws_nat_gateway.net_gateway_a.id}"
@@ -226,6 +306,11 @@ resource "aws_route_table" "network_private_b" {
   route {
     vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-bastion-peering-connection-id}"
     cidr_block = "${data.terraform_remote_state.vpc.bastion-vpc-cidr}"
+  }
+
+  route {
+    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
+    cidr_block = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
   }
 
   route {
@@ -249,6 +334,11 @@ resource "aws_route_table" "network_private_c" {
   }
 
   route {
+    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
+    cidr_block = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
+  }
+
+  route {
     cidr_block = "0.0.0.0/0"
     instance_id = "${aws_instance.network_nat_c.id}"
     #nat_gateway_id = "${aws_nat_gateway.net_gateway_c.id}"
@@ -261,16 +351,16 @@ resource "aws_route_table" "network_private_c" {
 }
 
 resource "aws_route_table_association" "network_private_a" {
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+  subnet_id = "${aws_subnet.network_private_a.id}"
   route_table_id = "${aws_route_table.network_private_a.id}"
 }
 
 resource "aws_route_table_association" "network_private_b" {
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+  subnet_id = "${aws_subnet.network_private_b.id}"
   route_table_id = "${aws_route_table.network_private_b.id}"
 }
 
 resource "aws_route_table_association" "network_private_c" {
-  subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
+  subnet_id = "${aws_subnet.network_private_c.id}"
   route_table_id = "${aws_route_table.network_private_c.id}"
 }

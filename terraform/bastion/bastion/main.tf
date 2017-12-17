@@ -13,12 +13,11 @@ resource "aws_instance" "bastion" {
   ami = "${var.ami}"
 
   key_name = "${var.key_name}"
-  
-  security_groups = ["${var.security_groups}"]  
+
+  security_groups = ["${var.security_groups}"]
   subnet_id = "${var.subnet_id}"
   source_dest_check = false
 
-  # temporary
   associate_public_ip_address = true
 
   connection {

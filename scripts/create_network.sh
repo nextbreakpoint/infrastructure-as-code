@@ -2,16 +2,14 @@
 
 . $ROOT/bash_aliases
 
-# Create network routing tables and NAT boxes
-cd $ROOT/terraform/network && tf_init && tf_plan && tf_apply
+cd $ROOT/terraform/network && tf_init
+cd $ROOT/terraform/bastion && tf_init
+cd $ROOT/terraform/openvpn && tf_init
 
-# Create bastion server
-cd $ROOT/terraform/bastion && tf_init && tf_plan && tf_apply &
-bastion_pid=$!
+cd $ROOT/terraform/network && tf_plan
+cd $ROOT/terraform/bastion && tf_plan
+cd $ROOT/terraform/openvpn && tf_plan
 
-# Create openvpn server
-cd $ROOT/terraform/openvpn && tf_init && tf_plan && tf_apply &
-openvpn_pid=$!
-
-wait $bastion_pid
-wait $openvpn_pid
+cd $ROOT/terraform/network && tf_apply
+cd $ROOT/terraform/bastion && tf_apply
+cd $ROOT/terraform/openvpn && tf_apply

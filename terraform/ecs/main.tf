@@ -29,7 +29,7 @@ resource "aws_security_group" "ecs_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
@@ -277,7 +277,7 @@ resource "aws_launch_configuration" "ecs_launch_configuration" {
 resource "aws_autoscaling_group" "ecs_asg" {
   depends_on = ["aws_ecs_cluster.ecs_cluster"]
   name                      = "ecs-asg"
-  max_size                  = 4
+  max_size                  = 6
   min_size                  = 0
   health_check_grace_period = 300
   health_check_type         = "ELB"
@@ -286,9 +286,9 @@ resource "aws_autoscaling_group" "ecs_asg" {
   launch_configuration      = "${aws_launch_configuration.ecs_launch_configuration.name}"
 
   vpc_zone_identifier = [
-    "${data.terraform_remote_state.vpc.network-private-subnet-a-id}",
-    "${data.terraform_remote_state.vpc.network-private-subnet-b-id}",
-    "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
+    "${data.terraform_remote_state.network.network-private-subnet-a-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-b-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   ]
 
   lifecycle {

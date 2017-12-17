@@ -29,7 +29,7 @@ resource "aws_security_group" "consul_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
@@ -209,7 +209,7 @@ module "consul_servers_a" {
   name = "consul-server-a"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
-  subnet = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
+  subnet = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   instance_type = "${var.consul_instance_type}"
   security_groups = "${aws_security_group.consul_server.id}"
   key_name = "${var.key_name}"
@@ -228,7 +228,7 @@ module "consul_servers_b" {
   name = "consul-server-b"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
-  subnet = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
+  subnet = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   instance_type = "${var.consul_instance_type}"
   security_groups = "${aws_security_group.consul_server.id}"
   key_name = "${var.key_name}"
@@ -247,7 +247,7 @@ module "consul_servers_c" {
   name = "consul-server-c"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
-  subnet = "${data.terraform_remote_state.vpc.network-private-subnet-c-id}"
+  subnet = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   instance_type = "${var.consul_instance_type}"
   security_groups = "${aws_security_group.consul_server.id}"
   key_name = "${var.key_name}"
