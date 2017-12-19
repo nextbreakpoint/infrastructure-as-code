@@ -1,43 +1,42 @@
 # Infrastructure as code
 
-THIS PROJECT IS WORK IN PROGRESS
+This repository contains scripts for creating a production-ready cloud-based infrastructure for running micro-services. The provided scripts automate a very complex process which involves several components and they target [AWS](https://aws.amazon.com).
 
-This repository contains scripts for creating a production-ready cloud-based infrastructure for running micro-services.
+The ultimate goal is to rapidly and reliably create a scalable and secure infrastructure for running micro-services. To achieve this goal, the scripts use several tools, such as [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
-The scripts use several tools including Docker, Terraform and Packer, and they target AWS.
+The generated infrastructure provides the following components:
 
-The generated infrastructure provides the following key components:
+- [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and visualising logs
 
-- Logstash, Elasticsearch and Kibana for collecting and visualising logs
+- [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
 
-- Jenkins, SonarQube and Artifactory for creating a delivery pipeline
+- [ECS](https://aws.amazon.com/ecs/) for orchestrating Docker containers
 
-- ECS for orchestrating Docker containers
+- [Consul](https://www.consul.io) for services discovery
 
-- Consul for services discovery
+- [OpenVPN](https://openvpn.net) for connecting to private servers
 
-- OpenVPN for connecting to private servers.
+All servers are created within a private network. They can be accessed via the Bastion server (only SSH), or via a VPN client connected to the OpenVPN server (all ports).
 
-The scripts provided in this repository aim to automate a very complex process which involves several components and requires many steps.
-The ultimate goal is to be able to rapidly and reliably create a scalable and secure infrastructure for running micro-services.
+## Install required tools
 
-### Configure your environment
+Follow the instructions on page https://docs.docker.com/engine/installation to install Docker CE version 17.09 or later.
 
-Before you start, you need to configure your environment.
+## Configure AWS credentials
 
-Prepare your environment installing Docker CE. Follow instructions on page https://docs.docker.com/engine/installation.
+Create a new [AWS account](https://aws.amazon.com) or use an existing one if you have the required permissions. Your account must have full administration permissions in order to create the infrastructure.
 
-You must have a valid AWS account. You can create a new account here https://aws.amazon.com.
+Create a new Access Key and save your credentials locally. AWS credentials are typically stored at location ~/.aws/credentials, but you can use a different location.
 
-    Configure your credentials according to AWS documentation
-
-Check you have valid AWS credentials in file ~/.aws/credentials:
+The content of ~/.aws/credentials should look like:
 
     [default]
     aws_access_key_id = "your_access_key_id"
     aws_secret_access_key = "your_secret_access_key"
 
-Create a file config.tfvars in folder config. The file should look like:
+## Configure scripts
+
+Create a file config.tfvars in config directory. The file should look like:
 
     # AWS Account
     account_id="your_account_id"
@@ -64,7 +63,7 @@ Create a file config.tfvars in folder config. The file should look like:
     # OpenVPN AMI (with license for 10 connected devices)
     openvpn_ami = "ami-1a8a6b63"
 
-Create a file config_vars.json in folder config. The file should look like:
+Create a file config_vars.json in config directory. The file should look like:
 
     {
       "account_id": "your_account_id",
@@ -75,15 +74,16 @@ The domain yourdomain.com must be a valid domain hosted in a Route53 public zone
 
     Create a new public zone and register a new domain if you don't have one already
 
-The domain yourprivatedomain.com can be the same as yourdomain.com or a different one.
-A new private zone will be created and used to register all internal servers.
+The domain yourprivatedomain.com can be the same as yourdomain.com or a different one. A new private zone will be created to register all internal servers.
+
+## Install certificate
 
 Create or copy a valid HTTPS certificate and private key in certificates folder:
 
     certificates/fullchain.pem
     certificates/privatekey.pem
 
-The certificate must be a wildcard certificate or it must have issued for this list of domains:
+The certificate must be a wildcard certificate or it must have been issued for this list of domains:
 
     consul.yourprivatedomain.com
     kibana.yourprivatedomain.com
@@ -91,11 +91,11 @@ The certificate must be a wildcard certificate or it must have issued for this l
     sonarqube.yourprivatedomain.com
     artifactory.yourprivatedomain.com
 
-The certificate and private key will be used to provision a private ELB to access internal servers.
+The certificate and the private key will be used to provision a private ELB to access internal servers.
 
-You can use a self-signed certificates if you wish, but your browser will warn you when you try to access the above domains.
+    You can use a self-signed certificates if you wish, but your browser will warn you when you try to access the above domains.
 
-### Create Docker image
+## Create Docker image
 
 Execute script run_build.sh to create the Docker image required to build the infrastructure:
 
@@ -103,7 +103,7 @@ Execute script run_build.sh to create the Docker image required to build the inf
 
 The image will contain the required tools, including AWS CLI, Terraform, Packer, and others.
 
-### Configure Terraform backend
+## Configure Terraform backend
 
 Terraform requires a S3 Bucket to store the remote state.
 
@@ -119,45 +119,43 @@ Once the bucket has been created, execute the command:
 
 The script will set the bucket name and region in all remote_state.tf files.
 
-  The AWS folder is typically under your home folder and it is called .aws.
+## Generate secrets
 
-### Generate secrets
-
-Certificates and keystores are required to create a secure infrastructure.
+Some certificates and keystores are required to create a secure infrastructure.
 
 Create the secrets with the command:
 
     ./run_script.sh absolute_path_of_aws_folder generate_secrets
 
-### Generate SSH keys
+## Generate SSH keys
 
-SSH keys are required to access servers running in EC2 machines.
+SSH keys are required to access EC2 machines.
 
 Create the SSH keys with the command:
 
     ./run_script.sh absolute_path_of_aws_folder generate_keys
 
-### Configure Consul
+## Configure Consul
 
-Create configuration variables for Consul with the command:
+Create a configuration for Consul with the command:
 
     ./run_script.sh absolute_path_of_aws_folder configure_consul
 
-### Create VPC and subnets
+## Create VPC and Hosted Zone
 
-Create VPCs and subnets with command:
+Create VPCs and Route53 zone with command:
 
     ./run_script.sh absolute_path_of_aws_folder create_vpc
 
-### Build images
+## Build images with Packer
 
-Server machines are provisioned using some custom AMI.
+EC2 machines are provisioned using few custom images.
 
 Create the images with the command:
 
     ./run_script.sh absolute_path_of_aws_folder build_images
 
-### Create infrastructure
+## Create infrastructure
 
 Create the infrastructure with command:
 
@@ -169,7 +167,7 @@ Or create the infrastructure in three steps:
   ./run_script.sh absolute_path_of_aws_folder create_network
   ./run_script.sh absolute_path_of_aws_folder create_stack
 
-### Destroy infrastructure
+## Destroy infrastructure
 
 Destroy the infrastructure with command:
 
@@ -181,13 +179,29 @@ Or destroy the infrastructure in three steps:
   ./run_script.sh absolute_path_of_aws_folder destroy_network
   ./run_script.sh absolute_path_of_aws_folder destroy_keys
 
-### Configure OpenVPN
+## Access machines using Bastion
 
-Login via SSH to OpenVPN server using hostname openvpn.yourdomain.com:
+Copy the deployer key to Bastion machine:
+
+    scp -i deployer_key.pem deployer_key.pem ubuntu@bastion.yourdomain.com:~
+
+Connect to bastion server using the command:
+
+    ssh -i deployer_key.pem ubuntu@bastion.yourdomain.com
+
+Connect to other machines using the command:
+
+    ssh -i deployer_key.pem ubuntu@private_ip_address
+
+## Access machines using OpenVPN
+
+OpenVPN server must be configured in order to accept connections.
+
+Login to OpenVPN server using the command:
 
     ssh -i deployer_key.pem openvpnas@openvpn.yourdomain.com
 
-The OpenVPN server will ask you to answer a few questions. The output should look like:
+The server will ask you a few questions. The output should look like:
 
     Welcome to OpenVPN Access Server Appliance 2.1.9
 
@@ -209,7 +223,7 @@ The OpenVPN server will ask you to answer a few questions. The output should loo
     Please specify the network interface and IP address to be
     used by the Admin Web UI:
     (1) all interfaces: 0.0.0.0
-    (2) eth0: 172.32.0.214
+    (2) eth0: 172.34.0.214
     Please enter the option number from the list above (1-2).
     > Press Enter for default [2]: 2
 
@@ -228,7 +242,7 @@ The OpenVPN server will ask you to answer a few questions. The output should loo
     Use local authentication via internal DB?
     > Press ENTER for default [yes]: no
 
-    Private subnets detected: ['172.32.0.0/16']
+    Private subnets detected: ['172.34.0.0/16']
 
     Should private subnets be accessible to clients by default?
     > Press ENTER for EC2 default [yes]: yes
@@ -246,29 +260,12 @@ The OpenVPN server will ask you to answer a few questions. The output should loo
 
     > Please specify your OpenVPN-AS license key (or leave blank to specify later):
 
-
     Initializing OpenVPN...
     Adding new user login...
     useradd -s /sbin/nologin "openvpn"
     Writing as configuration file...
-    Perform sa init...
-    Wiping any previous userdb...
-    Creating default profile...
-    Modifying default profile...
-    Adding new user to userdb...
-    Modifying new user as superuser in userdb...
-    Getting hostname...
-    Hostname: 34.250.152.43
-    Preparing web certificates...
-    Getting web user account...
-    Adding web group account...
-    Adding web group...
-    Adjusting license directory ownership...
-    Initializing confdb...
-    Generating init scripts...
-    Generating PAM config...
-    Generating init scripts auto command...
-    Starting openvpnas...
+
+    [...]
 
     NOTE: Your system clock must be correct for OpenVPN Access Server
     to perform correctly.  Please ensure that your time and date
@@ -290,31 +287,35 @@ The OpenVPN server will ask you to answer a few questions. The output should loo
     See the Release Notes for this release at:
        http://www.openvpn.net/access-server/rn/openvpn_as_2_1_9.html
 
-After initialising the OpenVPN server, you have to reset the openvpn user password:
+When initialisation is completed, you have to reset the user password:
 
     sudo passwd openvpn
 
-Finally you can access the admin panel at https://openvpn.yourdomain.com:943/admin to change the configuration if required.
+Finally you can access the admin panel at https://openvpn.yourdomain.com:943/admin.
 
-In order to establish a VPN connection, download the locked profile on https://openvpn.yourdomain.com:943,
-configure your OpenVPN client and then connect your client to OpenVPN server.
-You will be able to access any machine in public or private subnets.
+You need to add all subnets you want to make accessible in VPN settings. The list must include subnets 172.34.0.0/16 and 172.32.0.0/16. Save the configuration and restart the server (there is a button for applying changes on running server).
 
-## How to use the infrastructure
+In order to establish a VPN connection, download the locked profile on https://openvpn.yourdomain.com:943, configure your OpenVPN client and then connect your client to OpenVPN server.
 
-Use OpenVPN to create a connection:
-
-    https://openvpn.yourdomain.com:943
+## Services discovery
 
 Use Consul UI to check the state of your services:
 
     https://consul.yourprivatedomain.com
 
+You might want to use Consul for services discovery in your applications as well.
+
+## Centralised logging
+
 Use Kibana to analyse the log files of yours servers:
 
     https://kibana.yourprivatedomain.com
 
-Create your build pipelines using Jenkins:
+If your applications are running in a Docker container managed by ECS, then log files are automatically collected and sent to Logstash. Alternatively you can ship your logs directly to Logstash using your logging framework or using Filebeat.
+
+## Delivery pipelines
+
+Create your delivery pipelines using Jenkins:
 
     https://jenkins.yourprivatedomain.com
 
@@ -326,7 +327,12 @@ Integrate your build pipeline with Artifactory to manage your artifacts:
 
     https://artifactory.yourprivatedomain.com
 
-Deploy your application in ECS or EC2. You can manually deploy your application or create scripts to run from Jenkins.
-Your application might use Consul for service discovery. If your application is running in a Docker container managed
-by ECS, the logs will be automatically collected and sent to Logstash. Alternatively you can ship your logs directly
-to Logstash or use Filebeat to collect your logs.
+Deploy your application to ECS or EC2, manually or using Jenkins CI.
+
+## Disable access from Bastion
+
+Bastion server could be removed or access to private network could be disabled after creating the infrastructure.
+
+## Delete secrets is S3 bucket
+
+Secrets stored in S3 could be deleted after creating the infrastructure. Create a backup if you think you might need them later to configure other machines.
