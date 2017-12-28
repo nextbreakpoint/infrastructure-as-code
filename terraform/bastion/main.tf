@@ -8,17 +8,13 @@ provider "aws" {
   version = "~> 0.1"
 }
 
-provider "terraform" {
-  version = "~> 0.1"
-}
-
 ##############################################################################
 # Subnets
 ##############################################################################
 
 resource "aws_security_group" "bastion" {
   name = "bastion-security-group"
-  description = "Allow access from SSH"
+  description = "Bastion security group"
   vpc_id = "${data.terraform_remote_state.vpc.bastion-vpc-id}"
 
   ingress = {
@@ -30,10 +26,24 @@ resource "aws_security_group" "bastion" {
   }
 
   egress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    from_port = 0
+    to_port = 0
+    protocol = -1
     cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+  }
+
+  egress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -96,6 +106,10 @@ resource "aws_route_table_association" "bastion_b" {
 # Bastion Servers
 ##############################################################################
 
+data "template_file" "bastion_server_user_data" {
+  template = "${file("provision/bastion.tpl")}"
+}
+
 module "bastion_servers_a" {
   source = "./bastion"
 
@@ -107,22 +121,8 @@ module "bastion_servers_a" {
   key_path = "${var.key_path}"
   security_groups = "${aws_security_group.bastion.id}"
   subnet_id = "${aws_subnet.bastion_a.id}"
+  user_data = "${data.template_file.bastion_server_user_data.rendered}"
 }
-
-/*
-module "bastion_servers_b" {
-  source = "./bastion"
-
-  name = "bastion-server-b"
-  stream_tag = "${var.stream_tag}"
-  ami = "${lookup(var.amazon_nat_amis, var.aws_region)}"
-  instance_type = "${var.bastion_instance_type}"
-  key_name = "${var.key_name}"
-  key_path = "${var.key_path}"
-  security_groups = "${aws_security_group.bastion.id}"
-  subnet_id = "${aws_subnet.bastion_b.id}"
-}
-*/
 
 ##############################################################################
 # Route 53
@@ -132,16 +132,6 @@ resource "aws_route53_record" "bastion" {
    zone_id = "${var.public_hosted_zone_id}"
    name = "bastion.${var.public_hosted_zone_name}"
    type = "A"
-   ttl = "300"
+   ttl = "60"
    records = ["${module.bastion_servers_a.public-ips}"]
 }
-
-/*
-resource "aws_route53_record" "bastion_2" {
-   zone_id = "${var.public_hosted_zone_id}"
-   name = "bastion2.${var.public_hosted_zone_name}"
-   type = "A"
-   ttl = "300"
-   records = ["${module.bastion_servers_b.public-ips}"]
-}
-*/

@@ -8,10 +8,6 @@ provider "aws" {
   version = "~> 0.1"
 }
 
-provider "terraform" {
-  version = "~> 0.1"
-}
-
 provider "template" {
   version = "~> 0.1"
 }

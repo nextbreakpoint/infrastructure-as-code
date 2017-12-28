@@ -29,7 +29,16 @@ variable "stream_tag" {
 ###################################################################
 
 ### MANDATORY ###
-variable "hosted_zone_name" {}
+variable "network_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "bastion_hosted_zone_name" {
+}
+
+### MANDATORY ###
+variable "openvpn_hosted_zone_name" {
+}
 
 ###################################################################
 # VPC configuration below

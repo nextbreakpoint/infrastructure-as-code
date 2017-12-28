@@ -17,6 +17,5 @@ terraform.tfstate*
 .terraform
 network_vars.json
 /secrets
-**/*ftplan
-docker/consul/output
+**/tfplan
 images.json

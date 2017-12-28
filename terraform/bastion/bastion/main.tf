@@ -6,6 +6,7 @@ variable "key_path" {}
 variable "key_name" {}
 variable "security_groups" {}
 variable "subnet_id" {}
+variable "user_data" {}
 
 resource "aws_instance" "bastion" {
   instance_type = "${var.instance_type}"
@@ -19,6 +20,8 @@ resource "aws_instance" "bastion" {
   source_dest_check = false
 
   associate_public_ip_address = true
+
+  user_data = "${var.user_data}"
 
   connection {
     user = "ec2-user"

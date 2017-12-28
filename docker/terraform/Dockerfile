@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-RUN apt-get update -y && apt-get install -y git curl unzip software-properties-common python jq unzip
+RUN apt-get update -y && apt-get install -y git curl unzip software-properties-common python jq
 
 RUN add-apt-repository -y ppa:webupd8team/java && apt-get update -y
 
@@ -12,9 +12,11 @@ RUN curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.
     ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && \
     rm awscli-bundle.zip && rm -rf awscli-bundle
 
-RUN git clone https://github.com/kamatama41/tfenv.git ~/.tfenv && ln -s ~/.tfenv/bin/* /usr/local/bin
-
-RUN tfenv install 0.10.8 && tfenv use 0.10.8
+RUN curl -o terraform.zip https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_linux_amd64.zip && \
+    unzip terraform.zip && \
+    mv terraform /usr/bin && \
+    rm terraform.zip && \
+    terraform --version
 
 RUN curl -o packer.zip https://releases.hashicorp.com/packer/1.1.3/packer_1.1.3_linux_amd64.zip && \
     unzip packer.zip && \

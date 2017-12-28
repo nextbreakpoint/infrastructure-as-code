@@ -8,10 +8,6 @@ provider "aws" {
   version = "~> 0.1"
 }
 
-provider "terraform" {
-  version = "~> 0.1"
-}
-
 provider "template" {
   version = "~> 0.1"
 }
@@ -97,9 +93,7 @@ data "template_file" "webserver_user_data" {
     consul_datacenter       = "${var.consul_datacenter}"
     consul_nodes            = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
     consul_logfile          = "${var.consul_logfile}"
-    hosted_zone_name        = "${var.hosted_zone_name}"
-    public_hosted_zone_name = "${var.public_hosted_zone_name}"
-    logstash_host           = "logstash.${var.hosted_zone_name}"
+    hosted_zone_name        = "${data.terraform_remote_state.vpc.openvpn-hosted-zone-name}"
     filebeat_version        = "${var.filebeat_version}"
   }
 }

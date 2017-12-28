@@ -8,10 +8,6 @@ provider "aws" {
   version = "~> 0.1"
 }
 
-provider "terraform" {
-  version = "~> 0.1"
-}
-
 provider "template" {
   version = "~> 0.1"
 }
@@ -20,9 +16,9 @@ provider "template" {
 # ECS
 ##############################################################################
 
-resource "aws_security_group" "ecs_server" {
-  name = "ecs-server-security-group"
-  description = "ECS security group"
+resource "aws_security_group" "ecs_node" {
+  name = "ecs-node-security-group"
+  description = "ECS node security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
@@ -100,13 +96,13 @@ resource "aws_security_group" "ecs_server" {
   }
 }
 
-resource "aws_iam_instance_profile" "ecs_server_profile" {
-    name = "ecs-server-profile"
-    role = "${aws_iam_role.ecs_server_role.name}"
+resource "aws_iam_instance_profile" "ecs_node_profile" {
+    name = "ecs-node-profile"
+    role = "${aws_iam_role.ecs_node_role.name}"
 }
 
-resource "aws_iam_role" "ecs_server_role" {
-  name = "ecs-server-role"
+resource "aws_iam_role" "ecs_node_role" {
+  name = "ecs-node-role"
 
   assume_role_policy = <<EOF
 {
@@ -133,9 +129,9 @@ resource "aws_iam_role" "ecs_server_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "ecs_server_role_policy" {
-  name = "ecs-server-role-policy"
-  role = "${aws_iam_role.ecs_server_role.id}"
+resource "aws_iam_role_policy" "ecs_node_role_policy" {
+  name = "ecs-node-role-policy"
+  role = "${aws_iam_role.ecs_node_role.id}"
 
   policy = <<EOF
 {
@@ -191,7 +187,6 @@ data "template_file" "ecs_launch_user_data" {
     consul_datacenter       = "${var.consul_datacenter}"
     consul_nodes            = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
     consul_logfile          = "${var.consul_logfile}"
-    logstash_host           = "logstash.${var.hosted_zone_name}"
     filebeat_version        = "${var.filebeat_version}"
   }
 }
@@ -211,7 +206,7 @@ data "aws_ami" "ecs_cluster" {
 }
 
 /*
-resource "aws_instance" "ecs_server_a" {
+resource "aws_instance" "ecs_node_a" {
   depends_on = ["aws_ecs_cluster.ecs_cluster"]
   instance_type = "${var.ecs_instance_type}"
 
@@ -219,20 +214,20 @@ resource "aws_instance" "ecs_server_a" {
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-a-id}"
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.ecs_server.id}"]
+  security_groups = ["${aws_security_group.ecs_node.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.ecs_server_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.ecs_node_profile.name}"
 
   user_data = "${data.template_file.ecs_launch_user_data.rendered}"
 
   tags {
-    Name = "ecs-server-a"
+    Name = "ecs-node-a"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_instance" "ecs_server_b" {
+resource "aws_instance" "ecs_node_b" {
   depends_on = ["aws_ecs_cluster.ecs_cluster"]
   instance_type = "${var.ecs_instance_type}"
 
@@ -240,15 +235,15 @@ resource "aws_instance" "ecs_server_b" {
 
   subnet_id = "${data.terraform_remote_state.vpc.network-private-subnet-b-id}"
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.ecs_server.id}"]
+  security_groups = ["${aws_security_group.ecs_node.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.ecs_server_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.ecs_node_profile.name}"
 
   user_data = "${data.template_file.ecs_launch_user_data.rendered}"
 
   tags {
-    Name = "ecs-server-b"
+    Name = "ecs-node-b"
     Stream = "${var.stream_tag}"
   }
 }
@@ -256,16 +251,16 @@ resource "aws_instance" "ecs_server_b" {
 
 resource "aws_launch_configuration" "ecs_launch_configuration" {
   depends_on = ["aws_ecs_cluster.ecs_cluster"]
-  name_prefix   = "ecs-server"
+  name_prefix   = "ecs-node"
   instance_type = "${var.cluster_instance_type}"
 
   image_id = "${data.aws_ami.ecs_cluster.id}"
 
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.ecs_server.id}"]
+  security_groups = ["${aws_security_group.ecs_node.id}"]
   key_name = "${var.key_name}"
 
-  iam_instance_profile = "${aws_iam_instance_profile.ecs_server_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.ecs_node_profile.name}"
 
   user_data = "${data.template_file.ecs_launch_user_data.rendered}"
 
@@ -303,7 +298,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
 
   tag {
     key                 = "Name"
-    value               = "ecs-server"
+    value               = "ecs-node"
     propagate_at_launch = true
   }
 

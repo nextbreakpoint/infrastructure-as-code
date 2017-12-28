@@ -8,17 +8,13 @@ provider "aws" {
   version = "~> 0.1"
 }
 
-provider "terraform" {
-  version = "~> 0.1"
-}
-
 ##############################################################################
 # Security Groups
 ##############################################################################
 
 resource "aws_security_group" "openvpn_server" {
   name = "openvpn-security-group"
-  description = "openvpn security group"
+  description = "OpenVPN security group"
   vpc_id = "${data.terraform_remote_state.vpc.openvpn-vpc-id}"
 
   ingress {

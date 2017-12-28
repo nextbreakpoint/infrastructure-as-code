@@ -8,8 +8,6 @@ variable "key_name" {}
 variable "key_path" {}
 variable "stream_tag" {}
 variable "user_data" {}
-variable "bastion_user" {}
-variable "bastion_host" {}
 variable "instance_profile" {}
 variable "private_ip" {}
 
@@ -30,14 +28,6 @@ resource "aws_instance" "consul" {
   user_data = "${var.user_data}"
 
   private_ip = "${var.private_ip}"
-
-  connection {
-    user = "ubuntu"
-    type = "ssh"
-    private_key = "${file(var.key_path)}"
-    bastion_user = "${var.bastion_user}"
-    bastion_host = "${var.bastion_host}"
-  }
 
   tags {
     Name = "${var.name}"

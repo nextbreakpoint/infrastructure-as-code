@@ -8,10 +8,6 @@ provider "aws" {
   version = "~> 0.1"
 }
 
-provider "terraform" {
-    version = "~> 0.1"
-}
-
 ##############################################################################
 # VPC configuration
 ##############################################################################
@@ -82,9 +78,9 @@ resource "aws_internet_gateway" "openvpn" {
 resource "aws_vpc_dhcp_options" "network" {
   domain_name = "${var.aws_region}.compute.internal"
   domain_name_servers  = ["127.0.0.1", "AmazonProvidedDNS"]
-  ntp_servers          = ["127.0.0.1"]
+  ntp_servers = ["127.0.0.1"]
   netbios_name_servers = ["127.0.0.1"]
-  netbios_node_type    = 2
+  netbios_node_type = 2
 
   tags {
     Name = "network-internal"
@@ -95,6 +91,7 @@ resource "aws_vpc_dhcp_options" "network" {
 resource "aws_vpc_dhcp_options" "bastion" {
   domain_name = "${var.aws_region}.compute.internal"
   domain_name_servers = ["AmazonProvidedDNS"]
+  ntp_servers = ["127.0.0.1"]
 
   tags {
     Name = "bastion-internal"
@@ -105,6 +102,7 @@ resource "aws_vpc_dhcp_options" "bastion" {
 resource "aws_vpc_dhcp_options" "openvpn" {
   domain_name = "${var.aws_region}.compute.internal"
   domain_name_servers = ["AmazonProvidedDNS", "8.8.4.4", "8.8.8.8"]
+  ntp_servers = ["127.0.0.1"]
 
   tags {
     Name = "openvpn-internal"
@@ -157,8 +155,28 @@ resource "aws_vpc_peering_connection" "network_to_openvpn" {
 # Route 53
 ##############################################################################
 
+resource "aws_route53_zone" "network" {
+  name = "${var.network_hosted_zone_name}"
+  vpc_id = "${aws_vpc.network.id}"
+
+  tags {
+    Name = "network-private-zone"
+    Stream = "${var.stream_tag}"
+  }
+}
+
+resource "aws_route53_zone" "bastion" {
+  name = "${var.bastion_hosted_zone_name}"
+  vpc_id = "${aws_vpc.bastion.id}"
+
+  tags {
+    Name = "bastion-private-zone"
+    Stream = "${var.stream_tag}"
+  }
+}
+
 resource "aws_route53_zone" "openvpn" {
-  name = "${var.hosted_zone_name}"
+  name = "${var.openvpn_hosted_zone_name}"
   vpc_id = "${aws_vpc.openvpn.id}"
 
   tags {

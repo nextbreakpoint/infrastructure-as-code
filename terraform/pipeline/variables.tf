@@ -45,18 +45,6 @@ variable "volume_encrypted" {
 }
 
 ### MANDATORY ###
-variable "hosted_zone_name" {
-}
-
-### MANDATORY ###
-variable "public_hosted_zone_id" {
-}
-
-### MANDATORY ###
-variable "public_hosted_zone_name" {
-}
-
-### MANDATORY ###
 variable "aws_bastion_vpc_cidr" {
 }
 

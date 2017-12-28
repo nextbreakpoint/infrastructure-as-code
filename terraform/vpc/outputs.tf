@@ -1,9 +1,25 @@
-output "hosted-zone-id" {
+output "openvpn-hosted-zone-name" {
+  value = "${aws_route53_zone.openvpn.name}"
+}
+
+output "bastion-hosted-zone-name" {
+  value = "${aws_route53_zone.bastion.name}"
+}
+
+output "network-hosted-zone-name" {
+  value = "${aws_route53_zone.network.name}"
+}
+
+output "openvpn-hosted-zone-id" {
   value = "${aws_route53_zone.openvpn.id}"
 }
 
-output "hosted-zone-name" {
-  value = "${aws_route53_zone.openvpn.name}"
+output "bastion-hosted-zone-id" {
+  value = "${aws_route53_zone.bastion.id}"
+}
+
+output "network-hosted-zone-id" {
+  value = "${aws_route53_zone.network.id}"
 }
 
 output "network-vpc-id" {

@@ -8,10 +8,6 @@ provider "aws" {
   version = "~> 0.1"
 }
 
-provider "terraform" {
-  version = "~> 0.1"
-}
-
 provider "template" {
   version = "~> 0.1"
 }
@@ -93,9 +89,6 @@ data "template_file" "elasticsearch_server_user_data" {
     security_groups         = "${aws_security_group.elasticsearch_server.id}"
     minimum_master_nodes    = "${var.minimum_master_nodes}"
     volume_name             = "${var.volume_name}"
-    hosted_zone_name        = "${var.hosted_zone_name}"
-    public_hosted_zone_name = "${var.public_hosted_zone_name}"
-    logstash_host           = "logstash.${var.hosted_zone_name}"
     cluster_name            = "${var.elasticsearch_cluster_name}"
     filebeat_version        = "${var.filebeat_version}"
     elasticsearch_version   = "${var.elasticsearch_version}"

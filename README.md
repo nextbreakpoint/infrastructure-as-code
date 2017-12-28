@@ -45,8 +45,10 @@ Create a file config.tfvars in config directory. The file should look like:
     public_hosted_zone_name="yourdomain.com"
     public_hosted_zone_id="your_public_zone_id"
 
-    # Private Hosted Zone
-    hosted_zone_name="yourprivatedomain.com"
+    # Private Hosted Zones
+    network_hosted_zone_name="yourprivatedomain.com"
+    openvpn_hosted_zone_name="yourprivatedomain.com"
+    bastion_hosted_zone_name="yourprivatedomain.com"
 
     # Secrets bucket
     secrets_bucket_name="secrets_bucket_name"
@@ -99,7 +101,7 @@ The certificate and the private key will be used to provision a private ELB to a
 
 Execute script run_build.sh to create the Docker image required to build the infrastructure:
 
-    sh run_build.sh
+    ./run_build.sh
 
 The image will contain the required tools, including AWS CLI, Terraform, Packer, and others.
 
@@ -109,13 +111,13 @@ Terraform requires a S3 Bucket to store the remote state.
 
 Create a S3 bucket with the command:
 
-    ./run_script.sh absolute_path_of_aws_folder create_bucket your_bucket_name eu-west-1
+    ./run_script.sh create_bucket your_bucket_name eu-west-1
 
 Please note that the bucket name must be unique among all S3 buckets.
 
 Once the bucket has been created, execute the command:
 
-    ./run_script.sh absolute_path_of_aws_folder configure_terraform your_bucket_name eu-west-1
+    ./run_script.sh configure_terraform your_bucket_name eu-west-1
 
 The script will set the bucket name and region in all remote_state.tf files.
 
@@ -125,7 +127,7 @@ Some certificates and keystores are required to create a secure infrastructure.
 
 Create the secrets with the command:
 
-    ./run_script.sh absolute_path_of_aws_folder generate_secrets
+    ./run_script.sh generate_secrets
 
 ## Generate SSH keys
 
@@ -133,19 +135,19 @@ SSH keys are required to access EC2 machines.
 
 Create the SSH keys with the command:
 
-    ./run_script.sh absolute_path_of_aws_folder generate_keys
+    ./run_script.sh generate_keys
 
 ## Configure Consul
 
 Create a configuration for Consul with the command:
 
-    ./run_script.sh absolute_path_of_aws_folder configure_consul
+    ./run_script.sh configure_consul
 
 ## Create VPC and Hosted Zone
 
 Create VPCs and Route53 zone with command:
 
-    ./run_script.sh absolute_path_of_aws_folder create_vpc
+    ./run_script.sh create_vpc
 
 ## Build images with Packer
 
@@ -153,31 +155,35 @@ EC2 machines are provisioned using few custom images.
 
 Create the images with the command:
 
-    ./run_script.sh absolute_path_of_aws_folder build_images
+    ./run_script.sh build_images
 
 ## Create infrastructure
 
 Create the infrastructure with command:
 
-  ./run_script.sh absolute_path_of_aws_folder create_all
+  ./run_script.sh create_all
 
-Or create the infrastructure in three steps:
+Or create the infrastructure in several steps:
 
-  ./run_script.sh absolute_path_of_aws_folder create_keys
-  ./run_script.sh absolute_path_of_aws_folder create_network
-  ./run_script.sh absolute_path_of_aws_folder create_stack
+  ./run_script.sh create_keys
+  ./run_script.sh create_vpc
+  ./run_script.sh create_network
+  ./run_script.sh create_stack
+  ./run_script.sh create_elb
 
 ## Destroy infrastructure
 
 Destroy the infrastructure with command:
 
-./run_script.sh absolute_path_of_aws_folder destroy_all
+./run_script.sh destroy_all
 
 Or destroy the infrastructure in three steps:
 
-  ./run_script.sh absolute_path_of_aws_folder destroy_stack
-  ./run_script.sh absolute_path_of_aws_folder destroy_network
-  ./run_script.sh absolute_path_of_aws_folder destroy_keys
+  ./run_script.sh destroy_elb
+  ./run_script.sh destroy_stack
+  ./run_script.sh destroy_network
+  ./run_script.sh destroy_vpc
+  ./run_script.sh destroy_keys
 
 ## Access machines using Bastion
 
@@ -293,7 +299,7 @@ When initialisation is completed, you have to reset the user password:
 
 Finally you can access the admin panel at https://openvpn.yourdomain.com:943/admin.
 
-You need to add all subnets you want to make accessible in VPN settings. The list must include subnets 172.34.0.0/16 and 172.32.0.0/16. Save the configuration and restart the server (there is a button for applying changes on running server).
+You need to add all subnets you want to make accessible in VPN settings. **The list must include subnets 172.34.0.0/16 and 172.32.0.0/16**. Save the configuration and restart the server (there is a button for applying changes on running server).
 
 In order to establish a VPN connection, download the locked profile on https://openvpn.yourdomain.com:943, configure your OpenVPN client and then connect your client to OpenVPN server.
 
