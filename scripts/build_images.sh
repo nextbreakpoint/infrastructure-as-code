@@ -2,13 +2,12 @@
 
 . $ROOT/bash_aliases
 
-cd $ROOT/terraform/vpc
+cd $ROOT/terraform/bastion
 
-VPC=$(terraform output -json network-vpc-id | jq -r '.value')
-SUBNET=$(terraform output -json network-private-subnet-a-id | jq -r '.value')
+SUBNET=$(terraform output -json bastion-public-subnet-b-id | jq -r '.value')
 
 echo "Network variables:"
-echo "{\"aws_vpc_id\":\"$VPC\",\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/network_vars.json
+echo "{\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/network_vars.json
 cat $ROOT/config/network_vars.json
 
 echo "Creating Base AMI..."

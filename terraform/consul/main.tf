@@ -25,7 +25,7 @@ resource "aws_security_group" "consul_server" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {

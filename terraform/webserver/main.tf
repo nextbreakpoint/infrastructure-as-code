@@ -39,7 +39,7 @@ resource "aws_security_group" "webserver" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
@@ -93,7 +93,7 @@ data "template_file" "webserver_user_data" {
     consul_datacenter       = "${var.consul_datacenter}"
     consul_nodes            = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
     consul_logfile          = "${var.consul_logfile}"
-    hosted_zone_name        = "${data.terraform_remote_state.vpc.openvpn-hosted-zone-name}"
+    hosted_zone_name        = "${var.hosted_zone_name}"
     filebeat_version        = "${var.filebeat_version}"
   }
 }
@@ -187,7 +187,7 @@ resource "aws_launch_configuration" "webserver_launch_configuration" {
 }
 
 resource "aws_autoscaling_group" "webserver_asg" {
-  name                      = "nginx-server-asg"
+  name                      = "nginx-asg"
   max_size                  = 6
   min_size                  = 0
   health_check_grace_period = 300

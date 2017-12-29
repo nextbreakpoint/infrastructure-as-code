@@ -13,22 +13,22 @@ provider "aws" {
 ##############################################################################
 
 resource "aws_security_group" "webserver_elb" {
-  name = "webserver-elb-security-group"
-  description = "ELB security group"
+  name = "internal-elb-security-group"
+  description = "Internal ELB security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
     from_port = 443
     to_port = 443
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
@@ -44,7 +44,7 @@ resource "aws_security_group" "webserver_elb" {
 }
 
 resource "aws_iam_server_certificate" "webserver_elb" {
-  name_prefix      = "webserver-elb-certificate"
+  name_prefix      = "internal-elb-certificate"
   certificate_body = "${file("${var.webserver_elb_certificate_path}")}"
   private_key      = "${file("${var.webserver_elb_private_key_path}")}"
 
@@ -54,7 +54,7 @@ resource "aws_iam_server_certificate" "webserver_elb" {
 }
 
 resource "aws_elb" "webserver_elb" {
-  name = "webserver-elb"
+  name = "internal-elb"
 
   security_groups = ["${aws_security_group.webserver_elb.id}"]
 
@@ -112,9 +112,9 @@ resource "aws_autoscaling_attachment" "webserver_asg_b" {
 # Route 53
 ##############################################################################
 
-resource "aws_route53_record" "consul_openvpn" {
-  zone_id = "${data.terraform_remote_state.vpc.openvpn-hosted-zone-id}"
-  name = "consul.${data.terraform_remote_state.vpc.openvpn-hosted-zone-name}"
+resource "aws_route53_record" "consul" {
+  zone_id = "${data.terraform_remote_state.zones.network-hosted-zone-id}"
+  name = "consul.${data.terraform_remote_state.zones.network-hosted-zone-name}"
   type = "A"
 
   alias {
@@ -124,9 +124,9 @@ resource "aws_route53_record" "consul_openvpn" {
   }
 }
 
-resource "aws_route53_record" "kibana_openvpn" {
-  zone_id = "${data.terraform_remote_state.vpc.openvpn-hosted-zone-id}"
-  name = "kibana.${data.terraform_remote_state.vpc.openvpn-hosted-zone-name}"
+resource "aws_route53_record" "kibana" {
+  zone_id = "${data.terraform_remote_state.zones.network-hosted-zone-id}"
+  name = "kibana.${data.terraform_remote_state.zones.network-hosted-zone-name}"
   type = "A"
 
   alias {
@@ -136,9 +136,9 @@ resource "aws_route53_record" "kibana_openvpn" {
   }
 }
 
-resource "aws_route53_record" "jenkins_openvpn" {
-  zone_id = "${data.terraform_remote_state.vpc.openvpn-hosted-zone-id}"
-  name = "jenkins.${data.terraform_remote_state.vpc.openvpn-hosted-zone-name}"
+resource "aws_route53_record" "jenkins" {
+  zone_id = "${data.terraform_remote_state.zones.network-hosted-zone-id}"
+  name = "jenkins.${data.terraform_remote_state.zones.network-hosted-zone-name}"
   type = "A"
 
   alias {
@@ -148,9 +148,9 @@ resource "aws_route53_record" "jenkins_openvpn" {
   }
 }
 
-resource "aws_route53_record" "sonarqube_openvpn" {
-  zone_id = "${data.terraform_remote_state.vpc.openvpn-hosted-zone-id}"
-  name = "sonarqube.${data.terraform_remote_state.vpc.openvpn-hosted-zone-name}"
+resource "aws_route53_record" "sonarqube" {
+  zone_id = "${data.terraform_remote_state.zones.network-hosted-zone-id}"
+  name = "sonarqube.${data.terraform_remote_state.zones.network-hosted-zone-name}"
   type = "A"
 
   alias {
@@ -160,69 +160,9 @@ resource "aws_route53_record" "sonarqube_openvpn" {
   }
 }
 
-resource "aws_route53_record" "artifactory_openvpn" {
-  zone_id = "${data.terraform_remote_state.vpc.openvpn-hosted-zone-id}"
-  name = "artifactory.${data.terraform_remote_state.vpc.openvpn-hosted-zone-name}"
-  type = "A"
-
-  alias {
-    name = "${aws_elb.webserver_elb.dns_name}"
-    zone_id = "${aws_elb.webserver_elb.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
-resource "aws_route53_record" "consul_network" {
-  zone_id = "${data.terraform_remote_state.vpc.network-hosted-zone-id}"
-  name = "consul.${data.terraform_remote_state.vpc.network-hosted-zone-name}"
-  type = "A"
-
-  alias {
-    name = "${aws_elb.webserver_elb.dns_name}"
-    zone_id = "${aws_elb.webserver_elb.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
-resource "aws_route53_record" "kibana_network" {
-  zone_id = "${data.terraform_remote_state.vpc.network-hosted-zone-id}"
-  name = "kibana.${data.terraform_remote_state.vpc.network-hosted-zone-name}"
-  type = "A"
-
-  alias {
-    name = "${aws_elb.webserver_elb.dns_name}"
-    zone_id = "${aws_elb.webserver_elb.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
-resource "aws_route53_record" "jenkins_network" {
-  zone_id = "${data.terraform_remote_state.vpc.network-hosted-zone-id}"
-  name = "jenkins.${data.terraform_remote_state.vpc.network-hosted-zone-name}"
-  type = "A"
-
-  alias {
-    name = "${aws_elb.webserver_elb.dns_name}"
-    zone_id = "${aws_elb.webserver_elb.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
-resource "aws_route53_record" "sonarqube_network" {
-  zone_id = "${data.terraform_remote_state.vpc.network-hosted-zone-id}"
-  name = "sonarqube.${data.terraform_remote_state.vpc.network-hosted-zone-name}"
-  type = "A"
-
-  alias {
-    name = "${aws_elb.webserver_elb.dns_name}"
-    zone_id = "${aws_elb.webserver_elb.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
-resource "aws_route53_record" "artifactory_network" {
-  zone_id = "${data.terraform_remote_state.vpc.network-hosted-zone-id}"
-  name = "artifactory.${data.terraform_remote_state.vpc.network-hosted-zone-name}"
+resource "aws_route53_record" "artifactory" {
+  zone_id = "${data.terraform_remote_state.zones.network-hosted-zone-id}"
+  name = "artifactory.${data.terraform_remote_state.zones.network-hosted-zone-name}"
   type = "A"
 
   alias {

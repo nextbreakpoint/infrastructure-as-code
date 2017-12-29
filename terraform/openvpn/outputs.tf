@@ -1,3 +1,3 @@
-output "openvpn-server-a-private-ip" {
-  value = "${aws_instance.openvpn_server_a.private_ip}"
+output "openvpn-server-a-public-ip" {
+  value = "${aws_instance.openvpn_server_a.public_ip}"
 }

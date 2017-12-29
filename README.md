@@ -42,13 +42,8 @@ Create a file config.tfvars in config directory. The file should look like:
     account_id="your_account_id"
 
     # Public Hosted Zone
-    public_hosted_zone_name="yourdomain.com"
-    public_hosted_zone_id="your_public_zone_id"
-
-    # Private Hosted Zones
-    network_hosted_zone_name="yourprivatedomain.com"
-    openvpn_hosted_zone_name="yourprivatedomain.com"
-    bastion_hosted_zone_name="yourprivatedomain.com"
+    hosted_zone_name="yourdomain.com"
+    hosted_zone_id="your_public_zone_id"
 
     # Secrets bucket
     secrets_bucket_name="secrets_bucket_name"
@@ -133,7 +128,7 @@ Create the secrets with the command:
 
 SSH keys are required to access EC2 machines.
 
-Create the SSH keys with the command:
+Generate the SSH keys with the command:
 
     ./run_script.sh generate_keys
 
@@ -143,15 +138,27 @@ Create a configuration for Consul with the command:
 
     ./run_script.sh configure_consul
 
-## Create VPC and Hosted Zone
+## Create VPCs
 
-Create VPCs and Route53 zone with command:
+Create VPCs with command:
 
     ./run_script.sh create_vpc
 
+## Create SSH keys
+
+Create SSH keys with command:
+
+    ./run_script.sh create_keys
+
+## Create Bastion server
+
+Create Bastion server with command:
+
+    ./run_script.sh create_bastion
+
 ## Build images with Packer
 
-EC2 machines are provisioned using few custom images.
+EC2 machines are provisioned using custom images.
 
 Create the images with the command:
 
@@ -161,29 +168,29 @@ Create the images with the command:
 
 Create the infrastructure with command:
 
-  ./run_script.sh create_all
+    ./run_script.sh create_all
 
 Or create the infrastructure in several steps:
 
-  ./run_script.sh create_keys
-  ./run_script.sh create_vpc
-  ./run_script.sh create_network
-  ./run_script.sh create_stack
-  ./run_script.sh create_elb
+    ./run_script.sh create_zones
+    ./run_script.sh create_network
+    ./run_script.sh create_openvpn
+    ./run_script.sh create_stack
+    ./run_script.sh create_elb
 
 ## Destroy infrastructure
 
 Destroy the infrastructure with command:
 
-./run_script.sh destroy_all
+    ./run_script.sh destroy_all
 
 Or destroy the infrastructure in three steps:
 
-  ./run_script.sh destroy_elb
-  ./run_script.sh destroy_stack
-  ./run_script.sh destroy_network
-  ./run_script.sh destroy_vpc
-  ./run_script.sh destroy_keys
+    ./run_script.sh destroy_elb
+    ./run_script.sh destroy_stack
+    ./run_script.sh destroy_openvpn
+    ./run_script.sh destroy_network
+    ./run_script.sh destroy_zones
 
 ## Access machines using Bastion
 
@@ -229,7 +236,7 @@ The server will ask you a few questions. The output should look like:
     Please specify the network interface and IP address to be
     used by the Admin Web UI:
     (1) all interfaces: 0.0.0.0
-    (2) eth0: 172.34.0.214
+    (2) eth0: 172.32.0.214
     Please enter the option number from the list above (1-2).
     > Press Enter for default [2]: 2
 
@@ -248,7 +255,7 @@ The server will ask you a few questions. The output should look like:
     Use local authentication via internal DB?
     > Press ENTER for default [yes]: no
 
-    Private subnets detected: ['172.34.0.0/16']
+    Private subnets detected: ['172.32.0.0/16']
 
     Should private subnets be accessible to clients by default?
     > Press ENTER for EC2 default [yes]: yes
@@ -299,8 +306,6 @@ When initialisation is completed, you have to reset the user password:
 
 Finally you can access the admin panel at https://openvpn.yourdomain.com:943/admin.
 
-You need to add all subnets you want to make accessible in VPN settings. **The list must include subnets 172.34.0.0/16 and 172.32.0.0/16**. Save the configuration and restart the server (there is a button for applying changes on running server).
-
 In order to establish a VPN connection, download the locked profile on https://openvpn.yourdomain.com:943, configure your OpenVPN client and then connect your client to OpenVPN server.
 
 ## Services discovery
@@ -337,8 +342,16 @@ Deploy your application to ECS or EC2, manually or using Jenkins CI.
 
 ## Disable access from Bastion
 
-Bastion server could be removed or access to private network could be disabled after creating the infrastructure.
+Bastion server could be stopped or destroyed after creating the infrastructure. The server can be recreated when needed.
+
+Stop the Bastion server from AWS console.
+
+Remove the Bastion server with command:
+
+    ./run_script.sh destroy_bastion
 
 ## Delete secrets is S3 bucket
 
-Secrets stored in S3 could be deleted after creating the infrastructure. Create a backup if you think you might need them later to configure other machines.
+Secrets stored in S3 could be deleted after creating the infrastructure.
+
+Create a backup if you think you might need them later to configure other machines.

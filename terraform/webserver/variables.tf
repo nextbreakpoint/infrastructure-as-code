@@ -37,10 +37,6 @@ variable "aws_bastion_vpc_cidr" {
 }
 
 ### MANDATORY ###
-variable "aws_openvpn_vpc_cidr" {
-}
-
-### MANDATORY ###
 variable "aws_network_vpc_cidr" {
 }
 
@@ -57,6 +53,10 @@ variable "aws_network_private_subnet_cidr_b" {
 ### MANDATORY ###
 variable "aws_network_private_subnet_cidr_c" {
   description = "Private subnet C cidr block"
+}
+
+### MANDATORY ###
+variable "hosted_zone_name" {
 }
 
 ### MANDATORY ###

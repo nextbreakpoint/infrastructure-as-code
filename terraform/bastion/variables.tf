@@ -31,11 +31,11 @@ variable "amazon_nat_amis" {
 }
 
 ### MANDATORY ###
-variable "public_hosted_zone_id" {
+variable "hosted_zone_id" {
 }
 
 ### MANDATORY ###
-variable "public_hosted_zone_name" {
+variable "hosted_zone_name" {
 }
 
 ###################################################################
@@ -46,10 +46,6 @@ variable "bastion_instance_type" {
   description = "bastion instance type."
   default  = "t2.micro"
 }
-
-###################################################################
-# Subnets configuration below
-###################################################################
 
 ### MANDATORY ###
 variable "aws_bastion_subnet_cidr_a" {

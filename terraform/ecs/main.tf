@@ -17,15 +17,15 @@ provider "template" {
 ##############################################################################
 
 resource "aws_security_group" "ecs_node" {
-  name = "ecs-node-security-group"
-  description = "ECS node security group"
+  name = "ecs-server-security-group"
+  description = "ECS server security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
@@ -97,12 +97,12 @@ resource "aws_security_group" "ecs_node" {
 }
 
 resource "aws_iam_instance_profile" "ecs_node_profile" {
-    name = "ecs-node-profile"
+    name = "ecs-server-profile"
     role = "${aws_iam_role.ecs_node_role.name}"
 }
 
 resource "aws_iam_role" "ecs_node_role" {
-  name = "ecs-node-role"
+  name = "ecs-server-role"
 
   assume_role_policy = <<EOF
 {
@@ -130,7 +130,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "ecs_node_role_policy" {
-  name = "ecs-node-role-policy"
+  name = "ecs-server-policy"
   role = "${aws_iam_role.ecs_node_role.id}"
 
   policy = <<EOF
@@ -222,7 +222,7 @@ resource "aws_instance" "ecs_node_a" {
   user_data = "${data.template_file.ecs_launch_user_data.rendered}"
 
   tags {
-    Name = "ecs-node-a"
+    Name = "ecs-server-a"
     Stream = "${var.stream_tag}"
   }
 }
@@ -243,7 +243,7 @@ resource "aws_instance" "ecs_node_b" {
   user_data = "${data.template_file.ecs_launch_user_data.rendered}"
 
   tags {
-    Name = "ecs-node-b"
+    Name = "ecs-server-b"
     Stream = "${var.stream_tag}"
   }
 }
@@ -251,7 +251,7 @@ resource "aws_instance" "ecs_node_b" {
 
 resource "aws_launch_configuration" "ecs_launch_configuration" {
   depends_on = ["aws_ecs_cluster.ecs_cluster"]
-  name_prefix   = "ecs-node"
+  name_prefix   = "ecs-server-"
   instance_type = "${var.cluster_instance_type}"
 
   image_id = "${data.aws_ami.ecs_cluster.id}"
@@ -298,7 +298,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
 
   tag {
     key                 = "Name"
-    value               = "ecs-node"
+    value               = "ecs-server"
     propagate_at_launch = true
   }
 

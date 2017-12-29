@@ -16,6 +16,7 @@ resource "aws_subnet" "network_public_a" {
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
   availability_zone = "${format("%s%s", var.aws_region, "a")}"
   cidr_block = "${var.aws_network_public_subnet_cidr_a}"
+  map_public_ip_on_launch = true
 
   tags {
     Name = "public-subnet-a"
@@ -27,6 +28,7 @@ resource "aws_subnet" "network_public_b" {
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
   availability_zone = "${format("%s%s", var.aws_region, "b")}"
   cidr_block = "${var.aws_network_public_subnet_cidr_b}"
+  map_public_ip_on_launch = true
 
   tags {
     Name = "public-subnet-b"
@@ -38,6 +40,7 @@ resource "aws_subnet" "network_public_c" {
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
   availability_zone = "${format("%s%s", var.aws_region, "c")}"
   cidr_block = "${var.aws_network_public_subnet_cidr_c}"
+  map_public_ip_on_launch = true
 
   tags {
     Name = "public-subnet-c"
@@ -88,11 +91,6 @@ resource "aws_route_table" "network_public" {
   route {
     vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-bastion-peering-connection-id}"
     cidr_block = "${data.terraform_remote_state.vpc.bastion-vpc-cidr}"
-  }
-
-  route {
-    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
-    cidr_block = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
   }
 
   route {
@@ -280,11 +278,6 @@ resource "aws_route_table" "network_private_a" {
   }
 
   route {
-    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
-    cidr_block = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
-  }
-
-  route {
     cidr_block = "0.0.0.0/0"
     instance_id = "${aws_instance.network_nat_a.id}"
     #nat_gateway_id = "${aws_nat_gateway.net_gateway_a.id}"
@@ -305,11 +298,6 @@ resource "aws_route_table" "network_private_b" {
   }
 
   route {
-    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
-    cidr_block = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
-  }
-
-  route {
     cidr_block = "0.0.0.0/0"
     instance_id = "${aws_instance.network_nat_b.id}"
     #nat_gateway_id = "${aws_nat_gateway.net_gateway_b.id}"
@@ -327,11 +315,6 @@ resource "aws_route_table" "network_private_c" {
   route {
     vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-bastion-peering-connection-id}"
     cidr_block = "${data.terraform_remote_state.vpc.bastion-vpc-cidr}"
-  }
-
-  route {
-    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
-    cidr_block = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
   }
 
   route {

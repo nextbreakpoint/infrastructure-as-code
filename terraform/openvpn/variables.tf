@@ -33,11 +33,11 @@ variable "log_stream_name" {
 }
 
 ### MANDATORY ###
-variable "public_hosted_zone_name" {
+variable "hosted_zone_name" {
 }
 
 ### MANDATORY ###
-variable "public_hosted_zone_id" {
+variable "hosted_zone_id" {
 }
 
 ###################################################################
@@ -51,18 +51,4 @@ variable "openvpn_ami" {
 ### MANDATORY ###
 variable "openvpn_instance_type" {
   default = "t2.micro"
-}
-
-###################################################################
-# Subnets configuration below
-###################################################################
-
-### MANDATORY ###
-variable "aws_openvpn_subnet_cidr_a" {
-  description = "OpenVPN subnet A cidr block"
-}
-
-### MANDATORY ###
-variable "aws_openvpn_subnet_cidr_b" {
-  description = "OpenVPN subnet B cidr block"
 }

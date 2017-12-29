@@ -8,6 +8,10 @@ provider "aws" {
   version = "~> 0.1"
 }
 
+provider "template" {
+  version = "~> 0.1"
+}
+
 ##############################################################################
 # Subnets
 ##############################################################################
@@ -74,6 +78,7 @@ resource "aws_subnet" "bastion_a" {
   vpc_id = "${data.terraform_remote_state.vpc.bastion-vpc-id}"
   availability_zone = "${format("%s%s", var.aws_region, "a")}"
   cidr_block = "${var.aws_bastion_subnet_cidr_a}"
+  map_public_ip_on_launch = true
 
   tags {
     Name = "bastion-subnet-a"
@@ -85,6 +90,7 @@ resource "aws_subnet" "bastion_b" {
   vpc_id = "${data.terraform_remote_state.vpc.bastion-vpc-id}"
   availability_zone = "${format("%s%s", var.aws_region, "b")}"
   cidr_block = "${var.aws_bastion_subnet_cidr_b}"
+  map_public_ip_on_launch = true
 
   tags {
     Name = "bastion-subnet-b"
@@ -129,8 +135,8 @@ module "bastion_servers_a" {
 ##############################################################################
 
 resource "aws_route53_record" "bastion" {
-   zone_id = "${var.public_hosted_zone_id}"
-   name = "bastion.${var.public_hosted_zone_name}"
+   zone_id = "${var.hosted_zone_id}"
+   name = "bastion.${var.hosted_zone_name}"
    type = "A"
    ttl = "60"
    records = ["${module.bastion_servers_a.public-ips}"]

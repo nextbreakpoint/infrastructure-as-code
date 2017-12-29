@@ -33,7 +33,6 @@
       "most_recent": true
     },
     "instance_type": "{{user `aws_instance_type`}}",
-    "vpc_id": "{{user `aws_vpc_id`}}",
     "subnet_id": "{{user `aws_subnet_id`}}",
     "ami_name": "{{user `ami_name_prefix`}}-{{user `base_version`}}-{{timestamp}}",
     "ami_regions": "{{user `aws_build_regions`}}",
@@ -43,9 +42,6 @@
     "ssh_username": "ubuntu",
     "ssh_keypair_name": "{{user `key_name`}}",
     "ssh_private_key_file": "{{user `key_path`}}",
-    "ssh_bastion_host": "{{user `bastion_host`}}",
-    "ssh_bastion_username": "{{user `bastion_username`}}",
-    "ssh_bastion_private_key_file": "{{user `key_path`}}",
     "tags": {
       "stream": "{{user `stream_tag`}}"
     }
