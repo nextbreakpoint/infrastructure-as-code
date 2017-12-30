@@ -168,7 +168,7 @@ data "aws_ami" "webserver" {
 }
 
 resource "aws_launch_configuration" "webserver_launch_configuration" {
-  name_prefix   = "nginx-server"
+  name_prefix   = "nginx-server-"
   instance_type = "${var.web_instance_type}"
 
   image_id = "${data.aws_ami.webserver.id}"

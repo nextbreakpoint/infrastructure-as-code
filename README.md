@@ -73,22 +73,15 @@ The domain yourdomain.com must be a valid domain hosted in a Route53 public zone
 
 The domain yourprivatedomain.com can be the same as yourdomain.com or a different one. A new private zone will be created to register all internal servers.
 
-## Install certificate
+## Create or upload certificate
 
-Create or copy a valid HTTPS certificate and private key in certificates folder:
+Access AWS Console and go to section Certificate Manager.
 
-    certificates/fullchain.pem
-    certificates/privatekey.pem
+Create or upload a valid HTTPS certificate issued for domain:
 
-The certificate must be a wildcard certificate or it must have been issued for this list of domains:
+    \*.yourprivatedomain.com
 
-    consul.yourprivatedomain.com
-    kibana.yourprivatedomain.com
-    jenkins.yourprivatedomain.com
-    sonarqube.yourprivatedomain.com
-    artifactory.yourprivatedomain.com
-
-The certificate and the private key will be used to provision a private ELB to access internal servers.
+The certificate will be used to provision a private ELB to access internal servers.
 
     You can use a self-signed certificates if you wish, but your browser will warn you when you try to access the above domains.
 

@@ -39,7 +39,7 @@ runcmd:
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/syslog filebeat:${filebeat_version}
   - sudo sed -e 's/$HOST_IP_ADDRESS/'$HOST_IP_ADDRESS'/g' /tmp/10-consul > /etc/dnsmasq.d/10-consul
   - sudo service dnsmasq restart
-  - bash -c "sleep 120"
+  - bash -c "sleep 60"
   - sudo -u ubuntu curl -XPUT  --cacert /elasticsearch/config/secrets/ca_cert.pem 'https://elastic:changeme@elasticsearch.service.terraform.consul:9200/.kibana/index-pattern/filebeat-index.json' -H "Content-Type:application/json" -d@/kibana-index-patterns/filebeat-index.json
   - sudo -u ubuntu curl -XPOST --cacert /elasticsearch/config/secrets/ca_cert.pem 'https://elastic:changeme@elasticsearch.service.terraform.consul:9200/_xpack/security/user/kibana/_password?pretty' -H "Content-Type:application/json" -d@/elasticsearch/kibana.json
   - sudo -u ubuntu curl -XPOST --cacert /elasticsearch/config/secrets/ca_cert.pem 'https://elastic:changeme@elasticsearch.service.terraform.consul:9200/_xpack/security/user/logstash_system/_password?pretty' -H "Content-Type:application/json" -d@/elasticsearch/logstash.json

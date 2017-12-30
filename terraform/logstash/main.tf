@@ -227,7 +227,7 @@ resource "aws_instance" "logstash_server_b" {
 */
 
 resource "aws_launch_configuration" "logstash_launch_configuration" {
-  name_prefix   = "logstash-server"
+  name_prefix   = "logstash-server-"
   instance_type = "${var.logstash_instance_type}"
 
   image_id = "${data.aws_ami.logstash.id}"

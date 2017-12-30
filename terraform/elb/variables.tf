@@ -33,6 +33,10 @@ variable "log_stream_name" {
 }
 
 ### MANDATORY ###
+variable "hosted_zone_name" {
+}
+
+### MANDATORY ###
 variable "aws_bastion_vpc_cidr" {
 }
 
@@ -65,16 +69,4 @@ variable "environment" {
 
 ### MANDATORY ###
 variable "secrets_bucket_name" {
-}
-
-###################################################################
-# ELB configuration below
-###################################################################
-
-### MANDATORY ###
-variable "webserver_elb_certificate_path" {
-}
-
-### MANDATORY ###
-variable "webserver_elb_private_key_path" {
 }

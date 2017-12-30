@@ -236,7 +236,7 @@ resource "aws_instance" "elasticsearch_server_b" {
 }
 
 resource "aws_launch_configuration" "elasticsearch_launch_configuration" {
-  name_prefix   = "elasticsearch-server"
+  name_prefix   = "elasticsearch-server-"
   instance_type = "${var.elasticsearch_instance_type}"
 
   image_id = "${data.aws_ami.elasticsearch.id}"

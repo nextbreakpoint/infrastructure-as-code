@@ -42,7 +42,7 @@
     "ssh_keypair_name": "{{user `key_name`}}",
     "ssh_private_key_file": "{{user `key_path`}}",
     "tags": {
-      "stream": "{{user `stream_tag`}}"
+      "Stream": "{{user `stream_tag`}}"
     }
   }],
   "provisioners": [

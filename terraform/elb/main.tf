@@ -43,14 +43,9 @@ resource "aws_security_group" "webserver_elb" {
   }
 }
 
-resource "aws_iam_server_certificate" "webserver_elb" {
-  name_prefix      = "internal-elb-certificate"
-  certificate_body = "${file("${var.webserver_elb_certificate_path}")}"
-  private_key      = "${file("${var.webserver_elb_private_key_path}")}"
-
-  lifecycle {
-    create_before_destroy = true
-  }
+data "aws_acm_certificate" "webserver_elb" {
+  domain   = "*.${var.hosted_zone_name}"
+  statuses = ["ISSUED"]
 }
 
 resource "aws_elb" "webserver_elb" {
@@ -76,7 +71,7 @@ resource "aws_elb" "webserver_elb" {
     instance_protocol   = "HTTPS"
     lb_port             = 443
     lb_protocol         = "HTTPS"
-    ssl_certificate_id  = "${aws_iam_server_certificate.webserver_elb.arn}"
+    ssl_certificate_id  = "${data.aws_acm_certificate.webserver_elb.arn}"
   }
 
   health_check {

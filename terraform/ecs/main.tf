@@ -17,8 +17,8 @@ provider "template" {
 ##############################################################################
 
 resource "aws_security_group" "ecs_node" {
-  name = "ecs-server-security-group"
-  description = "ECS server security group"
+  name = "ecs-security-group"
+  description = "ECS security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
