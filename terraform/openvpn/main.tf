@@ -110,6 +110,10 @@ EOF
 # OpenVPN Servers
 ##############################################################################
 
+data "template_file" "openvpn_server_user_data" {
+  template = "${file("provision/openvpn.tpl")}"
+}
+
 resource "aws_instance" "openvpn_server_a" {
   instance_type = "${var.openvpn_instance_type}"
 
@@ -121,6 +125,8 @@ resource "aws_instance" "openvpn_server_a" {
   key_name = "${var.key_name}"
 
   iam_instance_profile = "${aws_iam_instance_profile.openvpn_server_profile.name}"
+
+  user_data = "${data.template_file.openvpn_server_user_data.rendered}"
 
   tags {
     Name = "openvpn-server-a"

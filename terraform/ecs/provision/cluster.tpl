@@ -1,5 +1,6 @@
 #cloud-config
-manage_etc_hosts: True
+manage_etc_hosts: true
+manage_resolv_conf: false
 runcmd:
   - sudo mkdir -p /filebeat/docker
   - sudo mkdir -p /filebeat/config/secrets

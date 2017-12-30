@@ -55,11 +55,9 @@ resource "aws_internet_gateway" "bastion" {
 }
 
 resource "aws_vpc_dhcp_options" "network" {
-  domain_name = "${var.aws_region}.compute.internal"
-  domain_name_servers  = ["127.0.0.1", "${replace(var.aws_network_vpc_cidr, "0/16", "2")}", "AmazonProvidedDNS", "8.8.8.8", "8.8.4.4"]
+  domain_name_servers  = ["127.0.0.1", "AmazonProvidedDNS"]
+
   ntp_servers = ["127.0.0.1"]
-  netbios_name_servers = ["127.0.0.1"]
-  netbios_node_type = 2
 
   tags {
     Name = "network-internal"
@@ -68,8 +66,8 @@ resource "aws_vpc_dhcp_options" "network" {
 }
 
 resource "aws_vpc_dhcp_options" "bastion" {
-  domain_name = "${var.aws_region}.compute.internal"
-  domain_name_servers = ["${replace(var.aws_network_vpc_cidr, "0/16", "2")}", "AmazonProvidedDNS", "8.8.8.8", "8.8.4.4"]
+  domain_name_servers = ["AmazonProvidedDNS"]
+
   ntp_servers = ["127.0.0.1"]
 
   tags {

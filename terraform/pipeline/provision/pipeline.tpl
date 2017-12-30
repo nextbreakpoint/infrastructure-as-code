@@ -1,5 +1,6 @@
 #cloud-config
-manage_etc_hosts: True
+manage_etc_hosts: true
+manage_resolv_conf: false
 disk_setup:
    ${volume_name}:
        table_type: 'mbr'

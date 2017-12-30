@@ -1,5 +1,6 @@
 #cloud-config
-manage_etc_hosts: True
+manage_etc_hosts: true
+manage_resolv_conf: false
 runcmd:
   - sudo yum install -y mysql
   - sudo curl -o terraform.zip https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_linux_amd64.zip

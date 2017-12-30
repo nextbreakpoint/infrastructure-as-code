@@ -108,6 +108,24 @@ if [ ! -d "$OUTPUT" ]; then
   ## Import CA into server truststore
   keytool -noprompt -keystore $OUTPUT/truststore-server.jks -alias CARoot -import -file $OUTPUT/ca-cert -storepass secret
 
+  ## Fetch Amazon CAs
+  curl -o $OUTPUT/AmazonRootCA1.pem https://www.amazontrust.com/repository/AmazonRootCA1.pem
+  curl -o $OUTPUT/AmazonRootCA2.pem https://www.amazontrust.com/repository/AmazonRootCA2.pem
+  curl -o $OUTPUT/AmazonRootCA3.pem https://www.amazontrust.com/repository/AmazonRootCA3.pem
+  curl -o $OUTPUT/AmazonRootCA4.pem https://www.amazontrust.com/repository/AmazonRootCA4.pem
+
+  ## Import Amazon CAs into client truststore
+  keytool -noprompt -keystore $OUTPUT/truststore-client.jks -alias AmazonRootCA1 -import -file $OUTPUT/AmazonRootCA1.pem -storepass secret
+  keytool -noprompt -keystore $OUTPUT/truststore-client.jks -alias AmazonRootCA2 -import -file $OUTPUT/AmazonRootCA2.pem -storepass secret
+  keytool -noprompt -keystore $OUTPUT/truststore-client.jks -alias AmazonRootCA3 -import -file $OUTPUT/AmazonRootCA3.pem -storepass secret
+  keytool -noprompt -keystore $OUTPUT/truststore-client.jks -alias AmazonRootCA4 -import -file $OUTPUT/AmazonRootCA4.pem -storepass secret
+
+  ## Import Amazon CAs into server truststore
+  keytool -noprompt -keystore $OUTPUT/truststore-server.jks -alias AmazonRootCA1 -import -file $OUTPUT/AmazonRootCA1.pem -storepass secret
+  keytool -noprompt -keystore $OUTPUT/truststore-server.jks -alias AmazonRootCA2 -import -file $OUTPUT/AmazonRootCA2.pem -storepass secret
+  keytool -noprompt -keystore $OUTPUT/truststore-server.jks -alias AmazonRootCA3 -import -file $OUTPUT/AmazonRootCA3.pem -storepass secret
+  keytool -noprompt -keystore $OUTPUT/truststore-server.jks -alias AmazonRootCA4 -import -file $OUTPUT/AmazonRootCA4.pem -storepass secret
+
   ## Create PEM files for NGINX, Logstash, Filebeat, Elasticsearch, Consul
 
   ### Extract signed client certificate
