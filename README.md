@@ -73,13 +73,17 @@ The domain yourdomain.com must be a valid domain hosted in a Route53 public zone
 
 ## Create or upload certificate
 
-Access AWS Console and go to section Certificate Manager.
+Create or upload certificates using Certificate Manager in AWS console.
 
-Create or upload a valid HTTPS certificate issued for domain:
+First certificate must be issued for domain:
 
     \*.yourdomain.com
 
-The certificate will be used to provision a private ALB to access internal servers.
+Second certificate must be issued for domain:
+
+    \*.internal.yourdomain.com
+
+The certificates will be used to provision two ALBs, one internet facing and the other internal.
 
     You can use a self-signed certificates if you wish, but your browser will warn you when you try to access the above domains.
 
@@ -163,10 +167,13 @@ Create the infrastructure with command:
 
 Or create the infrastructure in several steps:
 
+    ./run_script.sh create_secrets
     ./run_script.sh create_network
+    ./run_script.sh create_lb
     ./run_script.sh create_openvpn
     ./run_script.sh create_stack
-    ./run_script.sh create_lb
+    ./run_script.sh create_elk
+    ./run_script.sh create_pipeline
 
 ## Destroy infrastructure
 
@@ -174,22 +181,25 @@ Destroy the infrastructure with command:
 
     ./run_script.sh destroy_all
 
-Or destroy the infrastructure in three steps:
+Or destroy the infrastructure in several steps:
 
-    ./run_script.sh destroy_lb
+    ./run_script.sh destroy_pipeline
+    ./run_script.sh destroy_elk
     ./run_script.sh destroy_stack
     ./run_script.sh destroy_openvpn
+    ./run_script.sh destroy_lb
     ./run_script.sh destroy_network
+    ./run_script.sh destroy_secrets
 
 ## Access machines using Bastion
 
 Copy the deployer key to Bastion machine:
 
-    scp -i deployer_key.pem deployer_key.pem ubuntu@bastion.yourdomain.com:~
+    scp -i deployer_key.pem deployer_key.pem ec2-user@bastion.yourdomain.com:~
 
 Connect to bastion server using the command:
 
-    ssh -i deployer_key.pem ubuntu@bastion.yourdomain.com
+    ssh -i deployer_key.pem ec2-user@bastion.yourdomain.com
 
 Connect to other machines using the command:
 
@@ -311,7 +321,7 @@ Use Kibana to analyse log files and monitor servers:
 
     https://kibana.yourdomain.com
 
-    NOTE: Default login: user "elastic" with password "changeme"
+    NOTE: Default user is "elastic" with password "changeme"
 
 If your applications are running in a Docker container managed by ECS, then log files are automatically collected and sent to Logstash. Alternatively you can ship your logs directly to Logstash using your logging framework or using Filebeat.
 
@@ -321,19 +331,19 @@ Create your delivery pipelines using Jenkins:
 
     https://jenkins.yourdomain.com
 
-    NOTE: Security must be enabled manually
+    NOTE: Security is disabled by default
 
 Integrate your build pipeline with SonarQube to analyse your code:
 
     https://sonarqube.yourdomain.com
 
-    NOTE: Default login: user "admin" with password "admin"
+    NOTE: Default user is "admin" with password "admin"
 
 Integrate your build pipeline with Artifactory to manage your artifacts:
 
     https://artifactory.yourdomain.com
 
-    NOTE: Default login: user "admin" with password "password"
+    NOTE: Default user is "admin" with password "password"
 
 Deploy your application to ECS or EC2, manually or using Jenkins CI.
 
@@ -343,6 +353,6 @@ Bastion server could be stopped or destroyed after creating the infrastructure. 
 
 Stop the Bastion server from AWS console.
 
-Remove the Bastion server with command:
+Destroy the Bastion server with command:
 
     ./run_script.sh destroy_bastion
