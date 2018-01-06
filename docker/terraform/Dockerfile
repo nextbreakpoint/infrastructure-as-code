@@ -32,4 +32,4 @@ RUN curl -o consul.zip https://releases.hashicorp.com/consul/1.0.1/consul_1.0.1_
 
 WORKDIR /terraform
 
-CMD ["bash", "-c", "./create_all.sh"]
+CMD ["bash", "-c", "sh create_all.sh"]

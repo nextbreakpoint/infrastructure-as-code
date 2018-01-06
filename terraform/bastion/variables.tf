@@ -10,6 +10,10 @@ variable "aws_profile" {
   default = "default"
 }
 
+###################################################################
+# Resources configuration below
+###################################################################
+
 ### MANDATORY ###
 variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
@@ -24,27 +28,20 @@ variable "stream_tag" {
   default = "terraform"
 }
 
-variable "amazon_nat_amis" {
+### MANDATORY ###
+variable "hosted_zone_id" {}
+
+### MANDATORY ###
+variable "hosted_zone_name" {}
+
+variable "bastion_instance_type" {
+  default     = "t2.micro"
+}
+
+variable "amazon_nat_ami" {
   default = {
     eu-west-1 = "ami-47ecb121"
   }
-}
-
-### MANDATORY ###
-variable "hosted_zone_id" {
-}
-
-### MANDATORY ###
-variable "hosted_zone_name" {
-}
-
-###################################################################
-# Bastion configuration below
-###################################################################
-
-variable "bastion_instance_type" {
-  description = "bastion instance type."
-  default  = "t2.micro"
 }
 
 ### MANDATORY ###

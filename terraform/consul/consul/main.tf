@@ -12,25 +12,18 @@ variable "instance_profile" {}
 variable "private_ip" {}
 
 resource "aws_instance" "consul" {
-  instance_type = "${var.instance_type}"
-
-  ami = "${var.ami}"
-
-  key_name = "${var.key_name}"
-
-  security_groups = ["${var.security_groups}"]
-  subnet_id = "${var.subnet}"
-
+  ami                         = "${var.ami}"
+  instance_type               = "${var.instance_type}"
+  subnet_id                   = "${var.subnet}"
+  private_ip                  = "${var.private_ip}"
+  vpc_security_group_ids      = ["${var.security_groups}"]
+  iam_instance_profile        = "${var.instance_profile}"
+  user_data                   = "${var.user_data}"
+  key_name                    = "${var.key_name}"
   associate_public_ip_address = "false"
 
-  iam_instance_profile = "${var.instance_profile}"
-
-  user_data = "${var.user_data}"
-
-  private_ip = "${var.private_ip}"
-
   tags {
-    Name = "${var.name}"
+    Name   = "${var.name}"
     Stream = "${var.stream_tag}"
   }
 }

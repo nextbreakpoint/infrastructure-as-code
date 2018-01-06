@@ -10,6 +10,10 @@ variable "aws_profile" {
   default = "default"
 }
 
+###################################################################
+# Resources configuration below
+###################################################################
+
 ### MANDATORY ###
 variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
@@ -23,10 +27,6 @@ variable "key_path" {
 variable "stream_tag" {
   default = "terraform"
 }
-
-###################################################################
-# Subnets configuration below
-###################################################################
 
 ### MANDATORY ###
 variable "aws_network_private_subnet_cidr_a" {
@@ -57,10 +57,6 @@ variable "aws_network_private_subnet_cidr_c" {
 variable "aws_network_public_subnet_cidr_c" {
   description = "Public subnet C cidr block"
 }
-
-###################################################################
-# NAT configuration
-###################################################################
 
 variable "amazon_nat_ami" {
   default = {

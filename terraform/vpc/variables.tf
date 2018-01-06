@@ -10,23 +10,13 @@ variable "aws_profile" {
   default = "default"
 }
 
-### MANDATORY ###
-variable "key_name" {
-  description = "Name of the SSH keypair to use in AWS."
-}
-
-### MANDATORY ###
-variable "key_path" {
-  description = "Path to the private portion of the SSH key specified."
-}
+###################################################################
+# Resources configuration below
+###################################################################
 
 variable "stream_tag" {
   default = "terraform"
 }
-
-###################################################################
-# VPC configuration below
-###################################################################
 
 ### MANDATORY ###
 variable "aws_network_vpc_cidr" {
@@ -36,4 +26,9 @@ variable "aws_network_vpc_cidr" {
 ### MANDATORY ###
 variable "aws_bastion_vpc_cidr" {
   description = "Bastion VPC cidr block"
+}
+
+### MANDATORY ###
+variable "aws_openvpn_vpc_cidr" {
+  description = "OpenVPN VPC cidr block"
 }

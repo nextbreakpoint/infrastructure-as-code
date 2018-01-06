@@ -10,14 +10,13 @@ variable "aws_profile" {
   default = "default"
 }
 
+###################################################################
+# Resources configuration below
+###################################################################
+
 variable "stream_tag" {
   default = "terraform"
 }
 
-###################################################################
-# Secrets configuration below
-###################################################################
-
 ### MANDATORY ###
-variable "secrets_bucket_name" {
-}
+variable "secrets_bucket_name" {}

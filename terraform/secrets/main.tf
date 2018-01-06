@@ -1,34 +1,27 @@
 ##############################################################################
-# Provider
+# Providers
 ##############################################################################
 
 provider "aws" {
-  region = "${var.aws_region}"
+  region  = "${var.aws_region}"
   profile = "${var.aws_profile}"
   version = "~> 0.1"
 }
 
 ##############################################################################
-# S3 Bucket
+# Resources
 ##############################################################################
 
 resource "aws_s3_bucket" "secrets" {
-  bucket = "${var.secrets_bucket_name}"
-  region = "${var.aws_region}"
-  versioning = {
-    enabled = true
-  }
-  acl = "private"
-  force_destroy  = true
+  bucket        = "${var.secrets_bucket_name}"
+  region        = "${var.aws_region}"
+  acl           = "private"
+  force_destroy = true
 
   tags {
     Stream = "${var.stream_tag}"
   }
 }
-
-##############################################################################
-# S3 Bucket objects
-##############################################################################
 
 resource "aws_s3_bucket_object" "keystore-auth" {
   bucket = "${aws_s3_bucket.secrets.id}"

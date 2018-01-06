@@ -10,6 +10,10 @@ variable "aws_profile" {
   default = "default"
 }
 
+###################################################################
+# Resources configuration below
+###################################################################
+
 ### MANDATORY ###
 variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
@@ -24,20 +28,12 @@ variable "stream_tag" {
   default = "terraform"
 }
 
-variable "log_group_name" {
-  default = "terraform"
-}
-
-variable "log_stream_name" {
-  default = "terraform"
-}
-
 variable "volume_name" {
   default = "/dev/xvdh"
 }
 
 variable "volume_size" {
-  default = "4"
+  default = "8"
 }
 
 variable "volume_encrypted" {
@@ -45,12 +41,13 @@ variable "volume_encrypted" {
 }
 
 ### MANDATORY ###
-variable "aws_bastion_vpc_cidr" {
-}
+variable "aws_bastion_vpc_cidr" {}
 
 ### MANDATORY ###
-variable "aws_network_vpc_cidr" {
-}
+variable "aws_network_vpc_cidr" {}
+
+### MANDATORY ###
+variable "aws_openvpn_vpc_cidr" {}
 
 ### MANDATORY ###
 variable "aws_network_private_subnet_cidr_a" {
@@ -68,8 +65,7 @@ variable "aws_network_private_subnet_cidr_c" {
 }
 
 ### MANDATORY ###
-variable "account_id" {
-}
+variable "account_id" {}
 
 ### MANDATORY ###
 variable "environment" {
@@ -77,65 +73,42 @@ variable "environment" {
 }
 
 ### MANDATORY ###
-variable "secrets_bucket_name" {
-}
+variable "secrets_bucket_name" {}
 
-###################################################################
-# Pipeline configuration below
-###################################################################
-
-### MANDATORY ###
-variable "base_version" {
+variable "pipeline_instance_type" {
+  default = "t2.medium"
 }
 
 ### MANDATORY ###
-variable "filebeat_version" {
-}
+variable "base_version" {}
 
 ### MANDATORY ###
-variable "jenkins_version" {
-}
+variable "filebeat_version" {}
 
 ### MANDATORY ###
-variable "sonarqube_version" {
-}
+variable "jenkins_version" {}
 
 ### MANDATORY ###
-variable "artifactory_version" {
-}
+variable "sonarqube_version" {}
 
 ### MANDATORY ###
-variable "mysqlconnector_version" {
-}
+variable "artifactory_version" {}
 
 ### MANDATORY ###
-variable "mysql_root_password" {
-}
+variable "mysqlconnector_version" {}
 
 ### MANDATORY ###
-variable "mysql_sonarqube_password" {
-}
+variable "mysql_root_password" {}
 
 ### MANDATORY ###
-variable "mysql_artifactory_password" {
-}
-
-###################################################################
-# Consul configuration below
-###################################################################
+variable "mysql_sonarqube_password" {}
 
 ### MANDATORY ###
-variable "consul_secret" {
-}
+variable "mysql_artifactory_password" {}
 
-variable "consul_record" {
-  default = "consul"
-}
+### MANDATORY ###
+variable "consul_secret" {}
 
 variable "consul_datacenter" {
   default = "terraform"
-}
-
-variable "consul_logfile" {
-  default = "/var/log/consul.log"
 }

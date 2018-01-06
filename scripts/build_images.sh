@@ -18,7 +18,7 @@ echo "Creating ECS AMI..."
 cd $ROOT/packer/ecs && pk_create
 echo "done."
 
-aws ec2 describe-images --filters Name=tag:stream,Values=terraform,Name=is-public,Values=false --query 'Images[*].{ID:ImageId}' > images.json
+aws ec2 describe-images --filters Name=tag:stream,Values=terraform,Name=is-public,Values=false --query 'Images[*].{ID:ImageId}' > $ROOT/images.json
 
 echo "Created images:"
-cat images.json
+cat $ROOT/images.json

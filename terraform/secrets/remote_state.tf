@@ -6,6 +6,6 @@ terraform {
   backend "s3" {
     bucket = "terraform"
     region = "eu-west-1"
-    key = "secrets.tfstate"
+    key    = "secrets.tfstate"
   }
 }

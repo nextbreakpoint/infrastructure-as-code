@@ -67,11 +67,9 @@ Create a file config_vars.json in config directory. The file should look like:
       "bastion_host": "bastion.yourdomain.com"
     }
 
-The domain yourdomain.com must be a valid domain hosted in a Route53 public zone and it must support HTTPS.
+The domain yourdomain.com must be a valid domain hosted in a Route53 public zone.
 
-    Create a new public zone and register a new domain if you don't have one already
-
-The domain yourprivatedomain.com can be the same as yourdomain.com or a different one. A new private zone will be created to register all internal servers.
+    Register a new domain with AWS if you don't have one already and create a new public zone
 
 ## Create or upload certificate
 
@@ -79,9 +77,9 @@ Access AWS Console and go to section Certificate Manager.
 
 Create or upload a valid HTTPS certificate issued for domain:
 
-    \*.yourprivatedomain.com
+    \*.yourdomain.com
 
-The certificate will be used to provision a private ELB to access internal servers.
+The certificate will be used to provision a private ALB to access internal servers.
 
     You can use a self-signed certificates if you wish, but your browser will warn you when you try to access the above domains.
 
@@ -165,11 +163,10 @@ Create the infrastructure with command:
 
 Or create the infrastructure in several steps:
 
-    ./run_script.sh create_zones
     ./run_script.sh create_network
     ./run_script.sh create_openvpn
     ./run_script.sh create_stack
-    ./run_script.sh create_elb
+    ./run_script.sh create_lb
 
 ## Destroy infrastructure
 
@@ -179,11 +176,10 @@ Destroy the infrastructure with command:
 
 Or destroy the infrastructure in three steps:
 
-    ./run_script.sh destroy_elb
+    ./run_script.sh destroy_lb
     ./run_script.sh destroy_stack
     ./run_script.sh destroy_openvpn
     ./run_script.sh destroy_network
-    ./run_script.sh destroy_zones
 
 ## Access machines using Bastion
 
@@ -229,7 +225,7 @@ The server will ask you a few questions. The output should look like:
     Please specify the network interface and IP address to be
     used by the Admin Web UI:
     (1) all interfaces: 0.0.0.0
-    (2) eth0: 172.32.0.214
+    (2) eth0: 172.34.0.214
     Please enter the option number from the list above (1-2).
     > Press Enter for default [2]: 2
 
@@ -248,7 +244,7 @@ The server will ask you a few questions. The output should look like:
     Use local authentication via internal DB?
     > Press ENTER for default [yes]: no
 
-    Private subnets detected: ['172.32.0.0/16']
+    Private subnets detected: ['172.34.0.0/16']
 
     Should private subnets be accessible to clients by default?
     > Press ENTER for EC2 default [yes]: yes
@@ -297,23 +293,25 @@ When initialisation is completed, you have to reset the user password:
 
     sudo passwd openvpn
 
-Finally you can access the admin panel at https://openvpn.yourdomain.com:943/admin.
+You can now access the OpenVPN admin console at https://openvpn.yourdomain.com:943/admin or you can establish a connection using any OpenVPN client.
 
-In order to establish a VPN connection, download the locked profile on https://openvpn.yourdomain.com:943, configure your OpenVPN client and then connect your client to OpenVPN server.
+Download a locked profile on https://openvpn.yourdomain.com:943, configure your OpenVPN client and then connect your client to the VPN.
 
 ## Services discovery
 
 Use Consul UI to check the state of your services:
 
-    https://consul.yourprivatedomain.com
+    https://consul.yourdomain.com
 
 You might want to use Consul for services discovery in your applications as well.
 
 ## Centralised logging
 
-Use Kibana to analyse the log files of yours servers:
+Use Kibana to analyse log files and monitor servers:
 
-    https://kibana.yourprivatedomain.com
+    https://kibana.yourdomain.com
+
+    NOTE: Default login: user "elastic" with password "changeme"
 
 If your applications are running in a Docker container managed by ECS, then log files are automatically collected and sent to Logstash. Alternatively you can ship your logs directly to Logstash using your logging framework or using Filebeat.
 
@@ -321,15 +319,21 @@ If your applications are running in a Docker container managed by ECS, then log 
 
 Create your delivery pipelines using Jenkins:
 
-    https://jenkins.yourprivatedomain.com
+    https://jenkins.yourdomain.com
+
+    NOTE: Security must be enabled manually
 
 Integrate your build pipeline with SonarQube to analyse your code:
 
-    https://sonarqube.yourprivatedomain.com
+    https://sonarqube.yourdomain.com
+
+    NOTE: Default login: user "admin" with password "admin"
 
 Integrate your build pipeline with Artifactory to manage your artifacts:
 
-    https://artifactory.yourprivatedomain.com
+    https://artifactory.yourdomain.com
+
+    NOTE: Default login: user "admin" with password "password"
 
 Deploy your application to ECS or EC2, manually or using Jenkins CI.
 
@@ -342,9 +346,3 @@ Stop the Bastion server from AWS console.
 Remove the Bastion server with command:
 
     ./run_script.sh destroy_bastion
-
-## Delete secrets is S3 bucket
-
-Secrets stored in S3 could be deleted after creating the infrastructure.
-
-Create a backup if you think you might need them later to configure other machines.

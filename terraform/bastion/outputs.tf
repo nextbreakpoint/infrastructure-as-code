@@ -1,5 +1,9 @@
+##############################################################################
+# Outputs
+##############################################################################
+
 output "bastion-server-a-public-ip" {
-  value = "${module.bastion_servers_a.public-ips}"
+  value = "${module.bastion_a.public-ips}"
 }
 
 output "bastion-public-subnet-a-id" {

@@ -1,9 +1,9 @@
 ##############################################################################
-# Provider
+# Providers
 ##############################################################################
 
 provider "aws" {
-  region = "${var.aws_region}"
+  region  = "${var.aws_region}"
   profile = "${var.aws_profile}"
   version = "~> 0.1"
 }
@@ -13,95 +13,95 @@ provider "template" {
 }
 
 ##############################################################################
-# Pipeline server
+# Resources
 ##############################################################################
 
-resource "aws_security_group" "pipeline_server" {
-  name = "pipeline-security-group"
+resource "aws_security_group" "pipeline" {
+  name        = "pipeline"
   description = "Pipeline security group"
-  vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
+  vpc_id      = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8301
-    to_port = 8301
-    protocol = "tcp"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port   = 8301
+    to_port     = 8301
+    protocol    = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8301
-    to_port = 8301
-    protocol = "udp"
+    from_port   = 8301
+    to_port     = 8301
+    protocol    = "udp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8080
-    to_port = 8080
-    protocol = "tcp"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8443
-    to_port = 8443
-    protocol = "tcp"
+    from_port   = 8443
+    to_port     = 8443
+    protocol    = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 8081
-    to_port = 8081
-    protocol = "tcp"
+    from_port   = 8081
+    to_port     = 8081
+    protocol    = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 9000
-    to_port = 9000
-    protocol = "tcp"
+    from_port   = 9000
+    to_port     = 9000
+    protocol    = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
-    from_port = 3306
-    to_port = 3306
-    protocol = "tcp"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["${var.aws_network_vpc_cidr}"]
   }
 
   egress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port = 443
-    to_port = 443
-    protocol = "tcp"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -110,36 +110,8 @@ resource "aws_security_group" "pipeline_server" {
   }
 }
 
-data "template_file" "pipeline_server_user_data" {
-  template = "${file("provision/pipeline.tpl")}"
-
-  vars {
-    aws_region                    = "${var.aws_region}"
-    environment                   = "${var.environment}"
-    bucket_name                   = "${var.secrets_bucket_name}"
-    consul_secret                 = "${var.consul_secret}"
-    consul_datacenter             = "${var.consul_datacenter}"
-    consul_nodes                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
-    consul_logfile                = "${var.consul_logfile}"
-    volume_name                   = "${var.volume_name}"
-    filebeat_version              = "${var.filebeat_version}"
-    jenkins_version               = "${var.jenkins_version}"
-    sonarqube_version             = "${var.sonarqube_version}"
-    artifactory_version           = "${var.artifactory_version}"
-    mysqlconnector_version        = "${var.mysqlconnector_version}"
-    mysql_root_password           = "${var.mysql_root_password}"
-    mysql_sonarqube_password      = "${var.mysql_sonarqube_password}"
-    mysql_artifactory_password    = "${var.mysql_artifactory_password}"
-  }
-}
-
-resource "aws_iam_instance_profile" "pipeline_server_profile" {
-    name = "pipeline-server-profile"
-    role = "${aws_iam_role.pipeline_server_role.name}"
-}
-
-resource "aws_iam_role" "pipeline_server_role" {
-  name = "pipeline-server-role"
+resource "aws_iam_role" "pipeline" {
+  name = "pipeline"
 
   assume_role_policy = <<EOF
 {
@@ -166,9 +138,9 @@ resource "aws_iam_role" "pipeline_server_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "pipeline_server_role_policy" {
-  name = "pipeline-server-role-policy"
-  role = "${aws_iam_role.pipeline_server_role.id}"
+resource "aws_iam_role_policy" "pipeline" {
+  name = "pipeline"
+  role = "${aws_iam_role.pipeline.id}"
 
   policy = <<EOF
 {
@@ -193,48 +165,71 @@ resource "aws_iam_role_policy" "pipeline_server_role_policy" {
 EOF
 }
 
+resource "aws_iam_instance_profile" "pipeline" {
+  name = "pipeline"
+  role = "${aws_iam_role.pipeline.name}"
+}
+
 data "aws_ami" "pipeline" {
   most_recent = true
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["base-${var.base_version}-*"]
   }
 
   filter {
-    name = "virtualization-type"
+    name   = "virtualization-type"
     values = ["hvm"]
   }
 
   owners = ["${var.account_id}"]
 }
 
-resource "aws_instance" "pipeline_server_a" {
-  instance_type = "t2.medium"
+data "template_file" "pipeline" {
+  template = "${file("provision/pipeline.tpl")}"
 
-  ami = "${data.aws_ami.pipeline.id}"
+  vars {
+    aws_region                 = "${var.aws_region}"
+    environment                = "${var.environment}"
+    bucket_name                = "${var.secrets_bucket_name}"
+    consul_secret              = "${var.consul_secret}"
+    consul_datacenter          = "${var.consul_datacenter}"
+    consul_nodes               = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
+    volume_name                = "${var.volume_name}"
+    filebeat_version           = "${var.filebeat_version}"
+    jenkins_version            = "${var.jenkins_version}"
+    sonarqube_version          = "${var.sonarqube_version}"
+    artifactory_version        = "${var.artifactory_version}"
+    mysqlconnector_version     = "${var.mysqlconnector_version}"
+    mysql_root_password        = "${var.mysql_root_password}"
+    mysql_sonarqube_password   = "${var.mysql_sonarqube_password}"
+    mysql_artifactory_password = "${var.mysql_artifactory_password}"
+    hosted_zone_dns            = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+  }
+}
 
-  subnet_id = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+resource "aws_instance" "pipeline_a" {
+  instance_type               = "${var.pipeline_instance_type}"
+  ami                         = "${data.aws_ami.pipeline.id}"
+  private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "100")}"
+  subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
+  vpc_security_group_ids      = ["${aws_security_group.pipeline.id}"]
+  iam_instance_profile        = "${aws_iam_instance_profile.pipeline.id}"
+  user_data                   = "${data.template_file.pipeline.rendered}"
+  key_name                    = "${var.key_name}"
   associate_public_ip_address = "false"
-  security_groups = ["${aws_security_group.pipeline_server.id}"]
-  key_name = "${var.key_name}"
-
-  iam_instance_profile = "${aws_iam_instance_profile.pipeline_server_profile.id}"
-
-  user_data = "${data.template_file.pipeline_server_user_data.rendered}"
-
-  private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "100")}"
 
   ebs_block_device {
-    device_name = "${var.volume_name}"
-    volume_size = "${var.volume_size}"
-    volume_type = "gp2"
-    encrypted = "${var.volume_encrypted}"
+    device_name           = "${var.volume_name}"
+    volume_size           = "${var.volume_size}"
+    volume_type           = "gp2"
+    encrypted             = "${var.volume_encrypted}"
     delete_on_termination = true
   }
 
   tags {
-    Name = "pipeline-server-a"
+    Name   = "pipeline-a"
     Stream = "${var.stream_tag}"
   }
 }

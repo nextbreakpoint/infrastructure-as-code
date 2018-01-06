@@ -10,6 +10,10 @@ variable "aws_profile" {
   default = "default"
 }
 
+###################################################################
+# Resources configuration below
+###################################################################
+
 ### MANDATORY ###
 variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
@@ -25,12 +29,13 @@ variable "stream_tag" {
 }
 
 ### MANDATORY ###
-variable "aws_bastion_vpc_cidr" {
-}
+variable "aws_bastion_vpc_cidr" {}
 
 ### MANDATORY ###
-variable "aws_network_vpc_cidr" {
-}
+variable "aws_network_vpc_cidr" {}
+
+### MANDATORY ###
+variable "aws_openvpn_vpc_cidr" {}
 
 ### MANDATORY ###
 variable "aws_network_private_subnet_cidr_a" {
@@ -48,8 +53,7 @@ variable "aws_network_private_subnet_cidr_c" {
 }
 
 ### MANDATORY ###
-variable "account_id" {
-}
+variable "account_id" {}
 
 ### MANDATORY ###
 variable "environment" {
@@ -57,41 +61,21 @@ variable "environment" {
 }
 
 ### MANDATORY ###
-variable "secrets_bucket_name" {
-}
-
-###################################################################
-# Cluster configuration below
-###################################################################
+variable "secrets_bucket_name" {}
 
 ### MANDATORY ###
-variable "base_version" {
-}
+variable "base_version" {}
 
 ### MANDATORY ###
-variable "filebeat_version" {
-}
+variable "filebeat_version" {}
 
 variable "cluster_instance_type" {
-  default  = "t2.medium"
+  default = "t2.medium"
 }
-
-###################################################################
-# Consul configuration below
-###################################################################
 
 ### MANDATORY ###
-variable "consul_secret" {
-}
-
-variable "consul_record" {
-  default = "consul"
-}
+variable "consul_secret" {}
 
 variable "consul_datacenter" {
   default = "terraform"
-}
-
-variable "consul_logfile" {
-  default = "/var/log/consul.log"
 }

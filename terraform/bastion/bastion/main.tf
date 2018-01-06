@@ -9,28 +9,17 @@ variable "subnet_id" {}
 variable "user_data" {}
 
 resource "aws_instance" "bastion" {
-  instance_type = "${var.instance_type}"
-
-  ami = "${var.ami}"
-
-  key_name = "${var.key_name}"
-
-  security_groups = ["${var.security_groups}"]
-  subnet_id = "${var.subnet_id}"
-  source_dest_check = false
-
+  ami                         = "${var.ami}"
+  instance_type               = "${var.instance_type}"
+  vpc_security_group_ids      = ["${var.security_groups}"]
+  subnet_id                   = "${var.subnet_id}"
+  user_data                   = "${var.user_data}"
+  key_name                    = "${var.key_name}"
   associate_public_ip_address = true
-
-  user_data = "${var.user_data}"
-
-  connection {
-    user = "ec2-user"
-    type = "ssh"
-    private_key = "${file(var.key_path)}"
-  }
+  # source_dest_check           = false
 
   tags = {
-    Name = "${var.name}"
+    Name   = "${var.name}"
     Stream = "${var.stream_tag}"
   }
 }

@@ -39,6 +39,7 @@ runcmd:
   - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/syslog filebeat:${filebeat_version}
   - sudo sed -e 's/$HOST_IP_ADDRESS/'$HOST_IP_ADDRESS'/g' /tmp/10-consul > /etc/dnsmasq.d/10-consul
+  - sudo cp /tmp/11-domain /etc/dnsmasq.d/11-domain
   - sudo service dnsmasq restart
   - bash -c "sleep 60"
   - sudo -u ubuntu curl -XPUT  --cacert /elasticsearch/config/secrets/ca_cert.pem 'https://elastic:changeme@elasticsearch.service.terraform.consul:9200/.kibana/index-pattern/filebeat-index.json' -H "Content-Type:application/json" -d@/kibana-index-patterns/filebeat-index.json
@@ -166,3 +167,7 @@ write_files:
     permissions: '0644'
     content: |
         server=/consul/$HOST_IP_ADDRESS#8600
+  - path: /tmp/11-domain
+    permissions: '0644'
+    content: |
+        server=${hosted_zone_dns}

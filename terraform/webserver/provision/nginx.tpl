@@ -23,6 +23,7 @@ runcmd:
   - sudo -u ubuntu docker build -t filebeat:${filebeat_version} /filebeat/docker
   - sudo -u ubuntu docker run -d --name=filebeat --restart unless-stopped --net=host --log-driver json-file -v /filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml -v /filebeat/config/secrets:/filebeat/config/secrets -v /var/log/syslog:/var/log/docker -v /nginx/logs:/var/log/nginx filebeat:${filebeat_version}
   - sudo sed -e 's/$HOST_IP_ADDRESS/'$HOST_IP_ADDRESS'/g' /tmp/10-consul > /etc/dnsmasq.d/10-consul
+  - sudo cp /tmp/11-domain /etc/dnsmasq.d/11-domain
   - sudo service dnsmasq restart
 write_files:
   - path: /etc/profile.d/variables
@@ -138,43 +139,43 @@ write_files:
 
           server {
             listen 80;
-            server_name consul.${hosted_zone_name};
+            server_name consul.internal.${hosted_zone_name};
           	return 301 https://$$server_name$$request_uri;
           }
 
           server {
             listen 80;
-            server_name kibana.${hosted_zone_name};
+            server_name kibana.internal.${hosted_zone_name};
           	return 301 https://$$server_name$$request_uri;
           }
 
           server {
             listen 80;
-            server_name jenkins.${hosted_zone_name};
+            server_name jenkins.internal.${hosted_zone_name};
           	return 301 https://$$server_name$$request_uri;
           }
 
           server {
             listen 80;
-            server_name sonarqube.${hosted_zone_name};
+            server_name sonarqube.internal.${hosted_zone_name};
           	return 301 https://$$server_name$$request_uri;
           }
 
           server {
             listen 80;
-            server_name artifactory.${hosted_zone_name};
+            server_name artifactory.internal.${hosted_zone_name};
           	return 301 https://$$server_name$$request_uri;
           }
 
           server {
             listen 80;
-            server_name kubernetes.${hosted_zone_name};
+            server_name kubernetes.internal.${hosted_zone_name};
           	return 301 https://$$server_name$$request_uri;
           }
 
           server {
             listen 443 ssl;
-            server_name consul.${hosted_zone_name};
+            server_name consul.internal.${hosted_zone_name};
 
             ssl_certificate     /nginx/config/secrets/ca_and_server_cert.pem;
             ssl_certificate_key /nginx/config/secrets/server_key.pem;
@@ -185,7 +186,7 @@ write_files:
                 resolver 127.0.0.1;
                 set $$upstream_consul consul.service.terraform.consul;
                 proxy_pass https://$$upstream_consul:8500$$request_uri;
-                proxy_redirect https://$$upstream_consul:8500 https://consul.${hosted_zone_name};
+                proxy_redirect https://$$upstream_consul:8500 https://consul.internal.${hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
@@ -194,7 +195,7 @@ write_files:
 
           server {
             listen 443 ssl;
-            server_name kibana.${hosted_zone_name};
+            server_name kibana.internal.${hosted_zone_name};
 
             ssl_certificate     /nginx/config/secrets/ca_and_server_cert.pem;
             ssl_certificate_key /nginx/config/secrets/server_key.pem;
@@ -205,7 +206,7 @@ write_files:
                 resolver 127.0.0.1;
                 set $$upstream_kibana kibana.service.terraform.consul;
                 proxy_pass https://$$upstream_kibana:5601;
-                proxy_redirect https://$$upstream_kibana:5601 https://kibana.${hosted_zone_name};
+                proxy_redirect https://$$upstream_kibana:5601 https://kibana.internal.${hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
@@ -214,7 +215,7 @@ write_files:
 
           server {
             listen 443 ssl;
-            server_name jenkins.${hosted_zone_name};
+            server_name jenkins.internal.${hosted_zone_name};
 
             ssl_certificate     /nginx/config/secrets/ca_and_server_cert.pem;
             ssl_certificate_key /nginx/config/secrets/server_key.pem;
@@ -225,7 +226,7 @@ write_files:
                 resolver 127.0.0.1;
                 set $$upstream_jenkins jenkins.service.terraform.consul;
                 proxy_pass https://$$upstream_jenkins:8443$$request_uri;
-                proxy_redirect https://$$upstream_jenkins:8443 https://jenkins.${hosted_zone_name};
+                proxy_redirect https://$$upstream_jenkins:8443 https://jenkins.internal.${hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
@@ -234,7 +235,7 @@ write_files:
 
           server {
             listen 443 ssl;
-            server_name sonarqube.${hosted_zone_name};
+            server_name sonarqube.internal.${hosted_zone_name};
 
             ssl_certificate     /nginx/config/secrets/ca_and_server_cert.pem;
             ssl_certificate_key /nginx/config/secrets/server_key.pem;
@@ -245,7 +246,7 @@ write_files:
                 resolver 127.0.0.1;
                 set $$upstream_sonarqube sonarqube.service.terraform.consul;
                 proxy_pass http://$$upstream_sonarqube:9000$$request_uri;
-                proxy_redirect http://$$upstream_sonarqube:9000 https://sonarqube.${hosted_zone_name};
+                proxy_redirect http://$$upstream_sonarqube:9000 https://sonarqube.internal.${hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
@@ -254,7 +255,7 @@ write_files:
 
           server {
             listen 443 ssl;
-            server_name artifactory.${hosted_zone_name};
+            server_name artifactory.internal.${hosted_zone_name};
 
             ssl_certificate     /nginx/config/secrets/ca_and_server_cert.pem;
             ssl_certificate_key /nginx/config/secrets/server_key.pem;
@@ -265,7 +266,7 @@ write_files:
                 resolver 127.0.0.1;
                 set $$upstream_artifactory artifactory.service.terraform.consul;
                 proxy_pass http://$$upstream_artifactory:8081$$request_uri;
-                proxy_redirect http://$$upstream_artifactory:8081 https://artifactory.${hosted_zone_name};
+                proxy_redirect http://$$upstream_artifactory:8081 https://artifactory.internal.${hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
@@ -274,7 +275,7 @@ write_files:
 
           server {
             listen 443 ssl;
-            server_name kubernetes.${hosted_zone_name};
+            server_name kubernetes.internal.${hosted_zone_name};
 
             ssl_certificate     /nginx/config/secrets/ca_and_server_cert.pem;
             ssl_certificate_key /nginx/config/secrets/server_key.pem;
@@ -285,7 +286,7 @@ write_files:
                 resolver 127.0.0.1;
                 set $$upstream_kubernetes kubernetes.service.terraform.consul;
                 proxy_pass http://$$upstream_kubernetes:8081$$request_uri;
-                proxy_redirect http://$$upstream_kubernetes:8081 https://kubernetes.${hosted_zone_name};
+                proxy_redirect http://$$upstream_kubernetes:8081 https://kubernetes.internal.${hosted_zone_name};
                 proxy_set_header Host $$host;
                 proxy_set_header X-Real-IP $$remote_addr;
                 proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
@@ -300,3 +301,7 @@ write_files:
     permissions: '0644'
     content: |
         server=/consul/$HOST_IP_ADDRESS#8600
+  - path: /tmp/11-domain
+    permissions: '0644'
+    content: |
+        server=${hosted_zone_dns}

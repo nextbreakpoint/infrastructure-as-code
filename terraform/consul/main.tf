@@ -1,5 +1,5 @@
 ##############################################################################
-# Provider
+# Providers
 ##############################################################################
 
 provider "aws" {
@@ -13,11 +13,11 @@ provider "template" {
 }
 
 ##############################################################################
-# Consul servers
+# Resources
 ##############################################################################
 
-resource "aws_security_group" "consul_server" {
-  name = "consul-security-group"
+resource "aws_security_group" "consul" {
+  name = "consul"
   description = "Consul security group"
   vpc_id = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -103,32 +103,8 @@ resource "aws_security_group" "consul_server" {
   }
 }
 
-data "template_file" "consul_server_user_data" {
-  template = "${file("provision/consul.tpl")}"
-
-  vars {
-    aws_region              = "${var.aws_region}"
-    environment             = "${var.environment}"
-    bucket_name             = "${var.secrets_bucket_name}"
-    consul_secret           = "${var.consul_secret}"
-    consul_datacenter       = "${var.consul_datacenter}"
-    consul_master_token     = "${var.consul_master_token}"
-    consul_nodes            = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
-    consul_logfile          = "${var.consul_logfile}"
-    consul_bootstrap_expect = "3"
-    log_group_name          = "${var.log_group_name}"
-    log_stream_name         = "${var.log_stream_name}"
-    filebeat_version        = "${var.filebeat_version}"
-  }
-}
-
-resource "aws_iam_instance_profile" "consul_server_profile" {
-    name = "consul-server-profile"
-    role = "${aws_iam_role.consul_server_role.name}"
-}
-
-resource "aws_iam_role" "consul_server_role" {
-  name = "consul-server-role"
+resource "aws_iam_role" "consul" {
+  name = "consul"
 
   assume_role_policy = <<EOF
 {
@@ -155,9 +131,9 @@ resource "aws_iam_role" "consul_server_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "consul_server_role_policy" {
-  name = "consul-server-role-policy"
-  role = "${aws_iam_role.consul_server_role.id}"
+resource "aws_iam_role_policy" "consul" {
+  name = "consul"
+  role = "${aws_iam_role.consul.id}"
 
   policy = <<EOF
 {
@@ -182,6 +158,11 @@ resource "aws_iam_role_policy" "consul_server_role_policy" {
 EOF
 }
 
+resource "aws_iam_instance_profile" "consul" {
+    name = "consul"
+    role = "${aws_iam_role.consul.name}"
+}
+
 data "aws_ami" "consul" {
   most_recent = true
 
@@ -198,53 +179,70 @@ data "aws_ami" "consul" {
   owners = ["${var.account_id}"]
 }
 
-module "consul_servers_a" {
+data "template_file" "consul" {
+  template = "${file("provision/consul.tpl")}"
+
+  vars {
+    aws_region              = "${var.aws_region}"
+    environment             = "${var.environment}"
+    bucket_name             = "${var.secrets_bucket_name}"
+    consul_secret           = "${var.consul_secret}"
+    consul_datacenter       = "${var.consul_datacenter}"
+    consul_master_token     = "${var.consul_master_token}"
+    consul_nodes            = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
+    consul_bootstrap_expect = "3"
+    filebeat_version        = "${var.filebeat_version}"
+    hosted_zone_dns         = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+  }
+}
+
+module "consul_a" {
   source = "./consul"
 
-  name = "consul-server-a"
+  name = "consul-a"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
   subnet = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   instance_type = "${var.consul_instance_type}"
-  security_groups = "${aws_security_group.consul_server.id}"
+  security_groups = "${aws_security_group.consul.id}"
   key_name = "${var.key_name}"
   key_path = "${var.key_path}"
   stream_tag = "${var.stream_tag}"
-  user_data = "${data.template_file.consul_server_user_data.rendered}"
-  instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
+  user_data = "${data.template_file.consul.rendered}"
+  instance_profile = "${aws_iam_instance_profile.consul.name}"
   private_ip = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")}"
 }
 
-module "consul_servers_b" {
+module "consul_b" {
   source = "./consul"
 
-  name = "consul-server-b"
+  name = "consul-b"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
   subnet = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   instance_type = "${var.consul_instance_type}"
-  security_groups = "${aws_security_group.consul_server.id}"
+  security_groups = "${aws_security_group.consul.id}"
   key_name = "${var.key_name}"
   key_path = "${var.key_path}"
   stream_tag = "${var.stream_tag}"
-  user_data = "${data.template_file.consul_server_user_data.rendered}"
-  instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
+  user_data = "${data.template_file.consul.rendered}"
+  instance_profile = "${aws_iam_instance_profile.consul.name}"
   private_ip = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")}"
 }
 
-module "consul_servers_c" {
+module "consul_c" {
   source = "./consul"
 
-  name = "consul-server-c"
+  name = "consul-c"
   region = "${var.aws_region}"
   ami = "${data.aws_ami.consul.id}"
   subnet = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   instance_type = "${var.consul_instance_type}"
-  security_groups = "${aws_security_group.consul_server.id}"
+  security_groups = "${aws_security_group.consul.id}"
   key_name = "${var.key_name}"
   key_path = "${var.key_path}"
   stream_tag = "${var.stream_tag}"
-  user_data = "${data.template_file.consul_server_user_data.rendered}"
-  instance_profile = "${aws_iam_instance_profile.consul_server_profile.name}"
+  user_data = "${data.template_file.consul.rendered}"
+  instance_profile = "${aws_iam_instance_profile.consul.name}"
   private_ip = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
 }

@@ -10,6 +10,10 @@ variable "aws_profile" {
   default = "default"
 }
 
+###################################################################
+# Resources configuration below
+###################################################################
+
 ### MANDATORY ###
 variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
@@ -24,21 +28,14 @@ variable "stream_tag" {
   default = "terraform"
 }
 
-variable "log_group_name" {
-  default = "terraform"
-}
-
-variable "log_stream_name" {
-  default = "terraform"
-}
+### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {}
 
 ### MANDATORY ###
-variable "aws_bastion_vpc_cidr" {
-}
+variable "aws_network_vpc_cidr" {}
 
 ### MANDATORY ###
-variable "aws_network_vpc_cidr" {
-}
+variable "aws_openvpn_vpc_cidr" {}
 
 ### MANDATORY ###
 variable "aws_network_private_subnet_cidr_a" {
@@ -56,53 +53,34 @@ variable "aws_network_private_subnet_cidr_c" {
 }
 
 ### MANDATORY ###
-variable "hosted_zone_name" {
-}
+variable "hosted_zone_name" {}
 
 ### MANDATORY ###
-variable "account_id" {
-}
+variable "hosted_zone_id" {}
+
+### MANDATORY ###
+variable "account_id" {}
 
 variable "environment" {
   default = "production"
 }
 
 ### MANDATORY ###
-variable "secrets_bucket_name" {
-}
-
-###################################################################
-# Nginx configuration below
-###################################################################
+variable "secrets_bucket_name" {}
 
 ### MANDATORY ###
-variable "base_version" {
-}
+variable "base_version" {}
 
 ### MANDATORY ###
-variable "filebeat_version" {
-}
+variable "filebeat_version" {}
 
-variable "web_instance_type" {
+variable "nginx_instance_type" {
   default = "t2.small"
 }
 
-###################################################################
-# Consul configuration below
-###################################################################
-
 ### MANDATORY ###
-variable "consul_secret" {
-}
-
-variable "consul_record" {
-  default = "consul"
-}
+variable "consul_secret" {}
 
 variable "consul_datacenter" {
   default = "terraform"
-}
-
-variable "consul_logfile" {
-  default = "/var/log/consul.log"
 }

@@ -1,10 +1,14 @@
 #!/bin/sh
 
-echo "Destroying ELB..."
-sh scripts/destroy_elb.sh
+echo "Destroying Pipeline..."
+sh scripts/destroy_pipeline.sh
 echo "done."
 
-echo "Destroying Stack..."
+echo "Destroying ELK..."
+sh scripts/destroy_elk.sh
+echo "done."
+
+echo "Destroying stack..."
 sh scripts/destroy_stack.sh
 echo "done."
 
@@ -12,10 +16,14 @@ echo "Destroying OpenVPN..."
 sh scripts/destroy_openvpn.sh
 echo "done."
 
-echo "Destroying Subnets..."
+echo "Destroying LBs..."
+sh scripts/destroy_lb.sh
+echo "done."
+
+echo "Destroying network..."
 sh scripts/destroy_network.sh
 echo "done."
 
-echo "Destroying Zones..."
-sh scripts/destroy_zones.sh
+echo "Destroying secrets..."
+sh scripts/destroy_secrets.sh
 echo "done."
