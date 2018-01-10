@@ -6,7 +6,7 @@ if [ ! -d "$OUTPUT" ]; then
 
   mkdir -p $OUTPUT
 
-  echo '[extended]\nextendedKeyUsage=serverAuth,clientAuth' > $OUTPUT/openssl.cnf
+  echo '[extended]\nextendedKeyUsage=serverAuth,clientAuth\nkeyUsage=digitalSignature,keyAgreement' > $OUTPUT/openssl.cnf
 
   ## Create keystore for JWT authentication
   keytool -genseckey -keystore $OUTPUT/keystore-auth.jceks -storetype jceks -storepass secret -keyalg HMacSHA256 -keysize 2048 -alias HS256 -keypass secret
@@ -46,6 +46,15 @@ if [ ! -d "$OUTPUT" ]; then
   ## Create consul keystore
   keytool -noprompt -keystore $OUTPUT/keystore-consul.jks -genkey -alias selfsigned -dname "CN=server.terraform.consul,OU=,O=,L=,ST=,C=" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
 
+  ## Create openvpn certificate authority (CA)
+  openssl req -new -x509 -keyout $OUTPUT/openvpn-ca-key -out $OUTPUT/openvpn-ca-cert -days 365 -passin pass:secret -passout pass:secret -subj "/CN=openvpn.nextbreakpoint.com/OU=/O=/L=/ST=/C=/"
+
+  ## Create openvpn-server keystore
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-server.jks -genkey -alias selfsigned -dname "CN=openvpn.nextbreakpoint.com" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
+
+  ## Create openvpn-client keystore
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-client.jks -genkey -alias selfsigned -dname "CN=openvpn.nextbreakpoint.com" -storetype JKS -keyalg RSA -keysize 2048 -validity 999 -storepass secret -keypass secret
+
   ## Sign client certificate
   keytool -noprompt -keystore $OUTPUT/keystore-client.jks -alias selfsigned -certreq -file $OUTPUT/client.unsigned -storepass secret
   openssl x509 -extfile $OUTPUT/openssl.cnf -extensions extended -req -CA $OUTPUT/ca-cert -CAkey $OUTPUT/ca-key -in $OUTPUT/client.unsigned -out $OUTPUT/client.signed -days 365 -CAcreateserial -passin pass:secret
@@ -74,6 +83,14 @@ if [ ! -d "$OUTPUT" ]; then
   keytool -noprompt -keystore $OUTPUT/keystore-consul.jks -alias selfsigned -certreq -file $OUTPUT/consul.unsigned -storepass secret
   openssl x509 -extfile $OUTPUT/openssl.cnf -extensions extended -req -CA $OUTPUT/ca-cert -CAkey $OUTPUT/ca-key -in $OUTPUT/consul.unsigned -out $OUTPUT/consul.signed -days 365 -CAcreateserial -passin pass:secret
 
+  ## Sign openvpn-server certificate
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-server.jks -alias selfsigned -certreq -file $OUTPUT/openvpn-server.unsigned -storepass secret
+  openssl x509 -extfile $OUTPUT/openssl.cnf -extensions extended -req -CA $OUTPUT/openvpn-ca-cert -CAkey $OUTPUT/openvpn-ca-key -in $OUTPUT/openvpn-server.unsigned -out $OUTPUT/openvpn-server.signed -days 365 -CAcreateserial -passin pass:secret
+
+  ## Sign openvpn-client certificate
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-client.jks -alias selfsigned -certreq -file $OUTPUT/openvpn-client.unsigned -storepass secret
+  openssl x509 -extfile $OUTPUT/openssl.cnf -extensions extended -req -CA $OUTPUT/openvpn-ca-cert -CAkey $OUTPUT/openvpn-ca-key -in $OUTPUT/openvpn-client.unsigned -out $OUTPUT/openvpn-client.signed -days 365 -CAcreateserial -passin pass:secret
+
   ## Import CA and client signed certificate into client keystore
   keytool -noprompt -keystore $OUTPUT/keystore-client.jks -alias CARoot -import -file $OUTPUT/ca-cert  -storepass secret
   keytool -noprompt -keystore $OUTPUT/keystore-client.jks -alias selfsigned -import -file $OUTPUT/client.signed -storepass secret
@@ -101,6 +118,14 @@ if [ ! -d "$OUTPUT" ]; then
   ## Import CA and consul signed certificate into consul keystore
   keytool -noprompt -keystore $OUTPUT/keystore-consul.jks -alias CARoot -import -file $OUTPUT/ca-cert  -storepass secret
   keytool -noprompt -keystore $OUTPUT/keystore-consul.jks -alias selfsigned -import -file $OUTPUT/consul.signed -storepass secret
+
+  ## Import CA and openvpn-server signed certificate into openvpn keystore
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-server.jks -alias CARoot -import -file $OUTPUT/openvpn-ca-cert  -storepass secret
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-server.jks -alias selfsigned -import -file $OUTPUT/openvpn-server.signed -storepass secret
+
+  ## Import CA and openvpn-client signed certificate into openvpn keystore
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-client.jks -alias CARoot -import -file $OUTPUT/openvpn-ca-cert  -storepass secret
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-client.jks -alias selfsigned -import -file $OUTPUT/openvpn-client.signed -storepass secret
 
   ## Import CA into client truststore
   keytool -noprompt -keystore $OUTPUT/truststore-client.jks -alias CARoot -import -file $OUTPUT/ca-cert -storepass secret
@@ -177,6 +202,23 @@ if [ ! -d "$OUTPUT" ]; then
   keytool -noprompt -srckeystore $OUTPUT/keystore-consul.jks -importkeystore -srcalias selfsigned -destkeystore $OUTPUT/consul_cert_and_key.p12 -deststoretype PKCS12 -srcstorepass secret -storepass secret
   openssl pkcs12 -in $OUTPUT/consul_cert_and_key.p12 -nocerts -nodes -passin pass:secret -out $OUTPUT/consul_key.pem
 
+  ### Extract signed openvpn-server certificate
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-server.jks -exportcert -alias selfsigned -rfc -storepass secret -file $OUTPUT/openvpn_server_cert.pem
+
+  ### Extract openvpn-server key
+  keytool -noprompt -srckeystore $OUTPUT/keystore-openvpn-server.jks -importkeystore -srcalias selfsigned -destkeystore $OUTPUT/openvpn_server_cert_and_key.p12 -deststoretype PKCS12 -srcstorepass secret -storepass secret
+  openssl pkcs12 -in $OUTPUT/openvpn_server_cert_and_key.p12 -nocerts -nodes -passin pass:secret -out $OUTPUT/openvpn_server_key.pem
+
+  ### Extract signed openvpn-client certificate
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-client.jks -exportcert -alias selfsigned -rfc -storepass secret -file $OUTPUT/openvpn_client_cert.pem
+
+  ### Extract openvpn key
+  keytool -noprompt -srckeystore $OUTPUT/keystore-openvpn-client.jks -importkeystore -srcalias selfsigned -destkeystore $OUTPUT/openvpn_client_cert_and_key.p12 -deststoretype PKCS12 -srcstorepass secret -storepass secret
+  openssl pkcs12 -in $OUTPUT/openvpn_client_cert_and_key.p12 -nocerts -nodes -passin pass:secret -out $OUTPUT/openvpn_client_key.pem
+
+  ### Extract openvpn CA certificate
+  keytool -noprompt -keystore $OUTPUT/keystore-openvpn-server.jks -exportcert -alias CARoot -rfc -storepass secret -file $OUTPUT/openvpn_ca_cert.pem
+
   ### Extract CA certificate
   keytool -noprompt -keystore $OUTPUT/keystore-server.jks -exportcert -alias CARoot -rfc -storepass secret -file $OUTPUT/ca_cert.pem
 
@@ -195,6 +237,9 @@ if [ ! -d "$OUTPUT" ]; then
   openssl x509 -noout -text -in $OUTPUT/kibana_cert.pem
   openssl x509 -noout -text -in $OUTPUT/logstash_cert.pem
   openssl x509 -noout -text -in $OUTPUT/elasticsearch_cert.pem
+  openssl x509 -noout -text -in $OUTPUT/openvpn_server_cert.pem
+  openssl x509 -noout -text -in $OUTPUT/openvpn_client_cert.pem
+  openssl x509 -noout -text -in $OUTPUT/openvpn_ca_cert.pem
 
 else
 
@@ -274,3 +319,13 @@ DST=$ROOT/terraform/secrets/environments/production/jenkins
 mkdir -p $DST
 
 cp $DIR/keystore-jenkins.jks $DST/keystore.jks
+
+DST=$ROOT/terraform/secrets/environments/production/openvpn
+
+mkdir -p $DST
+
+cp $DIR/openvpn_ca_cert.pem $DST/ca_cert.pem
+cp $DIR/openvpn_server_cert.pem $DST/server_cert.pem
+cp $DIR/openvpn_server_key.pem $DST/server_key.pem
+cp $DIR/openvpn_client_cert.pem $DST/client_cert.pem
+cp $DIR/openvpn_client_key.pem $DST/client_key.pem
