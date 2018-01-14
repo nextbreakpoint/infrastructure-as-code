@@ -12,10 +12,6 @@ echo "Destroying stack..."
 sh scripts/destroy_stack.sh
 echo "done."
 
-echo "Destroying OpenVPN..."
-sh scripts/destroy_openvpn.sh
-echo "done."
-
 echo "Destroying LBs..."
 sh scripts/destroy_lb.sh
 echo "done."
