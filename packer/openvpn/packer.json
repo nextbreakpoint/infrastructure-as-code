@@ -39,7 +39,7 @@
     "communicator": "ssh",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
-    "ssh_username": "ec2-user",
+    "ssh_username": "ubuntu",
     "ssh_keypair_name": "{{user `key_name`}}",
     "ssh_private_key_file": "{{user `key_path`}}",
     "tags": {

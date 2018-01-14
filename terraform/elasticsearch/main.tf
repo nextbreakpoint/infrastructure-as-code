@@ -75,35 +75,6 @@ resource "aws_security_group" "elasticsearch" {
   }
 }
 
-data "template_file" "elasticsearch" {
-  template = "${file("provision/elasticsearch.tpl")}"
-
-  vars {
-    aws_region             = "${var.aws_region}"
-    environment            = "${var.environment}"
-    bucket_name            = "${var.secrets_bucket_name}"
-    consul_secret          = "${var.consul_secret}"
-    consul_datacenter      = "${var.consul_datacenter}"
-    consul_nodes           = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
-    security_groups        = "${aws_security_group.elasticsearch.id}"
-    minimum_master_nodes   = "${var.minimum_master_nodes}"
-    volume_name            = "${var.volume_name}"
-    cluster_name           = "${var.elasticsearch_cluster_name}"
-    filebeat_version       = "${var.filebeat_version}"
-    elasticsearch_version  = "${var.elasticsearch_version}"
-    elasticsearch_nodes    = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
-    kibana_password        = "${var.kibana_password}"
-    logstash_password      = "${var.logstash_password}"
-    elasticsearch_password = "${var.elasticsearch_password}"
-    hosted_zone_dns        = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
-  }
-}
-
-resource "aws_iam_instance_profile" "elasticsearch" {
-  name = "elasticsearch"
-  role = "${aws_iam_role.elasticsearch.name}"
-}
-
 resource "aws_iam_role" "elasticsearch" {
   name = "elasticsearch"
 
@@ -159,6 +130,11 @@ resource "aws_iam_role_policy" "elasticsearch" {
 EOF
 }
 
+resource "aws_iam_instance_profile" "elasticsearch" {
+  name = "elasticsearch"
+  role = "${aws_iam_role.elasticsearch.name}"
+}
+
 data "aws_ami" "elasticsearch" {
   most_recent = true
 
@@ -173,6 +149,30 @@ data "aws_ami" "elasticsearch" {
   }
 
   owners = ["${var.account_id}"]
+}
+
+data "template_file" "elasticsearch" {
+  template = "${file("provision/elasticsearch.tpl")}"
+
+  vars {
+    aws_region             = "${var.aws_region}"
+    environment            = "${var.environment}"
+    bucket_name            = "${var.secrets_bucket_name}"
+    consul_secret          = "${var.consul_secret}"
+    consul_datacenter      = "${var.consul_datacenter}"
+    consul_nodes           = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
+    security_groups        = "${aws_security_group.elasticsearch.id}"
+    minimum_master_nodes   = "${var.minimum_master_nodes}"
+    volume_name            = "${var.volume_name}"
+    cluster_name           = "${var.elasticsearch_cluster_name}"
+    filebeat_version       = "${var.filebeat_version}"
+    elasticsearch_version  = "${var.elasticsearch_version}"
+    elasticsearch_nodes    = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "10")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "10")}"
+    kibana_password        = "${var.kibana_password}"
+    logstash_password      = "${var.logstash_password}"
+    elasticsearch_password = "${var.elasticsearch_password}"
+    hosted_zone_dns        = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+  }
 }
 
 resource "aws_instance" "elasticsearch_a" {

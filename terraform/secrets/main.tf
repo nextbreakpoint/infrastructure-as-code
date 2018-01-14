@@ -225,3 +225,38 @@ resource "aws_s3_bucket_object" "jenkins-keystore" {
   source = "environments/production/jenkins/keystore.jks"
   etag   = "${md5(file("environments/production/jenkins/keystore.jks"))}"
 }
+
+resource "aws_s3_bucket_object" "openvpn-ca-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/openvpn/ca_cert.pem"
+  source = "environments/production/openvpn/ca_cert.pem"
+  etag   = "${md5(file("environments/production/openvpn/ca_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "openvpn-certificate" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/openvpn/server_cert.pem"
+  source = "environments/production/openvpn/server_cert.pem"
+  etag   = "${md5(file("environments/production/openvpn/server_cert.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "openvpn-private-key" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/openvpn/server_key.pem"
+  source = "environments/production/openvpn/server_key.pem"
+  etag   = "${md5(file("environments/production/openvpn/server_key.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "openvpn-ta-auth" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/openvpn/ta.pem"
+  source = "environments/production/openvpn/ta.pem"
+  etag   = "${md5(file("environments/production/openvpn/ta.pem"))}"
+}
+
+resource "aws_s3_bucket_object" "openvpn-dh-2048" {
+  bucket = "${aws_s3_bucket.secrets.id}"
+  key    = "environments/production/openvpn/dh2048.pem"
+  source = "environments/production/openvpn/dh2048.pem"
+  etag   = "${md5(file("environments/production/openvpn/dh2048.pem"))}"
+}

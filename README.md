@@ -207,105 +207,29 @@ Connect to other machines using the command:
 
 ## Access machines using OpenVPN
 
-OpenVPN server must be configured in order to accept connections.
+A default client configuration is automatically generated at location:
 
-Login to OpenVPN server using the command:
+    secrets/openvpn_client.ovpn
 
-    ssh -i deployer_key.pem openvpnas@openvpn.yourdomain.com
+Install the configuration in your OpenVPN client to connect your client to the VPN.
 
-The server will ask you a few questions. The output should look like:
+OpenVPN server is configured to allow connections to any internal servers.
 
-    Welcome to OpenVPN Access Server Appliance 2.1.9
+Login into OpenVPN server if you need to modify the server configuration:
 
-    To run a command as administrator (user "root"), use "sudo <command>".
-    See "man sudo_root" for details.
+    ssh -i deployer_key.pem ubuntu@openvpn.yourdomain.com
 
-    [...]
+Edit file /etc/openvpn/server.conf and then restart the server:
 
-    Please enter 'yes' to indicate your agreement [no]: yes
+    sudo service openvpn restart
 
-    Once you provide a few initial configuration settings,
-    OpenVPN Access Server can be configured by accessing
-    its Admin Web UI using your Web browser.
+Finally, you should create a new configuration for each client using the command:
 
-    Will this be the primary Access Server node?
-    (enter 'no' to configure as a backup or standby node)
-    > Press ENTER for default [yes]: yes
+    ./run_script new_client_ovpn name
 
-    Please specify the network interface and IP address to be
-    used by the Admin Web UI:
-    (1) all interfaces: 0.0.0.0
-    (2) eth0: 172.34.0.214
-    Please enter the option number from the list above (1-2).
-    > Press Enter for default [2]: 2
+The new client configuration is generated at location:
 
-    Please specify the port number for the Admin Web UI.
-    > Press ENTER for default [943]:
-
-    Please specify the TCP port number for the OpenVPN Daemon
-    > Press ENTER for default [443]:
-
-    Should client traffic be routed by default through the VPN?
-    > Press ENTER for default [no]: yes
-
-    Should client DNS traffic be routed by default through the VPN?
-    > Press ENTER for default [no]: yes
-
-    Use local authentication via internal DB?
-    > Press ENTER for default [yes]: no
-
-    Private subnets detected: ['172.34.0.0/16']
-
-    Should private subnets be accessible to clients by default?
-    > Press ENTER for EC2 default [yes]: yes
-
-    To initially login to the Admin Web UI, you must use a
-    username and password that successfully authenticates you
-    with the host UNIX system (you can later modify the settings
-    so that RADIUS or LDAP is used for authentication instead).
-
-    You can login to the Admin Web UI as "openvpn" or specify
-    a different user account to use for this purpose.
-
-    Do you wish to login to the Admin UI as "openvpn"?
-    > Press ENTER for default [yes]: yes
-
-    > Please specify your OpenVPN-AS license key (or leave blank to specify later):
-
-    Initializing OpenVPN...
-    Adding new user login...
-    useradd -s /sbin/nologin "openvpn"
-    Writing as configuration file...
-
-    [...]
-
-    NOTE: Your system clock must be correct for OpenVPN Access Server
-    to perform correctly.  Please ensure that your time and date
-    are correct on this system.
-
-    Initial Configuration Complete!
-
-    You can now continue configuring OpenVPN Access Server by
-    directing your Web browser to this URL:
-
-    https://public_ip_address:943/admin
-    Login as "openvpn" with the same password used to authenticate
-    to this UNIX host.
-
-    During normal operation, OpenVPN AS can be accessed via these URLs:
-    Admin  UI: https://public_ip_address:943/admin
-    Client UI: https://public_ip_address:943/
-
-    See the Release Notes for this release at:
-       http://www.openvpn.net/access-server/rn/openvpn_as_2_1_9.html
-
-When initialisation is completed, you have to reset the user password:
-
-    sudo passwd openvpn
-
-You can now access the OpenVPN admin console at https://openvpn.yourdomain.com:943/admin or you can establish a connection using any OpenVPN client.
-
-Download a locked profile on https://openvpn.yourdomain.com:943, configure your OpenVPN client and then connect your client to the VPN.
+    openvpn/openvpn_name.ovpn
 
 ## Services discovery
 
@@ -323,7 +247,8 @@ Use Kibana to analyse log files and monitor servers:
 
     NOTE: Default user is "elastic" with password "changeme"
 
-If your applications are running in a Docker container managed by ECS, then log files are automatically collected and sent to Logstash. Alternatively you can ship your logs directly to Logstash using your logging framework or using Filebeat.
+If your applications are running in a Docker container managed by ECS, then log files are automatically collected and sent to Logstash.
+Alternatively you can ship your logs directly to Logstash using your logging framework or using Filebeat.
 
 ## Delivery pipelines
 
