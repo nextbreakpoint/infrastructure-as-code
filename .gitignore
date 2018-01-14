@@ -18,5 +18,6 @@ terraform.tfstate*
 .terraform
 network_vars.json
 /secrets
+/openvpn
 **/tfplan
 images.json

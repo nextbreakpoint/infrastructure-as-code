@@ -176,6 +176,20 @@ resource "aws_ecs_cluster" "ecs" {
   name = "ecs-cluster"
 }
 
+data "aws_ami" "ecs" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ecs-${var.base_version}-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 data "template_file" "ecs" {
   template = "${file("provision/cluster.tpl")}"
 
@@ -188,20 +202,6 @@ data "template_file" "ecs" {
     consul_nodes      = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
     filebeat_version  = "${var.filebeat_version}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
-  }
-}
-
-data "aws_ami" "ecs" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ecs-${var.base_version}-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
   }
 }
 

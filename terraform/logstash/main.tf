@@ -110,7 +110,7 @@ resource "aws_iam_role" "logstash" {
 EOF
 }
 
-resource "aws_iam_role_policy" "logstash_role_policy" {
+resource "aws_iam_role_policy" "logstash" {
   name = "logstash"
   role = "${aws_iam_role.logstash.id}"
 

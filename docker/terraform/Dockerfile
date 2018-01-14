@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-RUN apt-get update -y && apt-get install -y git curl unzip software-properties-common python jq
+RUN apt-get update -y && apt-get install -y git curl unzip software-properties-common python jq openvpn
 
 RUN add-apt-repository -y ppa:webupd8team/java && apt-get update -y
 

@@ -38,6 +38,23 @@ variable "hosted_zone_id" {}
 variable "aws_network_vpc_cidr" {}
 
 ### MANDATORY ###
+variable "aws_openvpn_vpc_cidr" {}
+
+### MANDATORY ###
+variable "account_id" {}
+
+### MANDATORY ###
+variable "environment" {
+  default = "production"
+}
+
+### MANDATORY ###
+variable "secrets_bucket_name" {}
+
+### MANDATORY ###
+variable "base_version" {}
+
+### MANDATORY ###
 variable "openvpn_ami" {}
 
 ### MANDATORY ###
@@ -50,3 +67,7 @@ variable "aws_openvpn_subnet_cidr_a" {}
 
 ### MANDATORY ###
 variable "aws_openvpn_subnet_cidr_b" {}
+
+variable "openvpn_cidr" {
+  default = "10.8.0.0/16"
+}
