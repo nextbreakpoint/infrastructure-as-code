@@ -41,6 +41,9 @@ variable "aws_network_vpc_cidr" {}
 variable "aws_openvpn_vpc_cidr" {}
 
 ### MANDATORY ###
+variable "aws_bastion_vpc_cidr" {}
+
+### MANDATORY ###
 variable "account_id" {}
 
 ### MANDATORY ###

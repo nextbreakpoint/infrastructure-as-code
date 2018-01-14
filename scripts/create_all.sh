@@ -12,10 +12,6 @@ echo "Creating LBs..."
 sh scripts/create_lb.sh
 echo "done."
 
-echo "Creating OpenVPN..."
-sh scripts/create_openvpn.sh
-echo "done."
-
 echo "Creating Stack..."
 sh scripts/create_stack.sh
 echo "done."

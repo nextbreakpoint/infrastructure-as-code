@@ -170,26 +170,15 @@ Or create the infrastructure in several steps:
     ./run_script.sh create_secrets
     ./run_script.sh create_network
     ./run_script.sh create_lb
-    ./run_script.sh create_openvpn
     ./run_script.sh create_stack
     ./run_script.sh create_elk
     ./run_script.sh create_pipeline
 
-## Destroy infrastructure
+## Create OpenVPN server
 
-Destroy the infrastructure with command:
+Create OpenVPN server with command:
 
-    ./run_script.sh destroy_all
-
-Or destroy the infrastructure in several steps:
-
-    ./run_script.sh destroy_pipeline
-    ./run_script.sh destroy_elk
-    ./run_script.sh destroy_stack
-    ./run_script.sh destroy_openvpn
-    ./run_script.sh destroy_lb
-    ./run_script.sh destroy_network
-    ./run_script.sh destroy_secrets
+    ./run_script.sh create_openvpn
 
 ## Access machines using Bastion
 
@@ -211,8 +200,7 @@ A default client configuration is automatically generated at location:
 
     secrets/openvpn_client.ovpn
 
-Install the configuration in your OpenVPN client to connect your client to the VPN.
-
+Install the configuration in your OpenVPN client. Connect your client.
 OpenVPN server is configured to allow connections to any internal servers.
 
 Login into OpenVPN server if you need to modify the server configuration:
@@ -230,6 +218,21 @@ Finally, you should create a new configuration for each client using the command
 The new client configuration is generated at location:
 
     openvpn/openvpn_name.ovpn
+
+## Destroy infrastructure
+
+Destroy the infrastructure with command:
+
+    ./run_script.sh destroy_all
+
+Or destroy the infrastructure in several steps:
+
+    ./run_script.sh destroy_pipeline
+    ./run_script.sh destroy_elk
+    ./run_script.sh destroy_stack
+    ./run_script.sh destroy_lb
+    ./run_script.sh destroy_network
+    ./run_script.sh destroy_secrets
 
 ## Services discovery
 
@@ -274,10 +277,20 @@ Deploy your application to ECS or EC2, manually or using Jenkins CI.
 
 ## Disable access from Bastion
 
-Bastion server could be stopped or destroyed after creating the infrastructure. The server can be recreated when needed.
+Bastion server can be stopped or destroyed if required. The server can be recreated when needed.
 
 Stop the Bastion server from AWS console.
 
 Destroy the Bastion server with command:
 
     ./run_script.sh destroy_bastion
+
+## Disable access from OpenVPN
+
+OpenVPN server can be stopped or destroyed if required. The server can be recreated when needed.
+
+Stop the OpenVPN server from AWS console.
+
+Destroy the OpenVPN server with command:
+
+    ./run_script.sh destroy_openvpn
