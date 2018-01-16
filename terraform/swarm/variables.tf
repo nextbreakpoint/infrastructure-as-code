@@ -28,6 +28,21 @@ variable "stream_tag" {
   default = "terraform"
 }
 
+variable "volume_name" {
+  default = "/dev/xvdh"
+}
+
+variable "volume_size" {
+  default = "4"
+}
+
+variable "volume_encrypted" {
+  default = "false"
+}
+
+### MANDATORY ###
+variable "hosted_zone_name" {}
+
 ### MANDATORY ###
 variable "aws_bastion_vpc_cidr" {}
 
@@ -53,11 +68,9 @@ variable "aws_network_private_subnet_cidr_c" {
 }
 
 ### MANDATORY ###
-variable "base_version" {}
-
-### MANDATORY ###
 variable "account_id" {}
 
+### MANDATORY ###
 variable "environment" {
   default = "production"
 }
@@ -66,17 +79,17 @@ variable "environment" {
 variable "secrets_bucket_name" {}
 
 ### MANDATORY ###
+variable "base_version" {}
+
+### MANDATORY ###
 variable "filebeat_version" {}
+
+variable "swarm_instance_type" {
+  default = "t2.medium"
+}
 
 ### MANDATORY ###
 variable "consul_secret" {}
-
-### MANDATORY ###
-variable "consul_master_token" {}
-
-variable "consul_instance_type" {
-  default = "t2.micro"
-}
 
 variable "consul_datacenter" {
   default = "terraform"

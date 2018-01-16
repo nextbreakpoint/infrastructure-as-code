@@ -2,7 +2,7 @@
 
 echo "Generating OpenVPN client configuration..."
 
-OUTPUT=$ROOT/openvpn
+OUTPUT=$ROOT/secrets/openvpn
 SOURCE=$ROOT/secrets
 
 if [ ! -z "$1" ]; then

@@ -1,23 +1,12 @@
 #!/bin/sh
 
-OUTPUT=$ROOT/secrets
+OUTPUT=$ROOT/secrets/generated
 
 if [ ! -d "$OUTPUT" ]; then
 
   mkdir -p $OUTPUT
 
   echo '[extended]\nextendedKeyUsage=serverAuth,clientAuth\nkeyUsage=digitalSignature,keyAgreement' > $OUTPUT/openssl.cnf
-
-  ## Create keystore for JWT authentication
-  keytool -genseckey -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg HMacSHA256 -keysize 2048 -alias HS256 -keypass secret
-  keytool -genseckey -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg HMacSHA384 -keysize 2048 -alias HS384 -keypass secret
-  keytool -genseckey -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg HMacSHA512 -keysize 2048 -alias HS512 -keypass secret
-  keytool -genkey -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg RSA -keysize 2048 -alias RS256 -keypass secret -sigalg SHA256withRSA -dname "CN=myself" -validity 365
-  keytool -genkey -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg RSA -keysize 2048 -alias RS384 -keypass secret -sigalg SHA384withRSA -dname "CN=myself" -validity 365
-  keytool -genkey -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg RSA -keysize 2048 -alias RS512 -keypass secret -sigalg SHA512withRSA -dname "CN=myself" -validity 365
-  keytool -genkeypair -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg EC -keysize 256 -alias ES256 -keypass secret -sigalg SHA256withECDSA -dname "CN=myself" -validity 365
-  keytool -genkeypair -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg EC -keysize 256 -alias ES384 -keypass secret -sigalg SHA384withECDSA -dname "CN=myself" -validity 365
-  keytool -genkeypair -keystore $OUTPUT/keystore-auth.jceks -storetype PKCS12 -storepass secret -keyalg EC -keysize 256 -alias ES512 -keypass secret -sigalg SHA512withECDSA -dname "CN=myself" -validity 365
 
   ## Create certificate authority (CA)
   openssl req -new -x509 -keyout $OUTPUT/ca_key.pem -out $OUTPUT/ca_cert.pem -days 365 -passin pass:secret -passout pass:secret -subj "/CN=myself"
@@ -252,87 +241,84 @@ else
 
 fi
 
-DIR=$ROOT/secrets
-
-DST=$ROOT/terraform/secrets/environments/production/keystores
+DST=$ROOT/secrets/environments/production/keystores
 
 mkdir -p $DST
 
-cp $DIR/keystore-auth.jceks $DST
-cp $DIR/keystore-client.jks $DST
-cp $DIR/keystore-server.jks $DST
-cp $DIR/truststore-client.jks $DST
-cp $DIR/truststore-server.jks $DST
+cp $OUTPUT/keystore-client.jks $DST
+cp $OUTPUT/keystore-server.jks $DST
+cp $OUTPUT/truststore-client.jks $DST
+cp $OUTPUT/truststore-server.jks $DST
 
 ### Copy certificates and keys
 
-DST=$ROOT/terraform/secrets/environments/production/nginx
+DST=$ROOT/secrets/environments/production/nginx
 
 mkdir -p $DST
 
-cp $DIR/ca_cert.pem $DST
-cp $DIR/server_cert.pem $DST
-cp $DIR/server_key.pem $DST
-cp $DIR/ca_and_server_cert.pem $DST
+cp $OUTPUT/ca_cert.pem $DST
+cp $OUTPUT/server_cert.pem $DST
+cp $OUTPUT/server_key.pem $DST
+cp $OUTPUT/ca_and_server_cert.pem $DST
 
-DST=$ROOT/terraform/secrets/environments/production/filebeat
-
-mkdir -p $DST
-
-cp $DIR/ca_cert.pem $DST
-cp $DIR/filebeat_cert.pem $DST
-cp $DIR/filebeat_key.pem $DST
-cp $DIR/filebeat_key.pkcs8 $DST
-
-DST=$ROOT/terraform/secrets/environments/production/kibana
+DST=$ROOT/secrets/environments/production/filebeat
 
 mkdir -p $DST
 
-cp $DIR/ca_cert.pem $DST
-cp $DIR/kibana_cert.pem $DST
-cp $DIR/kibana_key.pem $DST
-cp $DIR/kibana_key.pkcs8 $DST
+cp $OUTPUT/ca_cert.pem $DST
+cp $OUTPUT/filebeat_cert.pem $DST
+cp $OUTPUT/filebeat_key.pem $DST
+cp $OUTPUT/filebeat_key.pkcs8 $DST
 
-DST=$ROOT/terraform/secrets/environments/production/logstash
-
-mkdir -p $DST
-
-cp $DIR/ca_cert.pem $DST
-cp $DIR/logstash_cert.pem $DST
-cp $DIR/logstash_key.pem $DST
-cp $DIR/logstash_key.pkcs8 $DST
-
-DST=$ROOT/terraform/secrets/environments/production/elasticsearch
+DST=$ROOT/secrets/environments/production/kibana
 
 mkdir -p $DST
 
-cp $DIR/ca_cert.pem $DST
-cp $DIR/elasticsearch_cert.pem $DST
-cp $DIR/elasticsearch_key.pem $DST
-cp $DIR/elasticsearch_key.pkcs8 $DST
+cp $OUTPUT/ca_cert.pem $DST
+cp $OUTPUT/kibana_cert.pem $DST
+cp $OUTPUT/kibana_key.pem $DST
+cp $OUTPUT/kibana_key.pkcs8 $DST
 
-DST=$ROOT/terraform/secrets/environments/production/consul
-
-mkdir -p $DST
-
-cp $DIR/ca_cert.pem $DST
-cp $DIR/consul_cert.pem $DST/server_cert.pem
-cp $DIR/consul_key.pem $DST/server_key.pem
-
-DST=$ROOT/terraform/secrets/environments/production/jenkins
+DST=$ROOT/secrets/environments/production/logstash
 
 mkdir -p $DST
 
-cp $DIR/keystore-jenkins.jks $DST/keystore.jks
+cp $OUTPUT/ca_cert.pem $DST
+cp $OUTPUT/logstash_cert.pem $DST
+cp $OUTPUT/logstash_key.pem $DST
+cp $OUTPUT/logstash_key.pkcs8 $DST
 
-DST=$ROOT/terraform/secrets/environments/production/openvpn
+DST=$ROOT/secrets/environments/production/elasticsearch
 
 mkdir -p $DST
 
-cp $DIR/openvpn_ca_cert.pem $DST/ca_cert.pem
-cp $DIR/openvpn_server_cert.pem $DST/server_cert.pem
-cp $DIR/openvpn_server_key.pem $DST/server_key.pem
-cp $DIR/openvpn_client_cert.pem $DST/client_cert.pem
-cp $DIR/openvpn_client_key.pem $DST/client_key.pem
-cp $DIR/openvpn_dh2048.pem $DST/dh2048.pem
-cp $DIR/openvpn_ta.pem $DST/ta.pem
+cp $OUTPUT/ca_cert.pem $DST
+cp $OUTPUT/elasticsearch_cert.pem $DST
+cp $OUTPUT/elasticsearch_key.pem $DST
+cp $OUTPUT/elasticsearch_key.pkcs8 $DST
+
+DST=$ROOT/secrets/environments/production/consul
+
+mkdir -p $DST
+
+cp $OUTPUT/ca_cert.pem $DST
+cp $OUTPUT/consul_cert.pem $DST/server_cert.pem
+cp $OUTPUT/consul_key.pem $DST/server_key.pem
+
+DST=$ROOT/secrets/environments/production/jenkins
+
+mkdir -p $DST
+
+cp $OUTPUT/keystore-jenkins.jks $DST/keystore.jks
+
+DST=$ROOT/secrets/environments/production/openvpn
+
+mkdir -p $DST
+
+cp $OUTPUT/openvpn_ca_cert.pem $DST/ca_cert.pem
+cp $OUTPUT/openvpn_server_cert.pem $DST/server_cert.pem
+cp $OUTPUT/openvpn_server_key.pem $DST/server_key.pem
+cp $OUTPUT/openvpn_client_cert.pem $DST/client_cert.pem
+cp $OUTPUT/openvpn_client_key.pem $DST/client_key.pem
+cp $OUTPUT/openvpn_dh2048.pem $DST/dh2048.pem
+cp $OUTPUT/openvpn_ta.pem $DST/ta.pem

@@ -7,7 +7,7 @@
     "aws_secret_key": "",
     "aws_security_token": "",
     "aws_region": "eu-west-1",
-    "aws_build_regions" : "",
+    "aws_build_regions": "",
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
@@ -45,8 +45,7 @@
       "Stream": "{{user `stream_tag`}}"
     }
   }],
-  "provisioners": [
-    {
+  "provisioners": [{
       "type": "shell",
       "script": "../scripts/ecs-tools.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"

@@ -217,7 +217,7 @@ Finally, you should create a new configuration for each client using the command
 
 The new client configuration is generated at location:
 
-    openvpn/openvpn_name.ovpn
+    secrets/openvpn/openvpn_name.ovpn
 
 ## Destroy infrastructure
 

@@ -29,6 +29,9 @@ variable "stream_tag" {
 }
 
 ### MANDATORY ###
+variable "hosted_zone_name" {}
+
+### MANDATORY ###
 variable "aws_bastion_vpc_cidr" {}
 
 ### MANDATORY ###
@@ -53,11 +56,9 @@ variable "aws_network_private_subnet_cidr_c" {
 }
 
 ### MANDATORY ###
-variable "base_version" {}
-
-### MANDATORY ###
 variable "account_id" {}
 
+### MANDATORY ###
 variable "environment" {
   default = "production"
 }
@@ -66,17 +67,23 @@ variable "environment" {
 variable "secrets_bucket_name" {}
 
 ### MANDATORY ###
+variable "base_version" {}
+
+### MANDATORY ###
 variable "filebeat_version" {}
 
 ### MANDATORY ###
-variable "consul_secret" {}
+variable "kafka_version" {}
 
 ### MANDATORY ###
-variable "consul_master_token" {}
+variable "scala_version" {}
 
-variable "consul_instance_type" {
-  default = "t2.micro"
+variable "kafka_instance_type" {
+  default = "t2.medium"
 }
+
+### MANDATORY ###
+variable "consul_secret" {}
 
 variable "consul_datacenter" {
   default = "terraform"
