@@ -1,10 +1,10 @@
 # Infrastructure as code
 
-This repository contains scripts for creating a production-ready cloud-based infrastructure for running micro-services. The provided scripts automate a very complex process which involves several components and they target [AWS](https://aws.amazon.com).
+This repository contains scripts for creating a production-ready cloud-based infrastructure for running micro-services on [AWS](https://aws.amazon.com).
 
-The ultimate goal is to rapidly and reliably create a scalable and secure infrastructure for running micro-services. To achieve this goal, the scripts use several tools, such as [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
+The infrastructure is created using tools such as [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
-The generated infrastructure provides the following components:
+The ultimate goal is to rapidly and reliably create a scalable and secure infrastructure for running micro-services. The infrastructure provides the following components:
 
 - [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and visualising logs
 
@@ -16,7 +16,7 @@ The generated infrastructure provides the following components:
 
 - [OpenVPN](https://openvpn.net) for connecting to private servers
 
-All servers are created within a private network. They can be accessed via the Bastion server (only SSH), or via a VPN client connected to the OpenVPN server (all ports).
+All servers are created within a private network. They can be accessed via SSH using a Bastion server, or via VPN connection using OpenVPN server.
 
 ## Install required tools
 
