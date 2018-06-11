@@ -1,12 +1,12 @@
 # Infrastructure as code
 
-This repository contains scripts for creating a production-ready cloud-based infrastructure for running micro-services on [AWS](https://aws.amazon.com).
+This repository contains scripts for creating a production-grade infrastructure for running micro-services on [AWS](https://aws.amazon.com).
 
-The infrastructure is created using tools such as [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
+    The main goal is to rapidly and reliably create a scalable and secure infrastructure using a fully automated process
 
-The ultimate goal is to rapidly and reliably create a scalable and secure infrastructure for running micro-services. The infrastructure provides the following components:
+The infrastructure provides the following components:
 
-- [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and visualising logs
+- [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and analysing logs
 
 - [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
 
@@ -14,9 +14,11 @@ The ultimate goal is to rapidly and reliably create a scalable and secure infras
 
 - [Consul](https://www.consul.io) for services discovery
 
-- [OpenVPN](https://openvpn.net) for connecting to private servers
+- [OpenVPN](https://openvpn.net) for secure connection to private machines
 
-All servers are created within a private network. They can be accessed via SSH using a Bastion server, or via VPN connection using OpenVPN server.
+The infrastructure is created using tools such as [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
+
+    EC2 machines are created within a private network and they are accessible via SSH, using a Bastion machine, or via VPN connection, using a OpenVPN
 
 ## Install required tools
 
