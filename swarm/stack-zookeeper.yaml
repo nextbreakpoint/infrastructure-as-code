@@ -1,0 +1,160 @@
+version: '3.4'
+services:
+  zookeeper1:
+    labels:
+        service: zookeeper
+    image: zookeeper:3.4.12
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=${DOCKER_HOST_2}:2888:3888 server.3=${DOCKER_HOST_3}:2888:3888
+    volumes:
+      - zookeeper-data1:/data
+      - zookeeper-datalog1:/datalog
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.zookeeper == true
+          - node.labels.zone == a
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+  zookeeper2:
+    labels:
+        service: zookeeper
+    image: zookeeper:3.4.12
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=${DOCKER_HOST_1}:2888:3888 server.2=0.0.0.0:2888:3888 server.3=${DOCKER_HOST_3}:2888:3888
+    volumes:
+      - zookeeper-data2:/data
+      - zookeeper-datalog2:/datalog
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.zookeeper == true
+          - node.labels.zone == b
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+  zookeeper3:
+    labels:
+        service: zookeeper
+    image: zookeeper:3.4.12
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=${DOCKER_HOST_1}:2888:3888 server.2=${DOCKER_HOST_2}:2888:3888 server.3=0.0.0.0:2888:3888
+    volumes:
+      - zookeeper-data3:/data
+      - zookeeper-datalog3:/datalog
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.zookeeper == true
+          - node.labels.zone == c
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    zookeeper-data1:
+    zookeeper-datalog1:
+    zookeeper-data2:
+    zookeeper-datalog2:
+    zookeeper-data3:
+    zookeeper-datalog3:

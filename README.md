@@ -18,9 +18,9 @@ The infrastructure includes several EC2 machines which are created within a priv
 
 The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
-## Install required tools
+## Prepare workstation
 
-Follow the [instructions](https://docs.docker.com/engine/installation) on Docker.com to install Docker CE version 17.09 or later. Docker is the only tool which needs to be installed manually on the workstation.
+Follow the [instructions](https://docs.docker.com/engine/installation) on Docker.com to install Docker CE version 17.09 or later. Docker is the only tool that you need to install on your workstation.
 
 ## Configure AWS credentials
 
@@ -34,7 +34,47 @@ The content of ~/.aws/credentials should look like:
     aws_access_key_id = "your_access_key_id"
     aws_secret_access_key = "your_secret_access_key"
 
-## Configure scripts
+## Configure SSL certificates
+
+Create and upload two SSL certificates using Certificate Manager in AWS console.
+
+First certificate must be issued for domain:
+
+    yourdomain.com
+
+Second certificate must be issued for domain:
+
+    internal.yourdomain.com
+
+The certificates will be used to provision two ALBs, one internet facing and the other internal.
+
+    You can use a self-signed certificates if you wish, but your browser will warn you when you try to access the domains above
+
+## Build Docker image
+
+Execute script run_build.sh to create the Docker image that you will use to build the infrastructure:
+
+    ./run_build.sh
+
+The image contain all the tools you need to manage the infrastructure, including AWS CLI, Terraform, Packer, and others.
+
+## Configure S3 bucket
+
+A S3 bucket is required for storing secrets and certificates used to provision the machines. The bucket is also used as backend for storing Terraform's remote state. Since the bucket contains secrets, access must be restricted. Consider enabling KMS encryption to increase security.
+
+Create a S3 bucket with the command:
+
+    ./run_script.sh create_bucket your_bucket_name eu-west-1
+
+Please note that the bucket name must be globally unique.
+
+Once the bucket has been created, execute the command:
+
+    ./run_script.sh configure_terraform your_bucket_name eu-west-1
+
+The script will set the bucket name and region in all remote_state.tf files.
+
+## Configure Terraform and Packer
 
 Create a file config.tfvars in config directory. The file should look like:
 
@@ -67,46 +107,6 @@ Create a file config_vars.json in config directory. The file should look like:
 The domain yourdomain.com must be a valid domain hosted in a Route53 public zone.
 
     Register a new domain with AWS if you don't have one already and create a new public zone
-
-## Create or upload certificate
-
-Create and upload two SSL certificates using Certificate Manager in AWS console.
-
-First certificate must be issued for domain:
-
-    yourdomain.com
-
-Second certificate must be issued for domain:
-
-    internal.yourdomain.com
-
-The certificates will be used to provision two ALBs, one internet facing and the other internal.
-
-    You can use a self-signed certificates if you wish, but your browser will warn you when you try to access the domains above
-
-## Create Docker image
-
-Execute script run_build.sh to create the Docker image required to build the infrastructure:
-
-    ./run_build.sh
-
-The image will contain all the tools you need, including AWS CLI, Terraform, Packer, and others.
-
-## Configure S3 bucket
-
-A S3 bucket is required for storing secrets and certificates used to provision the machines. The bucket is also used as backend for storing Terraform's remote state. Since the bucket contains secrets, access must be restricted. Consider enabling KMS encryption to increase security.
-
-Create a S3 bucket with the command:
-
-    ./run_script.sh create_bucket your_bucket_name eu-west-1
-
-Please note that the bucket name must be globally unique.
-
-Once the bucket has been created, execute the command:
-
-    ./run_script.sh configure_terraform your_bucket_name eu-west-1
-
-The script will set the bucket name and region in all remote_state.tf files.
 
 ## Generate secrets
 
@@ -274,7 +274,7 @@ Integrate your build pipeline with Artifactory to manage your artifacts:
 
 Deploy your applications to ECS or EC2, manually or using Jenkins CI.
 
-## Disable access from Bastion
+## Disable access via Bastion
 
 Bastion server can be stopped or destroyed if required. The server can be recreated when needed.
 
@@ -282,7 +282,7 @@ Stop the Bastion server from AWS console or destroy it with command:
 
     ./run_script.sh destroy_bastion
 
-## Disable access from OpenVPN
+## Disable access via OpenVPN
 
 OpenVPN server can be stopped or destroyed if required. The server can be recreated when needed.
 

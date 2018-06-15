@@ -1,0 +1,157 @@
+version: '3.4'
+services:
+  kafka1:
+    labels:
+        service: kafka
+    image: ${KAFKA_IMAGE}
+    environment:
+      BROKER_ID: 1
+      ZK_CONNECT: ${DOCKER_HOST_1}:2181
+      ADVERTISED_HOST: ${DOCKER_HOST_1}
+      ADVERTISED_PORT: 9092
+      NUM_PARTITIONS: 1
+      DELETE_TOPICS: "true"
+      AUTO_CREATE_TOPICS: "false"
+      LOG_RETENTION_HOURS: 24
+      TRANSACTION_MAX_TIMEOUT_MS: 3600000
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      LOG_PATH: "\\/data\\/kafka-logs"
+    volumes:
+      - kafka-data1:/data
+    ports:
+      - target: 9092
+        published: 9092
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.kafka == true
+          - node.labels.zone == a
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '4'
+          memory: 1024M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+  kafka2:
+    labels:
+        service: kafka
+    image: ${KAFKA_IMAGE}
+    environment:
+      BROKER_ID: 2
+      ZK_CONNECT: ${DOCKER_HOST_2}:2181
+      ADVERTISED_HOST: ${DOCKER_HOST_2}
+      ADVERTISED_PORT: 9092
+      NUM_PARTITIONS: 1
+      DELETE_TOPICS: "true"
+      AUTO_CREATE_TOPICS: "false"
+      LOG_RETENTION_HOURS: 24
+      TRANSACTION_MAX_TIMEOUT_MS: 3600000
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      LOG_PATH: "\\/data\\/kafka-logs"
+    volumes:
+      - kafka-data2:/data
+    ports:
+      - target: 9092
+        published: 9092
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.kafka == true
+          - node.labels.zone == b
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '4'
+          memory: 1024M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+  kafka3:
+    labels:
+        service: kafka
+    image: ${KAFKA_IMAGE}
+    environment:
+      BROKER_ID: 3
+      ZK_CONNECT: ${DOCKER_HOST_3}:2181
+      ADVERTISED_HOST: ${DOCKER_HOST_3}
+      ADVERTISED_PORT: 9092
+      NUM_PARTITIONS: 1
+      DELETE_TOPICS: "true"
+      AUTO_CREATE_TOPICS: "false"
+      LOG_RETENTION_HOURS: 24
+      TRANSACTION_MAX_TIMEOUT_MS: 3600000
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      LOG_PATH: "\\/data\\/kafka-logs"
+    volumes:
+      - kafka-data3:/data
+    ports:
+      - target: 9092
+        published: 9092
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.kafka == true
+          - node.labels.zone == c
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '4'
+          memory: 1024M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    kafka-data1:
+    kafka-data2:
+    kafka-data3:

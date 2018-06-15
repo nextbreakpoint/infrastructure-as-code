@@ -1,0 +1,46 @@
+version: '3.4'
+services:
+  postgres:
+    labels:
+        service: postgres
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: ingress
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.postgres == true
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    postgres-data:

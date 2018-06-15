@@ -1,0 +1,67 @@
+version: '3.4'
+services:
+  server:
+    labels:
+        service: consul
+    image: consul:latest
+    command: 'consul agent -server -ui -datacenter=consul -bootstrap-expect=3 -retry-join=consul_server -data-dir=/consul/data -client="{{ GetInterfaceIP \"eth0\" }}" -bind="{{ GetInterfaceIP \"eth0\" }}" -advertise="{{ GetInterfaceIP \"eth0\" }}"'
+    environment:
+      CONSUL_LOCAL_CONFIG: '{"leave_on_terminate": true, "skip_leave_on_interrupt": true, "disable_update_check": true, "log_level": "debug"}'
+    volumes:
+      - consul-data:/consul/data
+    # Expose port 8500 so we can access the UI and allow connections across datacenters.
+    ports:
+      - target: 8500
+        published: 8500
+        protocol: tcp
+        mode: host
+      - target: 8300
+        published: 8300
+        protocol: tcp
+        mode: host
+      - target: 8301
+        published: 8301
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: tcp
+        mode: host
+      - target: 8600
+        published: 8600
+        protocol: udp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+#          - node.labels.consul == true
+        preferences:
+          - spread: node.labels.zone
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+networks:
+  default:
+    external:
+      name: services
+volumes:
+  consul-data:
