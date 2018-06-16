@@ -240,24 +240,24 @@ secrets:
   keystore1:
     file: ${SECRETS_PATH}/kafka1-server-keystore.jks
   keystore_password1:
-    file: password_keystore.txt
+    file: secrets/password_keystore.txt
   keystore2:
     file: ${SECRETS_PATH}/kafka2-server-keystore.jks
   keystore_password2:
-    file: password_keystore.txt
+    file: secrets/password_keystore.txt
   keystore3:
     file: ${SECRETS_PATH}/kafka3-server-keystore.jks
   keystore_password3:
-    file: password_keystore.txt
+    file: secrets/password_keystore.txt
   truststore1:
     file: ${SECRETS_PATH}/kafka1-server-truststore.jks
   truststore_password1:
-    file: password_truststore.txt
+    file: secrets/password_truststore.txt
   truststore2:
     file: ${SECRETS_PATH}/kafka2-server-truststore.jks
   truststore_password2:
-    file: password_truststore.txt
+    file: secrets/password_truststore.txt
   truststore3:
     file: ${SECRETS_PATH}/kafka3-server-truststore.jks
   truststore_password3:
-    file: password_truststore.txt
+    file: secrets/password_truststore.txt
