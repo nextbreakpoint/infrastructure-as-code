@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # Optional ENV variables:
+# * PORT: the internal port
 # * ADVERTISED_HOST: the external ip for the container, e.g. `docker-machine ip \`docker-machine active\``
 # * ADVERTISED_PORT: the external port for Kafka, e.g. 9092
 # * ZK_CONNECT: Zookeeper connect parameter, e.g. localhost:2181
@@ -11,7 +12,8 @@
 # * LOG_PATH: configure path where logs are created
 # * DELETE_TOPICS: enable/disable deletion of topics
 # * TRANSACTION_MAX_TIMEOUT_MS: configure transaction max timeout in millis
-# * ADVERTISED_LISTENERS: Configure advertised listeners & listeners
+# * LISTENERS: Configure listeners
+# * ADVERTISED_LISTENERS: Configure advertised listeners
 # * KEYSTORE_LOCATION: Configure keystore location
 # * KEYSTORE_PASSWORD_LOCATION: Configure keystore password by location
 # * KEYSTORE_PASSWORD: Configure keystore password
@@ -24,7 +26,17 @@
 # * SECURITY_INTER_BROKER_PROTOCOL: Configure security inter broker protocol
 # * ZOOKEEPER_SET_ACL: Configure Zookeeper set acl
 
-# Set the external host and port
+# Set internal port
+if [ -n "$PORT" ]; then
+    echo "port: $PORT"
+    if grep -q "^port" $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s/(port)=(.*)/\1=$PORT/g" $KAFKA_HOME/config/server.properties
+    else
+        echo "\nport=$PORT" >> $KAFKA_HOME/config/server.properties
+    fi
+fi
+
+# Set the external host
 if [ -n "$ADVERTISED_HOST" ]; then
     echo "advertised host: $ADVERTISED_HOST"
     if grep -q "^advertised.host.name" $KAFKA_HOME/config/server.properties; then
@@ -34,6 +46,7 @@ if [ -n "$ADVERTISED_HOST" ]; then
     fi
 fi
 
+# Set the external port
 if [ -n "$ADVERTISED_PORT" ]; then
     echo "advertised port: $ADVERTISED_PORT"
     if grep -q "^advertised.port" $KAFKA_HOME/config/server.properties; then
@@ -126,7 +139,7 @@ if [ -n "$TRANSACTION_MAX_TIMEOUT_MS" ]; then
     fi
 fi
 
-# Configure advertised listeners & listeners
+# Configure advertised listeners
 if [ -n "$ADVERTISED_LISTENERS" ]; then
     echo "advertised listeners: $ADVERTISED_LISTENERS"
     if grep -q "^advertised.listeners" $KAFKA_HOME/config/server.properties; then
@@ -134,10 +147,15 @@ if [ -n "$ADVERTISED_LISTENERS" ]; then
     else
         echo "\nadvertised.listeners=$ADVERTISED_LISTENERS" >> $KAFKA_HOME/config/server.properties
     fi
+fi
+
+# Configure listeners
+if [ -n "$LISTENERS" ]; then
+    echo "listeners: $LISTENERS"
     if grep -q "^listeners" $KAFKA_HOME/config/server.properties; then
-        sed -r -i "s/(listeners)=(.*)/\1=$ADVERTISED_LISTENERS/g" $KAFKA_HOME/config/server.properties
+        sed -r -i "s/(listeners)=(.*)/\1=$LISTENERS/g" $KAFKA_HOME/config/server.properties
     else
-        echo "\nlisteners=$ADVERTISED_LISTENERS" >> $KAFKA_HOME/config/server.properties
+        echo "\nlisteners=$LISTENERS" >> $KAFKA_HOME/config/server.properties
     fi
 fi
 
