@@ -22,3 +22,4 @@ network_vars.json
 **/tfplan
 images.json
 docker/kafka/secrets
+swarm/secrets
