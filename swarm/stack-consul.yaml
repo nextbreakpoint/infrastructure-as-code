@@ -1,14 +1,12 @@
 version: '3.4'
 services:
-  server:
+  consul1:
     labels:
         service: consul
     image: consul:latest
-    command: 'consul agent -server -ui -datacenter=consul -bootstrap-expect=3 -retry-join=consul_server -data-dir=/consul/data -client="{{ GetInterfaceIP \"eth0\" }}" -bind="{{ GetInterfaceIP \"eth0\" }}" -advertise="{{ GetInterfaceIP \"eth0\" }}"'
+    command: 'consul agent -server -ui -node=consul1 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     environment:
-      CONSUL_LOCAL_CONFIG: '{"leave_on_terminate": true, "skip_leave_on_interrupt": true, "disable_update_check": true, "log_level": "debug"}'
-    volumes:
-      - consul-data:/consul/data
+      CONSUL_UI_BETA: "true"
     # Expose port 8500 so we can access the UI and allow connections across datacenters.
     ports:
       - target: 8500
@@ -23,8 +21,20 @@ services:
         published: 8301
         protocol: tcp
         mode: host
+      - target: 8301
+        published: 8301
+        protocol: udp
+        mode: host
       - target: 8302
         published: 8302
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: udp
+        mode: host
+      - target: 8600
+        published: 8600
         protocol: tcp
         mode: host
       - target: 8600
@@ -40,9 +50,8 @@ services:
       placement:
         constraints:
           - node.role == worker
-#          - node.labels.consul == true
-        preferences:
-          - spread: node.labels.zone
+          # - node.labels.consul == true
+          - node.labels.zone == a
       endpoint_mode: dnsrr
       update_config:
         parallelism: 1
@@ -59,9 +68,219 @@ services:
         reservations:
           cpus: '0.1'
           memory: 256M
+    secrets:
+      - source: ca_cert
+        target: /consul/config/ca_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+      - source: consul_key
+        target: /consul/config/consul_key.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+      - source: consul_cert
+        target: /consul/config/consul_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: consul
+        target: /consul/config/consul.json
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+  consul2:
+    labels:
+        service: consul
+    image: consul:latest
+    command: 'consul agent -server -ui -node=consul2 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+    environment:
+      CONSUL_UI_BETA: "true"
+    # Expose port 8500 so we can access the UI and allow connections across datacenters.
+    ports:
+      - target: 8500
+        published: 8500
+        protocol: tcp
+        mode: host
+      - target: 8300
+        published: 8300
+        protocol: tcp
+        mode: host
+      - target: 8301
+        published: 8301
+        protocol: tcp
+        mode: host
+      - target: 8301
+        published: 8301
+        protocol: udp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: udp
+        mode: host
+      - target: 8600
+        published: 8600
+        protocol: tcp
+        mode: host
+      - target: 8600
+        published: 8600
+        protocol: udp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          # - node.labels.consul == true
+          - node.labels.zone == b
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+    secrets:
+      - source: ca_cert
+        target: /consul/config/ca_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+      - source: consul_key
+        target: /consul/config/consul_key.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+      - source: consul_cert
+        target: /consul/config/consul_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: consul
+        target: /consul/config/consul.json
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+  consul3:
+    labels:
+        service: consul
+    image: consul:latest
+    command: 'consul agent -server -ui -node=consul3 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" -encrypt=${CONSUL_SECRET}'
+    environment:
+      CONSUL_UI_BETA: "true"
+    # Expose port 8500 so we can access the UI and allow connections across datacenters.
+    ports:
+      - target: 8500
+        published: 8500
+        protocol: tcp
+        mode: host
+      - target: 8300
+        published: 8300
+        protocol: tcp
+        mode: host
+      - target: 8301
+        published: 8301
+        protocol: tcp
+        mode: host
+      - target: 8301
+        published: 8301
+        protocol: udp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: udp
+        mode: host
+      - target: 8600
+        published: 8600
+        protocol: tcp
+        mode: host
+      - target: 8600
+        published: 8600
+        protocol: udp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          # - node.labels.consul == true
+          - node.labels.zone == c
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+    secrets:
+      - source: ca_cert
+        target: /consul/config/ca_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+      - source: consul_key
+        target: /consul/config/consul_key.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+      - source: consul_cert
+        target: /consul/config/consul_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: consul
+        target: /consul/config/consul.json
+        uid: '100'
+        gid: '1000'
+        mode: 0440
 networks:
   default:
     external:
       name: services
-volumes:
-  consul-data:
+secrets:
+  ca_cert:
+    file: ${SECRETS_PATH}/ca_cert.pem
+  consul_key:
+    file: ${SECRETS_PATH}/consul_key.pem
+  consul_cert:
+    file: ${SECRETS_PATH}/consul_cert.pem
+configs:
+  consul:
+    file: consul.json
