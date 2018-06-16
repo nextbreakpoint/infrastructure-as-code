@@ -7,6 +7,8 @@ services:
     command: 'consul agent -server -ui -node=consul1 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     environment:
       CONSUL_UI_BETA: "true"
+    volumes:
+      - consul-data1:/consul/data
     # Expose port 8500 so we can access the UI and allow connections across datacenters.
     ports:
       - target: 8500
@@ -50,7 +52,7 @@ services:
       placement:
         constraints:
           - node.role == worker
-          # - node.labels.consul == true
+          - node.labels.consul == true
           - node.labels.zone == a
       endpoint_mode: dnsrr
       update_config:
@@ -97,6 +99,8 @@ services:
     command: 'consul agent -server -ui -node=consul2 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     environment:
       CONSUL_UI_BETA: "true"
+    volumes:
+      - consul-data2:/consul/data
     # Expose port 8500 so we can access the UI and allow connections across datacenters.
     ports:
       - target: 8500
@@ -140,7 +144,7 @@ services:
       placement:
         constraints:
           - node.role == worker
-          # - node.labels.consul == true
+          - node.labels.consul == true
           - node.labels.zone == b
       endpoint_mode: dnsrr
       update_config:
@@ -187,6 +191,8 @@ services:
     command: 'consul agent -server -ui -node=consul3 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" -encrypt=${CONSUL_SECRET}'
     environment:
       CONSUL_UI_BETA: "true"
+    volumes:
+      - consul-data3:/consul/data
     # Expose port 8500 so we can access the UI and allow connections across datacenters.
     ports:
       - target: 8500
@@ -230,7 +236,7 @@ services:
       placement:
         constraints:
           - node.role == worker
-          # - node.labels.consul == true
+          - node.labels.consul == true
           - node.labels.zone == c
       endpoint_mode: dnsrr
       update_config:
@@ -274,6 +280,10 @@ networks:
   default:
     external:
       name: services
+volumes:
+    consul-data1:
+    consul-data2:
+    consul-data3:
 secrets:
   ca_cert:
     file: ${SECRETS_PATH}/ca_cert.pem

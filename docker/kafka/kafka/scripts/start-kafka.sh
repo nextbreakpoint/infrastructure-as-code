@@ -13,16 +13,19 @@
 # * TRANSACTION_MAX_TIMEOUT_MS: configure transaction max timeout in millis
 # * ADVERTISED_LISTENERS: Configure advertised listeners & listeners
 # * KEYSTORE_LOCATION: Configure keystore location
+# * KEYSTORE_PASSWORD_LOCATION: Configure keystore password by location
 # * KEYSTORE_PASSWORD: Configure keystore password
 # * TRUSTSTORE_LOCATION: Configure truststore location
+# * TRUSTSTORE_PASSWORD_LOCATION: Configure truststore password by location
 # * TRUSTSTORE_PASSWORD: Configure truststore password
+# * KEY_PASSWORD_LOCATION: Configure key password by location
 # * KEY_PASSWORD: Configure key password
 # * INTER_BROKER_LISTENER_NAME: Configure inter broker listener name
 # * SECURITY_INTER_BROKER_PROTOCOL: Configure security inter broker protocol
 # * ZOOKEEPER_SET_ACL: Configure Zookeeper set acl
 
 # Set the external host and port
-if [ ! -z "$ADVERTISED_HOST" ]; then
+if [ -n "$ADVERTISED_HOST" ]; then
     echo "advertised host: $ADVERTISED_HOST"
     if grep -q "^advertised.host.name" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(advertised.host.name)=(.*)/\1=$ADVERTISED_HOST/g" $KAFKA_HOME/config/server.properties
@@ -31,7 +34,7 @@ if [ ! -z "$ADVERTISED_HOST" ]; then
     fi
 fi
 
-if [ ! -z "$ADVERTISED_PORT" ]; then
+if [ -n "$ADVERTISED_PORT" ]; then
     echo "advertised port: $ADVERTISED_PORT"
     if grep -q "^advertised.port" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(advertised.port)=(.*)/\1=$ADVERTISED_PORT/g" $KAFKA_HOME/config/server.properties
@@ -40,7 +43,7 @@ if [ ! -z "$ADVERTISED_PORT" ]; then
     fi
 fi
 
-if [ ! -z "$ZK_CONNECT" ]; then
+if [ -n "$ZK_CONNECT" ]; then
     echo "zookeeper connect: $ZK_CONNECT"
     if grep -q "^zookeeper.connect" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(zookeeper.connect)=(.*)/\1=$ZK_CONNECT/g" $KAFKA_HOME/config/server.properties
@@ -49,7 +52,7 @@ if [ ! -z "$ZK_CONNECT" ]; then
     fi
 fi
 
-if [ ! -z "$BROKER_ID" ]; then
+if [ -n "$BROKER_ID" ]; then
     echo "broker.id: $BROKER_ID"
     if grep -q "^broker.id" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(broker.id)=(.*)/\1=$BROKER_ID/g" $KAFKA_HOME/config/server.properties
@@ -59,7 +62,7 @@ if [ ! -z "$BROKER_ID" ]; then
 fi
 
 # Allow specification of log retention policies
-if [ ! -z "$LOG_RETENTION_HOURS" ]; then
+if [ -n "$LOG_RETENTION_HOURS" ]; then
     echo "log retention hours: $LOG_RETENTION_HOURS"
     if grep -q "^log.retention.hours" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(log.retention.hours)=(.*)/\1=$LOG_RETENTION_HOURS/g" $KAFKA_HOME/config/server.properties
@@ -68,7 +71,7 @@ if [ ! -z "$LOG_RETENTION_HOURS" ]; then
     fi
 fi
 
-if [ ! -z "$LOG_RETENTION_BYTES" ]; then
+if [ -n "$LOG_RETENTION_BYTES" ]; then
     echo "log retention bytes: $LOG_RETENTION_BYTES"
     if grep -q "^log.retention.bytes" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(log.retention.bytes)=(.*)/\1=$LOG_RETENTION_BYTES/g" $KAFKA_HOME/config/server.properties
@@ -78,7 +81,7 @@ if [ ! -z "$LOG_RETENTION_BYTES" ]; then
 fi
 
 # Configure the default number of log partitions per topic
-if [ ! -z "$NUM_PARTITIONS" ]; then
+if [ -n "$NUM_PARTITIONS" ]; then
     echo "default number of partition: $NUM_PARTITIONS"
     if grep -q "^num.partitions" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(num.partitions)=(.*)/\1=$NUM_PARTITIONS/g" $KAFKA_HOME/config/server.properties
@@ -88,7 +91,7 @@ if [ ! -z "$NUM_PARTITIONS" ]; then
 fi
 
 # Enable/disable auto creation of topics
-if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
+if [ -n "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable: $AUTO_CREATE_TOPICS"
     if grep -q "^auto.create.topics.enable" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(auto.create.topics.enable)=(.*)/\1=$AUTO_CREATE_TOPICS/g" $KAFKA_HOME/config/server.properties
@@ -98,7 +101,7 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
 fi
 
 # Enable/disable deletion of topics
-if [ ! -z "$DELETE_TOPICS" ]; then
+if [ -n "$DELETE_TOPICS" ]; then
     echo "delete.topic.enable: $DELETE_TOPICS"
     if grep -q "^delete.topic.enable" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(delete.topic.enable)=(.*)/\1=$DELETE_TOPICS/g" $KAFKA_HOME/config/server.properties
@@ -108,13 +111,13 @@ if [ ! -z "$DELETE_TOPICS" ]; then
 fi
 
 # Configure path where logs are created
-if [ ! -z "$LOG_PATH" ]; then
+if [ -n "$LOG_PATH" ]; then
     echo "log path: $LOG_PATH"
     sed -r -i "s/(log.dirs)=(.*)/\1=$LOG_PATH/g" $KAFKA_HOME/config/server.properties
 fi
 
 # Configure transaction max timeout in millis
-if [ ! -z "$TRANSACTION_MAX_TIMEOUT_MS" ]; then
+if [ -n "$TRANSACTION_MAX_TIMEOUT_MS" ]; then
     echo "transaction max timeout ms: $TRANSACTION_MAX_TIMEOUT_MS"
     if grep -q "^transaction.max.timeout.ms" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(transaction.max.timeout.ms)=(.*)/\1=$TRANSACTION_MAX_TIMEOUT_MS/g" $KAFKA_HOME/config/server.properties
@@ -124,7 +127,7 @@ if [ ! -z "$TRANSACTION_MAX_TIMEOUT_MS" ]; then
 fi
 
 # Configure advertised listeners & listeners
-if [ ! -z "$ADVERTISED_LISTENERS" ]; then
+if [ -n "$ADVERTISED_LISTENERS" ]; then
     echo "advertised listeners: $ADVERTISED_LISTENERS"
     if grep -q "^advertised.listeners" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(advertised.listeners)=(.*)/\1=$ADVERTISED_LISTENERS/g" $KAFKA_HOME/config/server.properties
@@ -139,37 +142,67 @@ if [ ! -z "$ADVERTISED_LISTENERS" ]; then
 fi
 
 # Configure keystore location
-if [ ! -z "$KEYSTORE_LOCATION" ]; then
+if [ -n "$KEYSTORE_LOCATION" ]; then
     echo "keystore location: $KEYSTORE_LOCATION"
     echo "\nssl.keystore.location=$KEYSTORE_LOCATION" >> $KAFKA_HOME/config/server.properties
 fi
 
 # Configure keystore password
-if [ ! -z "$KEYSTORE_PASSWORD" ]; then
+if [ -n "$KEYSTORE_PASSWORD_LOCATION" ]; then
+    echo "keystore password location: $KEYSTORE_PASSWORD_LOCATION"
+    echo "\nssl.keystore.password=$(cat $KEYSTORE_PASSWORD_LOCATION)" >> $KAFKA_HOME/config/server.properties
+fi
+
+# Configure keystore password
+if [ -n "$KEYSTORE_PASSWORD" ]; then
     echo "keystore password is present"
-    echo "\nssl.keystore.password=$KEYSTORE_PASSWORD" >> $KAFKA_HOME/config/server.properties
+    if grep -q "^ssl.keystore.password" $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s/(ssl.keystore.password)=(.*)/\1=$KEYSTORE_PASSWORD/g" $KAFKA_HOME/config/server.properties
+    else
+        echo "\nssl.keystore.password=$KEYSTORE_PASSWORD" >> $KAFKA_HOME/config/server.properties
+    fi
 fi
 
 # Configure truststore location
-if [ ! -z "$TRUSTSTORE_LOCATION" ]; then
+if [ -n "$TRUSTSTORE_LOCATION" ]; then
     echo "truststore location: $TRUSTSTORE_LOCATION"
     echo "\nssl.truststore.location=$TRUSTSTORE_LOCATION" >> $KAFKA_HOME/config/server.properties
 fi
 
 # Configure truststore password
-if [ ! -z "$TRUSTSTORE_PASSWORD" ]; then
+if [ -n "$TRUSTSTORE_PASSWORD_LOCATION" ]; then
+    echo "truststore password location: $TRUSTSTORE_PASSWORD_LOCATION"
+    echo "\nssl.truststore.password=$(cat $TRUSTSTORE_PASSWORD_LOCATION)" >> $KAFKA_HOME/config/server.properties
+fi
+
+# Configure truststore password
+if [ -n "$TRUSTSTORE_PASSWORD" ]; then
     echo "truststore password is present"
-    echo "\nssl.truststore.password=$TRUSTSTORE_PASSWORD" >> $KAFKA_HOME/config/server.properties
+    if grep -q "^ssl.truststore.password" $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s/(ssl.truststore.password)=(.*)/\1=$TRUSTSTORE_PASSWORD/g" $KAFKA_HOME/config/server.properties
+    else
+        echo "\nssl.truststore.password=$TRUSTSTORE_PASSWORD" >> $KAFKA_HOME/config/server.properties
+    fi
 fi
 
 # Configure key password
-if [ ! -z "$KEY_PASSWORD" ]; then
+if [ -n "$KEY_PASSWORD_LOCATION" ]; then
+    echo "key password location: $KEY_PASSWORD_LOCATION"
+    echo "\nssl.key.password=$(cat $KEY_PASSWORD_LOCATION)" >> $KAFKA_HOME/config/server.properties
+fi
+
+# Configure key password
+if [ -n "$KEY_PASSWORD" ]; then
     echo "key password is present"
-    echo "\nssl.key.password=$KEY_PASSWORD" >> $KAFKA_HOME/config/server.properties
+    if grep -q "^ssl.key.password" $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s/(ssl.key.password)=(.*)/\1=$KEY_PASSWORD/g" $KAFKA_HOME/config/server.properties
+    else
+        echo "\nssl.key.password=$KEY_PASSWORD" >> $KAFKA_HOME/config/server.properties
+    fi
 fi
 
 # Configure inter broker listener name
-if [ ! -z "$INTER_BROKER_LISTENER_NAME" ]; then
+if [ -n "$INTER_BROKER_LISTENER_NAME" ]; then
     echo "inter broker listener name: $INTER_BROKER_LISTENER_NAME"
     if grep -q "^inter.broker.listener.name" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(inter.broker.listener.name)=(.*)/\1=$INTER_BROKER_LISTENER_NAME/g" $KAFKA_HOME/config/server.properties
@@ -179,7 +212,7 @@ if [ ! -z "$INTER_BROKER_LISTENER_NAME" ]; then
 fi
 
 # Configure secutity inter broker protocol
-if [ ! -z "$SECURITY_INTER_BROKER_PROTOCOL" ]; then
+if [ -n "$SECURITY_INTER_BROKER_PROTOCOL" ]; then
     echo "security inter broker protocol: $SECURITY_INTER_BROKER_PROTOCOL"
     if grep -q "^security.inter.broker.protocol" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(security.inter.broker.protocol)=(.*)/\1=$SECURITY_INTER_BROKER_PROTOCOL/g" $KAFKA_HOME/config/server.properties
@@ -189,7 +222,7 @@ if [ ! -z "$SECURITY_INTER_BROKER_PROTOCOL" ]; then
 fi
 
 # Configure Zookeeper set acl
-if [ ! -z "$ZOOKEEPER_SET_ACL" ]; then
+if [ -n "$ZOOKEEPER_SET_ACL" ]; then
     echo "zookeeper set acl: $ZOOKEEPER_SET_ACL"
     if grep -q "^zookeeper.set.acl" $KAFKA_HOME/config/server.properties; then
         sed -r -i "s/(zookeeper.set.acl)=(.*)/\1=$ZOOKEEPER_SET_ACL/g" $KAFKA_HOME/config/server.properties
