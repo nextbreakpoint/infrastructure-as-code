@@ -3,10 +3,13 @@ services:
   zookeeper1:
     labels:
         service: zookeeper
-    image: zookeeper:3.4.12
+    image: ${ZOOKEEPER_IMAGE}
     environment:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=${DOCKER_HOST_2}:2888:3888 server.3=${DOCKER_HOST_3}:2888:3888
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
+      ZOO_ENABLE_QUORUM_SASL: "true"
+      ZOO_ENABLE_CLIENT_SASL: "true"
     volumes:
       - zookeeper-data1:/data
       - zookeeper-datalog1:/datalog
@@ -49,13 +52,22 @@ services:
         reservations:
           cpus: '0.1'
           memory: 256M
+    secrets:
+      - source: jaas-config
+        target: /secrets/zookeeper_server_jaas.conf
+        uid: '100'
+        gid: '1000'
+        mode: 0440
   zookeeper2:
     labels:
         service: zookeeper
-    image: zookeeper:3.4.12
+    image: ${ZOOKEEPER_IMAGE}
     environment:
       ZOO_MY_ID: 2
       ZOO_SERVERS: server.1=${DOCKER_HOST_1}:2888:3888 server.2=0.0.0.0:2888:3888 server.3=${DOCKER_HOST_3}:2888:3888
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
+      ZOO_ENABLE_QUORUM_SASL: "true"
+      ZOO_ENABLE_CLIENT_SASL: "true"
     volumes:
       - zookeeper-data2:/data
       - zookeeper-datalog2:/datalog
@@ -98,13 +110,22 @@ services:
         reservations:
           cpus: '0.1'
           memory: 256M
+    secrets:
+      - source: jaas-config
+        target: /secrets/zookeeper_server_jaas.conf
+        uid: '100'
+        gid: '1000'
+        mode: 0440
   zookeeper3:
     labels:
         service: zookeeper
-    image: zookeeper:3.4.12
+    image: ${ZOOKEEPER_IMAGE}
     environment:
       ZOO_MY_ID: 3
       ZOO_SERVERS: server.1=${DOCKER_HOST_1}:2888:3888 server.2=${DOCKER_HOST_2}:2888:3888 server.3=0.0.0.0:2888:3888
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
+      ZOO_ENABLE_QUORUM_SASL: "true"
+      ZOO_ENABLE_CLIENT_SASL: "true"
     volumes:
       - zookeeper-data3:/data
       - zookeeper-datalog3:/datalog
@@ -147,6 +168,12 @@ services:
         reservations:
           cpus: '0.1'
           memory: 256M
+    secrets:
+      - source: jaas-config
+        target: /secrets/zookeeper_server_jaas.conf
+        uid: '100'
+        gid: '1000'
+        mode: 0440
 networks:
   default:
     external:
@@ -158,3 +185,6 @@ volumes:
     zookeeper-datalog2:
     zookeeper-data3:
     zookeeper-datalog3:
+secrets:
+  jaas-config:
+    file: secrets/zookeeper_server_jaas.conf

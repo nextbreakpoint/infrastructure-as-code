@@ -17,11 +17,13 @@ services:
       LOG_RETENTION_HOURS: 24
       TRANSACTION_MAX_TIMEOUT_MS: 3600000
       LOG_PATH: "\\/data\\/kafka-logs"
+      ZOOKEEPER_SET_ACL: "true"
       SECURITY_INTER_BROKER_PROTOCOL: SSL
       KEYSTORE_LOCATION: /secrets/keystore.jks
       TRUSTSTORE_LOCATION: /secrets/truststore.jks
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
     volumes:
       - kafka-data1:/data
     ports:
@@ -76,6 +78,11 @@ services:
         uid: '100'
         gid: '1000'
         mode: 0440
+      - source: jaas-config
+        target: /secrets/zookeeper_kafka_jaas.conf
+        uid: '100'
+        gid: '1000'
+        mode: 0440
   kafka2:
     labels:
         service: kafka
@@ -93,11 +100,13 @@ services:
       LOG_RETENTION_HOURS: 24
       TRANSACTION_MAX_TIMEOUT_MS: 3600000
       LOG_PATH: "\\/data\\/kafka-logs"
+      ZOOKEEPER_SET_ACL: "true"
       SECURITY_INTER_BROKER_PROTOCOL: SSL
       KEYSTORE_LOCATION: /secrets/keystore.jks
       TRUSTSTORE_LOCATION: /secrets/truststore.jks
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
     volumes:
       - kafka-data2:/data
     ports:
@@ -152,6 +161,11 @@ services:
         uid: '100'
         gid: '1000'
         mode: 0440
+      - source: jaas-config
+        target: /secrets/zookeeper_kafka_jaas.conf
+        uid: '100'
+        gid: '1000'
+        mode: 0440
   kafka3:
     labels:
         service: kafka
@@ -169,11 +183,13 @@ services:
       LOG_RETENTION_HOURS: 24
       TRANSACTION_MAX_TIMEOUT_MS: 3600000
       LOG_PATH: "\\/data\\/kafka-logs"
+      ZOOKEEPER_SET_ACL: "true"
       SECURITY_INTER_BROKER_PROTOCOL: SSL
       KEYSTORE_LOCATION: /secrets/keystore.jks
       TRUSTSTORE_LOCATION: /secrets/truststore.jks
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
     volumes:
       - kafka-data3:/data
     ports:
@@ -228,6 +244,11 @@ services:
         uid: '100'
         gid: '1000'
         mode: 0440
+      - source: jaas-config
+        target: /secrets/zookeeper_kafka_jaas.conf
+        uid: '100'
+        gid: '1000'
+        mode: 0440
 networks:
   default:
     external:
@@ -261,3 +282,5 @@ secrets:
     file: ${SECRETS_PATH}/kafka3-server-truststore.jks
   truststore_password3:
     file: secrets/password_truststore.txt
+  jaas-config:
+    file: secrets/zookeeper_kafka_jaas.conf

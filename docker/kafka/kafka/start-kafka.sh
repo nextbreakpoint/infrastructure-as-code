@@ -25,6 +25,8 @@
 # * INTER_BROKER_LISTENER_NAME: Configure inter broker listener name
 # * SECURITY_INTER_BROKER_PROTOCOL: Configure security inter broker protocol
 # * ZOOKEEPER_SET_ACL: Configure Zookeeper set acl
+# * ZOO_JAAS_CONFIG_LOCATION: Configure Zookeeper JAAS config location
+# * SASL_JAAS_CONFIG_LOCATION: Configure SASL JAAS config location
 
 # Set internal port
 if [ -n "$PORT" ]; then
@@ -247,6 +249,19 @@ if [ -n "$ZOOKEEPER_SET_ACL" ]; then
     else
         echo "\nzookeeper.set.acl=$ZOOKEEPER_SET_ACL" >> $KAFKA_HOME/config/server.properties
     fi
+fi
+
+# Configure SASL JAAS config location
+if [ -n "$SASL_JAAS_CONFIG_LOCATION" ]; then
+    echo "sasl jaas config location: $SASL_JAAS_CONFIG_LOCATION"
+    echo "\nsasl.jaas.config=$SASL_JAAS_CONFIG_LOCATION" >> $KAFKA_HOME/config/server.properties
+    # export KAFKA_OPTS="-Djava.security.auth.login.config=$JAAS_CONFIG_LOCATION"
+fi
+
+# Configure Zookeeper JAAS config location
+if [ -n "$ZOO_JAAS_CONFIG_LOCATION" ]; then
+    echo "zookeeper jaas config location: $ZOO_JAAS_CONFIG_LOCATION"
+    export KAFKA_OPTS="-Djava.security.auth.login.config=$ZOO_JAAS_CONFIG_LOCATION"
 fi
 
 # Run Kafka

@@ -2,7 +2,10 @@
 
 export KAFKA_VERSION=1.1.0
 export KAFKA_REVISION=1
+export ZOOKEEPER_VERSION=3.4.12
+export ZOOKEEPER_REVISION=1
 export KAFKA_IMAGE=nextbreakpoint/kafka:$KAFKA_VERSION-$KAFKA_REVISION
+export ZOOKEEPER_IMAGE=nextbreakpoint/zookeeper:$ZOOKEEPER_VERSION-$ZOOKEEPER_REVISION
 export DOCKER_MASTER=$(docker-machine ip docker-master)
 export DOCKER_HOST_1=$(docker-machine ip docker-worker1)
 export DOCKER_HOST_2=$(docker-machine ip docker-worker2)
