@@ -1,0 +1,70 @@
+{
+  "ca_file": "/consul/config/ca_cert.pem",
+  "key_file": "/consul/config/consul_key.pem",
+  "cert_file": "/consul/config/consul_cert.pem",
+  "log_level": "info",
+  "verify_outgoing": true,
+  "leave_on_terminate": true,
+  "disable_update_check": true,
+  "enable_script_checks": true,
+  "skip_leave_on_interrupt": true,
+  "ports": { "https": 8500, "http": -1 },
+  "dns_config": {
+    "allow_stale": true,
+    "max_stale": "1s",
+    "service_ttl": {
+      "*": "5s"
+    }
+  },
+  "services": [{
+      "name": "consul-dns",
+      "tags": [
+          "tcp", "dns"
+      ],
+      "port": 8600,
+      "checks": [{
+          "id": "dns",
+          "name": "Consul DNS",
+          "tcp": "localhost:8600",
+          "interval": "20s"
+      }]
+  },{
+      "name": "consul-ui",
+      "tags": [
+          "https", "ui"
+      ],
+      "port": 8500,
+      "checks": [{
+          "id": "ui",
+          "name": "Consul UI",
+          "http": "https://localhost:8500/ui",
+          "tls_skip_verify": true,
+          "method": "GET",
+          "interval": "20s"
+      }]
+  },{
+      "name": "zookeeper2",
+      "tags": [
+          "tcp", "zookeeper"
+      ],
+      "port": 2181,
+      "checks": [{
+          "id": "zookeeper2",
+          "name": "Zookeeper",
+          "tcp": "zookeeper2:2181",
+          "interval": "20s"
+      }]
+  },{
+      "name": "kafka2",
+      "tags": [
+          "tcp", "kafka"
+      ],
+      "port": 2181,
+      "checks": [{
+          "id": "kafka2",
+          "name": "Kafka",
+          "tcp": "kafka2:9092",
+          "interval": "20s"
+      }]
+  }]
+}

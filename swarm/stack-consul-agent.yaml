@@ -2,19 +2,10 @@ version: '3.4'
 services:
   consul1:
     labels:
-        service: consul
+        service: consul-agent
     image: consul:latest
-    command: 'consul agent -server -ui -node=consul1 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
-    environment:
-      CONSUL_UI_BETA: "true"
-    volumes:
-      - consul-data1:/consul/data
-    # Expose port 8500 so we can access the UI and allow connections across datacenters.
+    command: 'consul agent -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     ports:
-      - target: 8500
-        published: 8500
-        protocol: tcp
-        mode: host
       - target: 8300
         published: 8300
         protocol: tcp
@@ -33,14 +24,6 @@ services:
         mode: host
       - target: 8302
         published: 8302
-        protocol: udp
-        mode: host
-      - target: 8600
-        published: 8600
-        protocol: tcp
-        mode: host
-      - target: 8600
-        published: 8600
         protocol: udp
         mode: host
     logging:
@@ -54,7 +37,6 @@ services:
           - node.role == worker
           - node.labels.consul == true
           - node.labels.zone == a
-      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -66,23 +48,13 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 128M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 64M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
-        uid: '100'
-        gid: '1000'
-        mode: 0440
-      - source: consul_key
-        target: /consul/config/consul_key.pem
-        uid: '100'
-        gid: '1000'
-        mode: 0440
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -94,19 +66,10 @@ services:
         mode: 0440
   consul2:
     labels:
-        service: consul
+        service: consul-agent
     image: consul:latest
-    command: 'consul agent -server -ui -node=consul2 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
-    environment:
-      CONSUL_UI_BETA: "true"
-    volumes:
-      - consul-data2:/consul/data
-    # Expose port 8500 so we can access the UI and allow connections across datacenters.
+    command: 'consul agent -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     ports:
-      - target: 8500
-        published: 8500
-        protocol: tcp
-        mode: host
       - target: 8300
         published: 8300
         protocol: tcp
@@ -125,14 +88,6 @@ services:
         mode: host
       - target: 8302
         published: 8302
-        protocol: udp
-        mode: host
-      - target: 8600
-        published: 8600
-        protocol: tcp
-        mode: host
-      - target: 8600
-        published: 8600
         protocol: udp
         mode: host
     logging:
@@ -146,7 +101,6 @@ services:
           - node.role == worker
           - node.labels.consul == true
           - node.labels.zone == b
-      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -158,23 +112,13 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 128M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 64M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
-        uid: '100'
-        gid: '1000'
-        mode: 0440
-      - source: consul_key
-        target: /consul/config/consul_key.pem
-        uid: '100'
-        gid: '1000'
-        mode: 0440
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -186,19 +130,10 @@ services:
         mode: 0440
   consul3:
     labels:
-        service: consul
+        service: consul-agent
     image: consul:latest
-    command: 'consul agent -server -ui -node=consul3 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" -encrypt=${CONSUL_SECRET}'
-    environment:
-      CONSUL_UI_BETA: "true"
-    volumes:
-      - consul-data3:/consul/data
-    # Expose port 8500 so we can access the UI and allow connections across datacenters.
+    command: 'consul agent -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     ports:
-      - target: 8500
-        published: 8500
-        protocol: tcp
-        mode: host
       - target: 8300
         published: 8300
         protocol: tcp
@@ -219,14 +154,6 @@ services:
         published: 8302
         protocol: udp
         mode: host
-      - target: 8600
-        published: 8600
-        protocol: tcp
-        mode: host
-      - target: 8600
-        published: 8600
-        protocol: udp
-        mode: host
     logging:
       options:
         labels: "service"
@@ -238,7 +165,6 @@ services:
           - node.role == worker
           - node.labels.consul == true
           - node.labels.zone == c
-      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -250,23 +176,13 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 128M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 64M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
-        uid: '100'
-        gid: '1000'
-        mode: 0440
-      - source: consul_key
-        target: /consul/config/consul_key.pem
-        uid: '100'
-        gid: '1000'
-        mode: 0440
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -280,17 +196,9 @@ networks:
   default:
     external:
       name: services
-volumes:
-    consul-data1:
-    consul-data2:
-    consul-data3:
 secrets:
   ca_cert:
     file: ${SECRETS_PATH}/ca_cert.pem
-  consul_key:
-    file: ${SECRETS_PATH}/consul_key.pem
-  consul_cert:
-    file: ${SECRETS_PATH}/consul_cert.pem
 configs:
   consul1:
     file: consul1.json
