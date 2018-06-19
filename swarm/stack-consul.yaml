@@ -44,7 +44,9 @@ services:
         protocol: udp
         mode: host
     logging:
+      driver: gelf
       options:
+        gelf-address: "udp://${DOCKER_HOST_1}:12201"
         labels: "service"
     # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
     deploy:
@@ -136,7 +138,9 @@ services:
         protocol: udp
         mode: host
     logging:
+      driver: gelf
       options:
+        gelf-address: "udp://${DOCKER_HOST_2}:12201"
         labels: "service"
     # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
     deploy:
@@ -228,7 +232,9 @@ services:
         protocol: udp
         mode: host
     logging:
+      driver: gelf
       options:
+        gelf-address: "udp://${DOCKER_HOST_3}:12201"
         labels: "service"
     # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
     deploy:

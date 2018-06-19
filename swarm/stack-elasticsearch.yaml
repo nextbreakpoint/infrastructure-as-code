@@ -5,7 +5,7 @@ services:
         service: elasticsearch
     image: ${ELASTICSEARCH_IMAGE}
     environment:
-      ES_JAVA_OPTS: "-Xms2G -Xmx2G -Dnetworkaddress.cache.ttl=1"
+      ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: ${DOCKER_HOST_1}
     volumes:
       - elasticsearch-data1:/usr/share/elasticsearch/data
@@ -39,31 +39,31 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '4'
-          memory: 2100M
+          cpus: '2'
+          memory: 1.1G
         reservations:
           cpus: '0.1'
-          memory: 2100M
+          memory: 1.1G
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: elasticsearch_cert
         target: /usr/share/elasticsearch/config/elasticsearch_cert.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: ca_cert
         target: /usr/share/elasticsearch/config/ca_cert.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
     configs:
-      - source: elasticsearch
+      - source: elasticsearch-config
         target: /usr/share/elasticsearch/config/elasticsearch.yml
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
   elasticsearch2:
@@ -71,7 +71,7 @@ services:
         service: elasticsearch
     image: ${ELASTICSEARCH_IMAGE}
     environment:
-      ES_JAVA_OPTS: "-Xms2G -Xmx2G -Dnetworkaddress.cache.ttl=1"
+      ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: ${DOCKER_HOST_2}
     volumes:
       - elasticsearch-data2:/usr/share/elasticsearch/data
@@ -105,31 +105,31 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '4'
-          memory: 2100M
+          cpus: '2'
+          memory: 1.1G
         reservations:
           cpus: '0.1'
-          memory: 2100M
+          memory: 1.1G
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: elasticsearch_cert
         target: /usr/share/elasticsearch/config/elasticsearch_cert.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: ca_cert
         target: /usr/share/elasticsearch/config/ca_cert.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
     configs:
-      - source: elasticsearch
+      - source: elasticsearch-config
         target: /usr/share/elasticsearch/config/elasticsearch.yml
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
   elasticsearch3:
@@ -137,7 +137,7 @@ services:
         service: elasticsearch
     image: ${ELASTICSEARCH_IMAGE}
     environment:
-      ES_JAVA_OPTS: "-Xms2G -Xmx2G -Dnetworkaddress.cache.ttl=1"
+      ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: ${DOCKER_HOST_3}
     volumes:
       - elasticsearch-data3:/usr/share/elasticsearch/data
@@ -171,31 +171,31 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '4'
-          memory: 2100M
+          cpus: '2'
+          memory: 1.1G
         reservations:
           cpus: '0.1'
-          memory: 2100M
+          memory: 1.1G
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: elasticsearch_cert
         target: /usr/share/elasticsearch/config/elasticsearch_cert.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: ca_cert
         target: /usr/share/elasticsearch/config/ca_cert.pem
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
     configs:
-      - source: elasticsearch
+      - source: elasticsearch-config
         target: /usr/share/elasticsearch/config/elasticsearch.yml
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
 networks:
@@ -214,5 +214,5 @@ secrets:
   ca_cert:
     file: ${SECRETS_PATH}/ca_cert.pem
 configs:
-  elasticsearch:
+  elasticsearch-config:
     file: elasticsearch.yaml

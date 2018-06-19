@@ -1,0 +1,247 @@
+version: '3.4'
+services:
+  logstash1:
+    labels:
+        service: logstash
+    image: ${LOGSTASH_IMAGE}
+    environment:
+      LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
+      ELASTICSEARCH_URL: https://${DOCKER_HOST_1}:9200
+    volumes:
+      - logstash-data1:/usr/share/logstash/data
+    ports:
+      - target: 5044
+        published: 5044
+        protocol: tcp
+        mode: host
+      - target: 9600
+        published: 9600
+        protocol: tcp
+        mode: host
+      - target: 12201
+        published: 12201
+        protocol: udp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.logstash == true
+          - node.labels.zone == a
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    secrets:
+      - source: logstash_key
+        target: /usr/share/logstash/config/logstash_key.pkcs8
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_cert
+        target: /usr/share/logstash/config/logstash_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: ca_cert
+        target: /usr/share/logstash/config/ca_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: logstash-config
+        target: /usr/share/logstash/config/logstash.yml
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash-pipeline
+        target: /usr/share/logstash/pipeline/logstash.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  logstash2:
+    labels:
+        service: logstash-config
+    image: ${LOGSTASH_IMAGE}
+    environment:
+      LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
+      ELASTICSEARCH_URL: https://${DOCKER_HOST_2}:9200
+    volumes:
+      - logstash-data2:/usr/share/logstash/data
+    ports:
+      - target: 5044
+        published: 5044
+        protocol: tcp
+        mode: host
+      - target: 9600
+        published: 9600
+        protocol: tcp
+        mode: host
+      - target: 12201
+        published: 12201
+        protocol: udp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.logstash == true
+          - node.labels.zone == b
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    secrets:
+      - source: logstash_key
+        target: /usr/share/logstash/config/logstash_key.pkcs8
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_cert
+        target: /usr/share/logstash/config/logstash_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: ca_cert
+        target: /usr/share/logstash/config/ca_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: logstash-config
+        target: /usr/share/logstash/config/logstash.yml
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash-pipeline
+        target: /usr/share/logstash/pipeline/logstash.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  logstash3:
+    labels:
+        service: logstash
+    image: ${LOGSTASH_IMAGE}
+    environment:
+      LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
+      ELASTICSEARCH_URL: https://${DOCKER_HOST_3}:9200
+    volumes:
+      - logstash-data3:/usr/share/logstash/data
+    ports:
+      - target: 5044
+        published: 5044
+        protocol: tcp
+        mode: host
+      - target: 9600
+        published: 9600
+        protocol: tcp
+        mode: host
+      - target: 12201
+        published: 12201
+        protocol: udp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.logstash == true
+          - node.labels.zone == c
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    secrets:
+      - source: logstash_key
+        target: /usr/share/logstash/config/logstash_key.pkcs8
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_cert
+        target: /usr/share/logstash/config/logstash_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: ca_cert
+        target: /usr/share/logstash/config/ca_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: logstash-config
+        target: /usr/share/logstash/config/logstash.yml
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash-pipeline
+        target: /usr/share/logstash/pipeline/logstash.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    logstash-data1:
+    logstash-data2:
+    logstash-data3:
+secrets:
+  logstash_key:
+    file: ${SECRETS_PATH}/logstash_key.pkcs8
+  logstash_cert:
+    file: ${SECRETS_PATH}/logstash_cert.pem
+  ca_cert:
+    file: ${SECRETS_PATH}/ca_cert.pem
+configs:
+  logstash-config:
+    file: logstash.yaml
+  logstash-pipeline:
+    file: logstash.conf

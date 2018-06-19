@@ -1,9 +1,9 @@
 #!/bin/sh
 
 docker-machine create -d virtualbox --virtualbox-memory "2048" docker-master
-docker-machine create -d virtualbox --virtualbox-memory "4096" docker-worker1
-docker-machine create -d virtualbox --virtualbox-memory "4096" docker-worker2
-docker-machine create -d virtualbox --virtualbox-memory "4096" docker-worker3
+docker-machine create -d virtualbox --virtualbox-memory "3072" docker-worker1
+docker-machine create -d virtualbox --virtualbox-memory "3072" docker-worker2
+docker-machine create -d virtualbox --virtualbox-memory "3072" docker-worker3
 
 docker-machine ssh docker-master sudo sysctl -w vm.max_map_count=262144
 docker-machine ssh docker-worker1 sudo sysctl -w vm.max_map_count=262144
