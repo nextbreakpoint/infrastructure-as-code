@@ -75,6 +75,11 @@ services:
         uid: '1000'
         gid: '1000'
         mode: 0440
+      - source: logstash-template
+        target: /usr/share/logstash/config/logstash.template
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
   logstash2:
     labels:
         service: logstash-config
@@ -147,6 +152,11 @@ services:
         mode: 0440
       - source: logstash-pipeline
         target: /usr/share/logstash/pipeline/logstash.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash-template
+        target: /usr/share/logstash/config/logstash.template
         uid: '1000'
         gid: '1000'
         mode: 0440
@@ -225,6 +235,11 @@ services:
         uid: '1000'
         gid: '1000'
         mode: 0440
+      - source: logstash-template
+        target: /usr/share/logstash/config/logstash.template
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
 networks:
   default:
     external:
@@ -245,3 +260,5 @@ configs:
     file: logstash.yaml
   logstash-pipeline:
     file: logstash.conf
+  logstash-template:
+    file: logstash.template
