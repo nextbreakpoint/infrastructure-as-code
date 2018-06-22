@@ -11,8 +11,8 @@ services:
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"
     volumes:
-      - zookeeper-data1:/data
-      - zookeeper-datalog1:/datalog
+      - zookeeper_data1:/data
+      - zookeeper_datalog1:/datalog
     ports:
       - target: 2181
         published: 2181
@@ -69,8 +69,8 @@ services:
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"
     volumes:
-      - zookeeper-data2:/data
-      - zookeeper-datalog2:/datalog
+      - zookeeper_data2:/data
+      - zookeeper_datalog2:/datalog
     ports:
       - target: 2181
         published: 2181
@@ -127,8 +127,8 @@ services:
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"
     volumes:
-      - zookeeper-data3:/data
-      - zookeeper-datalog3:/datalog
+      - zookeeper_data3:/data
+      - zookeeper_datalog3:/datalog
     ports:
       - target: 2181
         published: 2181
@@ -179,12 +179,12 @@ networks:
     external:
       name: services
 volumes:
-    zookeeper-data1:
-    zookeeper-datalog1:
-    zookeeper-data2:
-    zookeeper-datalog2:
-    zookeeper-data3:
-    zookeeper-datalog3:
+    zookeeper_data1:
+    zookeeper_datalog1:
+    zookeeper_data2:
+    zookeeper_datalog2:
+    zookeeper_data3:
+    zookeeper_datalog3:
 secrets:
   jaas-config:
     file: secrets/zookeeper_server_jaas.conf

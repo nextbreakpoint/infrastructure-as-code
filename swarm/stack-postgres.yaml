@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_PASSWORD: password
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - target: 5432
         published: 5432
@@ -43,4 +43,4 @@ networks:
     external:
       name: services
 volumes:
-    postgres-data:
+    postgres_data:

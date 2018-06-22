@@ -8,7 +8,7 @@ services:
       LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://${DOCKER_HOST_1}:9200
     volumes:
-      - logstash-data1:/usr/share/logstash/data
+      - logstash_data1:/usr/share/logstash/data
     ports:
       - target: 5044
         published: 5044
@@ -65,30 +65,30 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: logstash-config
+      - source: logstash_config
         target: /usr/share/logstash/config/logstash.yml
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: logstash-pipeline
+      - source: logstash_pipeline
         target: /usr/share/logstash/pipeline/logstash.conf
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: logstash-template
+      - source: logstash_template
         target: /usr/share/logstash/config/logstash.template
         uid: '1000'
         gid: '1000'
         mode: 0440
   logstash2:
     labels:
-        service: logstash-config
+        service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
       LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://${DOCKER_HOST_2}:9200
     volumes:
-      - logstash-data2:/usr/share/logstash/data
+      - logstash_data2:/usr/share/logstash/data
     ports:
       - target: 5044
         published: 5044
@@ -145,17 +145,17 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: logstash-config
+      - source: logstash_config
         target: /usr/share/logstash/config/logstash.yml
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: logstash-pipeline
+      - source: logstash_pipeline
         target: /usr/share/logstash/pipeline/logstash.conf
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: logstash-template
+      - source: logstash_template
         target: /usr/share/logstash/config/logstash.template
         uid: '1000'
         gid: '1000'
@@ -168,7 +168,7 @@ services:
       LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://${DOCKER_HOST_3}:9200
     volumes:
-      - logstash-data3:/usr/share/logstash/data
+      - logstash_data3:/usr/share/logstash/data
     ports:
       - target: 5044
         published: 5044
@@ -225,17 +225,17 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: logstash-config
+      - source: logstash_config
         target: /usr/share/logstash/config/logstash.yml
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: logstash-pipeline
+      - source: logstash_pipeline
         target: /usr/share/logstash/pipeline/logstash.conf
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: logstash-template
+      - source: logstash_template
         target: /usr/share/logstash/config/logstash.template
         uid: '1000'
         gid: '1000'
@@ -245,9 +245,9 @@ networks:
     external:
       name: services
 volumes:
-    logstash-data1:
-    logstash-data2:
-    logstash-data3:
+    logstash_data1:
+    logstash_data2:
+    logstash_data3:
 secrets:
   logstash_key:
     file: ${SECRETS_PATH}/logstash_key.pkcs8
@@ -256,9 +256,9 @@ secrets:
   ca_cert:
     file: ${SECRETS_PATH}/ca_cert.pem
 configs:
-  logstash-config:
+  logstash_config:
     file: logstash.yaml
-  logstash-pipeline:
+  logstash_pipeline:
     file: logstash.conf
-  logstash-template:
+  logstash_template:
     file: logstash.template

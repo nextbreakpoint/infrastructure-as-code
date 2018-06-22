@@ -59,7 +59,7 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: consul1
+      - source: consul1_config
         target: /consul/config/consul.json
         uid: '100'
         gid: '1000'
@@ -123,7 +123,7 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: consul2
+      - source: consul2_config
         target: /consul/config/consul.json
         uid: '100'
         gid: '1000'
@@ -187,7 +187,7 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: consul3
+      - source: consul3_config
         target: /consul/config/consul.json
         uid: '100'
         gid: '1000'
@@ -200,9 +200,9 @@ secrets:
   ca_cert:
     file: ${SECRETS_PATH}/ca_cert.pem
 configs:
-  consul1:
+  consul1_config:
     file: consul1.json
-  consul2:
+  consul2_config:
     file: consul2.json
-  consul3:
+  consul3_config:
     file: consul3.json

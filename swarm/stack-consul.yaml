@@ -3,7 +3,7 @@ services:
   consul1:
     labels:
         service: consul
-    image: consul:latest
+    image: ${CONSUL_IMAGE}
     command: 'consul agent -server -ui -node=consul1 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     environment:
       CONSUL_UI_BETA: "true"
@@ -44,9 +44,7 @@ services:
         protocol: udp
         mode: host
     logging:
-      driver: gelf
       options:
-        gelf-address: "udp://${DOCKER_HOST_1}:12201"
         labels: "service"
     # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
     deploy:
@@ -89,7 +87,7 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: consul1
+      - source: consul1_config
         target: /consul/config/consul.json
         uid: '100'
         gid: '1000'
@@ -97,7 +95,7 @@ services:
   consul2:
     labels:
         service: consul
-    image: consul:latest
+    image: ${CONSUL_IMAGE}
     command: 'consul agent -server -ui -node=consul2 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     environment:
       CONSUL_UI_BETA: "true"
@@ -138,9 +136,7 @@ services:
         protocol: udp
         mode: host
     logging:
-      driver: gelf
       options:
-        gelf-address: "udp://${DOCKER_HOST_2}:12201"
         labels: "service"
     # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
     deploy:
@@ -183,7 +179,7 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: consul2
+      - source: consul2_config
         target: /consul/config/consul.json
         uid: '100'
         gid: '1000'
@@ -191,7 +187,7 @@ services:
   consul3:
     labels:
         service: consul
-    image: consul:latest
+    image: ${CONSUL_IMAGE}
     command: 'consul agent -server -ui -node=consul3 -datacenter=${CONSUL_DATACENTER} -bootstrap-expect=3 -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" -encrypt=${CONSUL_SECRET}'
     environment:
       CONSUL_UI_BETA: "true"
@@ -232,9 +228,7 @@ services:
         protocol: udp
         mode: host
     logging:
-      driver: gelf
       options:
-        gelf-address: "udp://${DOCKER_HOST_3}:12201"
         labels: "service"
     # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
     deploy:
@@ -277,7 +271,7 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: consul3
+      - source: consul3_config
         target: /consul/config/consul.json
         uid: '100'
         gid: '1000'
@@ -298,9 +292,9 @@ secrets:
   consul_cert:
     file: ${SECRETS_PATH}/consul_cert.pem
 configs:
-  consul1:
+  consul1_config:
     file: consul1.json
-  consul2:
+  consul2_config:
     file: consul2.json
-  consul3:
+  consul3_config:
     file: consul3.json
