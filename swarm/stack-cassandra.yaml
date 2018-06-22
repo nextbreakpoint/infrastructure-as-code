@@ -1,0 +1,162 @@
+version: '3.4'
+services:
+  cassandra1:
+    labels:
+        service: cassandra
+    image: ${CASSANDRA_IMAGE}
+    environment:
+      CASSANDRA_RACK: 1
+      CASSANDRA_DC: 1
+    volumes:
+      - cassandra_data1:/var/lib/cassandra
+    ports:
+      - target: 7000
+        published: 7000
+        protocol: tcp
+        mode: host
+      - target: 9042
+        published: 9042
+        protocol: tcp
+        mode: host
+      - target: 9142
+        published: 9142
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.cassandra == true
+          - node.labels.zone == a
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+  cassandra2:
+    labels:
+        service: cassandra
+    image: ${CASSANDRA_IMAGE}
+    entrypoint:
+        - "sh"
+        - "-c"
+        - "export CASSANDRA_SEEDS=$$(getent hosts tasks.cassandra1 | awk '{print $$1}') ; env ; /docker-entrypoint.sh cassandra -f"
+    environment:
+      CASSANDRA_RACK: 2
+      CASSANDRA_DC: 1
+    volumes:
+      - cassandra_data2:/var/lib/cassandra
+    ports:
+      - target: 7000
+        published: 7000
+        protocol: tcp
+        mode: host
+      - target: 9042
+        published: 9042
+        protocol: tcp
+        mode: host
+      - target: 9142
+        published: 9142
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      replicas: 0
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.cassandra == true
+          - node.labels.zone == b
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+  cassandra3:
+    labels:
+        service: cassandra
+    image: ${CASSANDRA_IMAGE}
+    entrypoint:
+        - "sh"
+        - "-c"
+        - "export CASSANDRA_SEEDS=$$(getent hosts tasks.cassandra1 | awk '{print $$1}') ; env ; /docker-entrypoint.sh cassandra -f"
+    environment:
+      CASSANDRA_RACK: 3
+      CASSANDRA_DC: 1
+    volumes:
+      - cassandra_data3:/var/lib/cassandra
+    ports:
+      - target: 7000
+        published: 7000
+        protocol: tcp
+        mode: host
+      - target: 9042
+        published: 9042
+        protocol: tcp
+        mode: host
+      - target: 9142
+        published: 9142
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      replicas: 0
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.cassandra == true
+          - node.labels.zone == c
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    cassandra_data1:
+    cassandra_data2:
+    cassandra_data3:
