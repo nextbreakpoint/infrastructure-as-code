@@ -37,6 +37,7 @@ services:
           - node.role == worker
           - node.labels.consul == true
           - node.labels.zone == a
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -101,6 +102,7 @@ services:
           - node.role == worker
           - node.labels.consul == true
           - node.labels.zone == b
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -165,6 +167,7 @@ services:
           - node.role == worker
           - node.labels.consul == true
           - node.labels.zone == c
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback

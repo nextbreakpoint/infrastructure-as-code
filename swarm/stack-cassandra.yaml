@@ -5,15 +5,12 @@ services:
         service: cassandra
     image: ${CASSANDRA_IMAGE}
     environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra1
       CASSANDRA_RACK: 1
       CASSANDRA_DC: 1
     volumes:
       - cassandra_data1:/var/lib/cassandra
     ports:
-      - target: 7000
-        published: 7000
-        protocol: tcp
-        mode: host
       - target: 9042
         published: 9042
         protocol: tcp
@@ -32,6 +29,7 @@ services:
           - node.role == worker
           - node.labels.cassandra == true
           - node.labels.zone == a
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -52,20 +50,14 @@ services:
     labels:
         service: cassandra
     image: ${CASSANDRA_IMAGE}
-    entrypoint:
-        - "sh"
-        - "-c"
-        - "export CASSANDRA_SEEDS=$$(getent hosts tasks.cassandra1 | awk '{print $$1}') ; env ; /docker-entrypoint.sh cassandra -f"
     environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra2
+      CASSANDRA_SEEDS: cassandra1
       CASSANDRA_RACK: 2
       CASSANDRA_DC: 1
     volumes:
       - cassandra_data2:/var/lib/cassandra
     ports:
-      - target: 7000
-        published: 7000
-        protocol: tcp
-        mode: host
       - target: 9042
         published: 9042
         protocol: tcp
@@ -78,12 +70,13 @@ services:
       options:
         labels: "service"
     deploy:
-      replicas: 0
+      mode: global
       placement:
         constraints:
           - node.role == worker
           - node.labels.cassandra == true
           - node.labels.zone == b
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -104,20 +97,14 @@ services:
     labels:
         service: cassandra
     image: ${CASSANDRA_IMAGE}
-    entrypoint:
-        - "sh"
-        - "-c"
-        - "export CASSANDRA_SEEDS=$$(getent hosts tasks.cassandra1 | awk '{print $$1}') ; env ; /docker-entrypoint.sh cassandra -f"
     environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra3
+      CASSANDRA_SEEDS: cassandra1
       CASSANDRA_RACK: 3
       CASSANDRA_DC: 1
     volumes:
       - cassandra_data3:/var/lib/cassandra
     ports:
-      - target: 7000
-        published: 7000
-        protocol: tcp
-        mode: host
       - target: 9042
         published: 9042
         protocol: tcp
@@ -130,12 +117,13 @@ services:
       options:
         labels: "service"
     deploy:
-      replicas: 0
+      mode: global
       placement:
         constraints:
           - node.role == worker
           - node.labels.cassandra == true
           - node.labels.zone == c
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
