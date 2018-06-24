@@ -5,6 +5,7 @@
   "log_level": "info",
   "verify_outgoing": true,
   "leave_on_terminate": true,
+  "translate_wan_addrs": true,
   "disable_update_check": true,
   "enable_script_checks": true,
   "skip_leave_on_interrupt": true,
