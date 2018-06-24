@@ -19,9 +19,7 @@ services:
         protocol: tcp
         mode: host
     logging:
-      driver: gelf
       options:
-        gelf-address: "udp://${DOCKER_HOST_1}:12201"
         labels: "service"
     deploy:
       mode: global
@@ -88,9 +86,7 @@ services:
         protocol: tcp
         mode: host
     logging:
-      driver: gelf
       options:
-        gelf-address: "udp://${DOCKER_HOST_2}:12201"
         labels: "service"
     deploy:
       mode: global
@@ -157,9 +153,7 @@ services:
         protocol: tcp
         mode: host
     logging:
-      driver: gelf
       options:
-        gelf-address: "udp://${DOCKER_HOST_3}:12201"
         labels: "service"
     deploy:
       mode: global
