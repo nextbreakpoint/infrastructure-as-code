@@ -1,5 +1,10 @@
 
 {
+        "log-driver": "gelf",
+        "log-opts": {
+          "gelf-address": "udp://localhost:12201",
+          "labels": "service"
+        },
         "default-ulimits":
         {
                 "nproc": {
