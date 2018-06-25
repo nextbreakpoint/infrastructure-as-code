@@ -27,7 +27,7 @@
           "id": "dns",
           "name": "Consul DNS",
           "tcp": "localhost:8600",
-          "interval": "20s"
+          "interval": "60s"
       }]
   },{
       "name": "consul-ui",
@@ -41,7 +41,7 @@
           "http": "https://localhost:8500/ui",
           "tls_skip_verify": true,
           "method": "GET",
-          "interval": "20s"
+          "interval": "120s"
       }]
   },{
       "name": "zookeeper1",
@@ -53,7 +53,7 @@
           "id": "zookeeper1",
           "name": "Zookeeper",
           "tcp": "zookeeper1:2181",
-          "interval": "20s"
+          "interval": "120s"
       }]
   },{
       "name": "kafka1",
@@ -65,7 +65,7 @@
           "id": "kafka1",
           "name": "Kafka",
           "tcp": "kafka1:9092",
-          "interval": "20s"
+          "interval": "120s"
       }]
   }]
 }
