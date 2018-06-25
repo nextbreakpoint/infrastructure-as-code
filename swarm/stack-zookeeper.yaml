@@ -49,10 +49,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 512M
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128m
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf
@@ -108,10 +108,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 512M
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128M
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf
@@ -167,10 +167,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 512M
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128M
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf

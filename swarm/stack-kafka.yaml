@@ -57,7 +57,7 @@ services:
           memory: 1024M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 512M
     secrets:
       - source: keystore1
         target: /secrets/keystore.jks
@@ -141,7 +141,7 @@ services:
           memory: 1024M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 512M
     secrets:
       - source: keystore2
         target: /secrets/keystore.jks
@@ -225,7 +225,7 @@ services:
           memory: 1024M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 512M
     secrets:
       - source: keystore3
         target: /secrets/keystore.jks

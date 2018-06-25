@@ -66,10 +66,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
@@ -158,10 +158,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
@@ -250,10 +250,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
