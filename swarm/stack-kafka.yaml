@@ -6,6 +6,7 @@ services:
     image: ${KAFKA_IMAGE}
     environment:
       BROKER_ID: 1
+      KAFKA_HEAP_OPTS: "-Xmx800M -Xms128M"
       ZK_CONNECT: ${DOCKER_HOST_1}:2181
       ADVERTISED_HOST: ${DOCKER_HOST_1}
       ADVERTISED_PORT: 9092
@@ -90,6 +91,7 @@ services:
     image: ${KAFKA_IMAGE}
     environment:
       BROKER_ID: 2
+      KAFKA_HEAP_OPTS: "-Xmx800M -Xms128M"
       ZK_CONNECT: ${DOCKER_HOST_2}:2181
       ADVERTISED_HOST: ${DOCKER_HOST_2}
       ADVERTISED_PORT: 9092
@@ -141,7 +143,7 @@ services:
           memory: 1024M
         reservations:
           cpus: '0.1'
-          memory: 512M
+          memory: 512m
     secrets:
       - source: keystore2
         target: /secrets/keystore.jks
@@ -174,6 +176,7 @@ services:
     image: ${KAFKA_IMAGE}
     environment:
       BROKER_ID: 3
+      KAFKA_HEAP_OPTS: "-Xmx800M -Xms128M"
       ZK_CONNECT: ${DOCKER_HOST_3}:2181
       ADVERTISED_HOST: ${DOCKER_HOST_3}
       ADVERTISED_PORT: 9092
