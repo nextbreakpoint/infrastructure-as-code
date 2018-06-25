@@ -15,6 +15,16 @@ docker-machine ssh docker-worker1 sudo sysctl -w vm.swappiness=1
 docker-machine ssh docker-worker2 sudo sysctl -w vm.swappiness=1
 docker-machine ssh docker-worker3 sudo sysctl -w vm.swappiness=1
 
+docker-machine ssh docker-master sudo 'sed -i -e "\$a sysctl -w vm.max_map_count=262144" /var/lib/boot2docker/profile'
+docker-machine ssh docker-worker1 sudo 'sed -i -e "\$a sysctl -w vm.max_map_count=262144" /var/lib/boot2docker/profile'
+docker-machine ssh docker-worker2 sudo 'sed -i -e "\$a sysctl -w vm.max_map_count=262144" /var/lib/boot2docker/profile'
+docker-machine ssh docker-worker3 sudo 'sed -i -e "\$a sysctl -w vm.max_map_count=262144" /var/lib/boot2docker/profile'
+
+docker-machine ssh docker-master sudo 'sed -i -e "\$a sysctl -w vm.swappiness=1" /var/lib/boot2docker/profile'
+docker-machine ssh docker-worker1 sudo 'sed -i -e "\$a sysctl -w vm.swappiness=1" /var/lib/boot2docker/profile'
+docker-machine ssh docker-worker2 sudo 'sed -i -e "\$a sysctl -w vm.swappiness=1" /var/lib/boot2docker/profile'
+docker-machine ssh docker-worker3 sudo 'sed -i -e "\$a sysctl -w vm.swappiness=1" /var/lib/boot2docker/profile'
+
 docker-machine scp daemon.json docker-master:
 docker-machine scp daemon.json docker-worker1:
 docker-machine scp daemon.json docker-worker2:
