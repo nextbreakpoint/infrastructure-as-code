@@ -60,11 +60,59 @@
       "tags": [
           "tcp", "kafka"
       ],
-      "port": 2181,
+      "port": 9092,
       "checks": [{
           "id": "kafka1",
           "name": "Kafka",
           "tcp": "kafka1:9092",
+          "interval": "120s"
+      }]
+  },{
+      "name": "elasticsearch1",
+      "tags": [
+          "tcp", "elasticsearch"
+      ],
+      "port": 9200,
+      "checks": [{
+          "id": "elasticsearch1",
+          "name": "Elasticsearch",
+          "tcp": "elasticsearch1:9200",
+          "interval": "120s"
+      }]
+  },{
+      "name": "logstash1",
+      "tags": [
+          "tcp", "logstash"
+      ],
+      "port": 12201,
+      "checks": [{
+          "id": "logstash1",
+          "name": "Logstash",
+          "args": ["nc", "-z", "-u", "-v", "logstash1", "12201"],
+          "interval": "120s"
+      }]
+  },{
+      "name": "kibana1",
+      "tags": [
+          "tcp", "kibana"
+      ],
+      "port": 5601,
+      "checks": [{
+          "id": "kibana1",
+          "name": "Kibana",
+          "tcp": "kibana1:5601",
+          "interval": "120s"
+      }]
+  },{
+      "name": "cassandra1",
+      "tags": [
+          "tcp", "cassandra"
+      ],
+      "port": 9042,
+      "checks": [{
+          "id": "cassandra1",
+          "name": "Cassandra",
+          "tcp": "cassandra1:9042",
           "interval": "120s"
       }]
   }]
