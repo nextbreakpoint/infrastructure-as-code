@@ -26,7 +26,7 @@ services:
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
     volumes:
-      - kafka_data1:/data
+      - storage:/data
     ports:
       - target: 9092
         published: 9092
@@ -49,7 +49,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -111,7 +111,7 @@ services:
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
     volumes:
-      - kafka_data2:/data
+      - storage:/data
     ports:
       - target: 9092
         published: 9092
@@ -134,7 +134,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -196,7 +196,7 @@ services:
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
     volumes:
-      - kafka_data3:/data
+      - storage:/data
     ports:
       - target: 9092
         published: 9092
@@ -219,7 +219,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -260,9 +260,7 @@ networks:
     external:
       name: services
 volumes:
-    kafka_data1:
-    kafka_data2:
-    kafka_data3:
+    storage:
 secrets:
   keystore1:
     file: ${SECRETS_PATH}/kafka1-server-keystore.jks

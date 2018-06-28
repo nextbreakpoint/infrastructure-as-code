@@ -8,7 +8,7 @@ services:
     environment:
       CONSUL_UI_BETA: "true"
     volumes:
-      - consul-data1:/consul/data
+      - storage:/consul/data
     # Expose port 8500 so we can access the UI and allow connections across datacenters.
     ports:
       - target: 8500
@@ -100,7 +100,7 @@ services:
     environment:
       CONSUL_UI_BETA: "true"
     volumes:
-      - consul-data2:/consul/data
+      - storage:/consul/data
     # Expose port 8500 so we can access the UI and allow connections across datacenters.
     ports:
       - target: 8500
@@ -192,7 +192,7 @@ services:
     environment:
       CONSUL_UI_BETA: "true"
     volumes:
-      - consul-data3:/consul/data
+      - storage:/consul/data
     # Expose port 8500 so we can access the UI and allow connections across datacenters.
     ports:
       - target: 8500
@@ -281,9 +281,7 @@ networks:
     external:
       name: services
 volumes:
-    consul-data1:
-    consul-data2:
-    consul-data3:
+    storage:
 secrets:
   ca_cert:
     file: ${SECRETS_PATH}/ca_cert.pem

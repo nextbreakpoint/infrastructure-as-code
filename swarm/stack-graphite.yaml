@@ -1,18 +1,20 @@
 version: '3.4'
 services:
-  postgres:
+  graphite:
     labels:
-        service: postgres
-    image: postgres
-    environment:
-      POSTGRES_PASSWORD: password
+        service: graphite
+    image: ${GRAPHITE_IMAGE}
     volumes:
-      - storage:/var/lib/postgresql/data
+      - storage:/opt/graphite/storage
     ports:
-      - target: 5432
-        published: 5432
+      - target: 80
+        published: 2080
         protocol: tcp
-        mode: ingress
+        mode: host
+      - target: 2003
+        published: 2003
+        protocol: tcp
+        mode: host
     logging:
       options:
         labels: "service"
@@ -21,7 +23,9 @@ services:
       placement:
         constraints:
           - node.role == manager
-          - node.labels.postgres == true
+          - node.labels.graphite == true
+          - node.labels.zone == a
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -33,11 +37,11 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '2'
-          memory: 512M
+          cpus: '1'
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128M
 networks:
   default:
     external:

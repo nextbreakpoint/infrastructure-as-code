@@ -1,18 +1,16 @@
 version: '3.4'
 services:
-  postgres:
+  grafana:
     labels:
-        service: postgres
-    image: postgres
-    environment:
-      POSTGRES_PASSWORD: password
+        service: grafana
+    image: ${GRAFANA_IMAGE}
     volumes:
-      - storage:/var/lib/postgresql/data
+      - storage:/var/lib/grafana
     ports:
-      - target: 5432
-        published: 5432
+      - target: 3000
+        published: 3000
         protocol: tcp
-        mode: ingress
+        mode: host
     logging:
       options:
         labels: "service"
@@ -21,7 +19,9 @@ services:
       placement:
         constraints:
           - node.role == manager
-          - node.labels.postgres == true
+          - node.labels.grafana == true
+          - node.labels.zone == a
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -33,11 +33,11 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '2'
-          memory: 512M
+          cpus: '1'
+          memory: 256M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 128M
 networks:
   default:
     external:

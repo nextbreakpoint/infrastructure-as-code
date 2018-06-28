@@ -1,5 +1,72 @@
 version: '3.4'
 services:
+  elasticsearch0:
+    labels:
+        service: elasticsearch
+    image: ${ELASTICSEARCH_IMAGE}
+    environment:
+      ES_JAVA_OPTS: "-Xms400M -Xmx400M -Dnetworkaddress.cache.ttl=1"
+      network.publish_host: ${DOCKER_HOST_0}
+    volumes:
+      - storage:/usr/share/elasticsearch/data
+    ports:
+      - target: 9200
+        published: 9200
+        protocol: tcp
+        mode: host
+      - target: 9300
+        published: 9300
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.elasticsearch == true
+          - node.labels.zone == a
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 0.5G
+        reservations:
+          cpus: '0.1'
+          memory: 0.5G
+    secrets:
+      - source: elasticsearch_key
+        target: /usr/share/elasticsearch/config/elasticsearch_key.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: elasticsearch_cert
+        target: /usr/share/elasticsearch/config/elasticsearch_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: ca_cert
+        target: /usr/share/elasticsearch/config/ca_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: elasticsearch_route_config
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
   elasticsearch1:
     labels:
         service: elasticsearch
@@ -8,7 +75,7 @@ services:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: ${DOCKER_HOST_1}
     volumes:
-      - elasticsearch_data1:/usr/share/elasticsearch/data
+      - storage:/usr/share/elasticsearch/data
     ports:
       - target: 9200
         published: 9200
@@ -35,7 +102,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -75,7 +142,7 @@ services:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: ${DOCKER_HOST_2}
     volumes:
-      - elasticsearch_data2:/usr/share/elasticsearch/data
+      - storage:/usr/share/elasticsearch/data
     ports:
       - target: 9200
         published: 9200
@@ -102,7 +169,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -142,7 +209,7 @@ services:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: ${DOCKER_HOST_3}
     volumes:
-      - elasticsearch_data3:/usr/share/elasticsearch/data
+      - storage:/usr/share/elasticsearch/data
     ports:
       - target: 9200
         published: 9200
@@ -169,7 +236,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -206,9 +273,7 @@ networks:
     external:
       name: services
 volumes:
-    elasticsearch_data1:
-    elasticsearch_data2:
-    elasticsearch_data3:
+    storage:
 secrets:
   elasticsearch_key:
     file: ${SECRETS_PATH}/elasticsearch_key.pem
@@ -219,3 +284,5 @@ secrets:
 configs:
   elasticsearch_config:
     file: elasticsearch.yaml
+  elasticsearch_route_config:
+    file: elasticsearch_route.yaml

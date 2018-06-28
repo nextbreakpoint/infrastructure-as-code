@@ -2,7 +2,7 @@ version: '3.4'
 services:
   consul1:
     labels:
-        service: consul-agent
+        service: consulagent
     image: consul:latest
     command: 'consul agent -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     ports:
@@ -35,7 +35,7 @@ services:
       placement:
         constraints:
           - node.role == worker
-          - node.labels.consul == true
+          - node.labels.consulagent == true
           - node.labels.zone == a
       endpoint_mode: dnsrr
       update_config:
@@ -67,7 +67,7 @@ services:
         mode: 0440
   consul2:
     labels:
-        service: consul-agent
+        service: consulagent
     image: consul:latest
     command: 'consul agent -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     ports:
@@ -100,7 +100,7 @@ services:
       placement:
         constraints:
           - node.role == worker
-          - node.labels.consul == true
+          - node.labels.consulagent == true
           - node.labels.zone == b
       endpoint_mode: dnsrr
       update_config:
@@ -132,7 +132,7 @@ services:
         mode: 0440
   consul3:
     labels:
-        service: consul-agent
+        service: consulagent
     image: consul:latest
     command: 'consul agent -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     ports:
@@ -165,7 +165,7 @@ services:
       placement:
         constraints:
           - node.role == worker
-          - node.labels.consul == true
+          - node.labels.consulagent == true
           - node.labels.zone == c
       endpoint_mode: dnsrr
       update_config:

@@ -11,6 +11,11 @@ docker node update --label-add jenkins=true $NODE
 docker node update --label-add sonarqube=true $NODE
 docker node update --label-add artifactory=true $NODE
 docker node update --label-add openvpn=true $NODE
+docker node update --label-add elasticsearch=true $NODE
+docker node update --label-add logstash=true $NODE
+docker node update --label-add graphite=true $NODE
+docker node update --label-add grafana=true $NODE
+docker node update --label-add zone=a $NODE
 
 export TOKEN=$(docker swarm join-token manager | grep "docker swarm join" | awk '{ print $5 }')
 
@@ -64,3 +69,7 @@ docker node update --label-add kibana=true $NODE
 docker node update --label-add cassandra=true $NODE
 docker node update --label-add nginx=true $NODE
 docker node update --role worker $NODE
+
+eval $(docker-machine env docker-master)
+
+docker network create -d overlay --attachable services

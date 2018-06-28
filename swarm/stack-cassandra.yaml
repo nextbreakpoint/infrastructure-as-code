@@ -9,7 +9,7 @@ services:
       CASSANDRA_RACK: 1
       CASSANDRA_DC: 1
     volumes:
-      - cassandra_data1:/var/lib/cassandra
+      - storage:/var/lib/cassandra
     ports:
       - target: 9042
         published: 9042
@@ -36,7 +36,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -56,7 +56,7 @@ services:
       CASSANDRA_RACK: 2
       CASSANDRA_DC: 1
     volumes:
-      - cassandra_data2:/var/lib/cassandra
+      - storage:/var/lib/cassandra
     ports:
       - target: 9042
         published: 9042
@@ -83,7 +83,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -103,7 +103,7 @@ services:
       CASSANDRA_RACK: 3
       CASSANDRA_DC: 1
     volumes:
-      - cassandra_data3:/var/lib/cassandra
+      - storage:/var/lib/cassandra
     ports:
       - target: 9042
         published: 9042
@@ -130,7 +130,7 @@ services:
         delay: 30s
         order: stop-first
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         window: 120s
       resources:
@@ -145,6 +145,4 @@ networks:
     external:
       name: services
 volumes:
-    cassandra_data1:
-    cassandra_data2:
-    cassandra_data3:
+    storage:
