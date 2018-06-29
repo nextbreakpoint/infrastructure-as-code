@@ -1,12 +1,12 @@
 version: '3.4'
 services:
-  kibana1:
+  kibana:
     labels:
         service: kibana
     image: ${KIBANA_IMAGE}
     environment:
-      SERVER_NAME: ${DOCKER_HOST_1}
-      ELASTICSEARCH_URL: https://${DOCKER_HOST_1}:9200
+      SERVER_NAME: ${DOCKER_HOST_0}
+      ELASTICSEARCH_URL: https://${DOCKER_HOST_0}:9200
       NODE_TLS_REJECT_UNAUTHORIZED: 0
       NODE_EXTRA_CA_CERTS: /usr/share/kibana/config/ca_cert.pem
     volumes:
@@ -23,139 +23,9 @@ services:
       mode: global
       placement:
         constraints:
-          - node.role == worker
+          - node.role == manager
           - node.labels.kibana == true
           - node.labels.zone == a
-      endpoint_mode: dnsrr
-      update_config:
-        parallelism: 1
-        failure_action: rollback
-        delay: 30s
-        order: stop-first
-      restart_policy:
-        condition: any
-        delay: 5s
-        window: 120s
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
-    secrets:
-      - source: kibana_key
-        target: /usr/share/kibana/config/kibana_key.pem
-        uid: '1000'
-        gid: '1000'
-        mode: 0440
-      - source: kibana_cert
-        target: /usr/share/kibana/config/kibana_cert.pem
-        uid: '1000'
-        gid: '1000'
-        mode: 0440
-      - source: ca_cert
-        target: /usr/share/kibana/config/ca_cert.pem
-        uid: '1000'
-        gid: '1000'
-        mode: 0440
-    configs:
-      - source: kibana_config
-        target: /usr/share/kibana/config/kibana.yml
-        uid: '1000'
-        gid: '1000'
-        mode: 0440
-  kibana2:
-    labels:
-        service: kibana
-    image: ${KIBANA_IMAGE}
-    environment:
-      SERVER_NAME: ${DOCKER_HOST_2}
-      ELASTICSEARCH_URL: https://${DOCKER_HOST_2}:9200
-      NODE_TLS_REJECT_UNAUTHORIZED: 0
-      NODE_EXTRA_CA_CERTS: /usr/share/kibana/config/ca_cert.pem
-    volumes:
-      - storage:/usr/share/kibana/data
-    ports:
-      - target: 5601
-        published: 5601
-        protocol: tcp
-        mode: host
-    logging:
-      options:
-        labels: "service"
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role == worker
-          - node.labels.kibana == true
-          - node.labels.zone == b
-      endpoint_mode: dnsrr
-      update_config:
-        parallelism: 1
-        failure_action: rollback
-        delay: 30s
-        order: stop-first
-      restart_policy:
-        condition: any
-        delay: 5s
-        window: 120s
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
-    secrets:
-      - source: kibana_key
-        target: /usr/share/kibana/config/kibana_key.pem
-        uid: '1000'
-        gid: '1000'
-        mode: 0440
-      - source: kibana_cert
-        target: /usr/share/kibana/config/kibana_cert.pem
-        uid: '1000'
-        gid: '1000'
-        mode: 0440
-      - source: ca_cert
-        target: /usr/share/kibana/config/ca_cert.pem
-        uid: '1000'
-        gid: '1000'
-        mode: 0440
-    configs:
-      - source: kibana_config
-        target: /usr/share/kibana/config/kibana.yml
-        uid: '1000'
-        gid: '1000'
-        mode: 0440
-  kibana3:
-    labels:
-        service: kibana
-    image: ${KIBANA_IMAGE}
-    environment:
-      SERVER_NAME: ${DOCKER_HOST_3}
-      ELASTICSEARCH_URL: https://${DOCKER_HOST_3}:9200
-      NODE_TLS_REJECT_UNAUTHORIZED: 0
-      NODE_EXTRA_CA_CERTS: /usr/share/kibana/config/ca_cert.pem
-    volumes:
-      - storage:/usr/share/kibana/data
-    ports:
-      - target: 5601
-        published: 5601
-        protocol: tcp
-        mode: host
-    logging:
-      options:
-        labels: "service"
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role == worker
-          - node.labels.kibana == true
-          - node.labels.zone == c
       endpoint_mode: dnsrr
       update_config:
         parallelism: 1

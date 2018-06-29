@@ -1,15 +1,11 @@
 {
-  "ca_file": "/consul/config/ca_cert.pem",
-  "key_file": "/consul/config/consul_key.pem",
   "cert_file": "/consul/config/consul_cert.pem",
   "log_level": "info",
-  "verify_outgoing": true,
   "leave_on_terminate": true,
   "translate_wan_addrs": true,
   "disable_update_check": true,
   "enable_script_checks": true,
   "skip_leave_on_interrupt": true,
-  "ports": { "https": 8500, "http": -1 },
   "dns_config": {
     "allow_stale": true,
     "max_stale": "1s",
@@ -26,7 +22,7 @@
       "checks": [{
           "id": "dns",
           "name": "Consul DNS",
-          "tcp": "localhost:8600",
+          "tcp": "consul2:8600",
           "interval": "60s"
       }]
   },{
@@ -38,7 +34,7 @@
       "checks": [{
           "id": "ui",
           "name": "Consul UI",
-          "http": "https://localhost:8500/ui",
+          "http": "https://consul2:8500/ui",
           "tls_skip_verify": true,
           "method": "GET",
           "interval": "120s"
@@ -89,18 +85,6 @@
           "id": "logstash2",
           "name": "Logstash",
           "args": ["nc", "-z", "-u", "-v", "logstash2", "12201"],
-          "interval": "120s"
-      }]
-  },{
-      "name": "kibana2",
-      "tags": [
-          "tcp", "kibana"
-      ],
-      "port": 5601,
-      "checks": [{
-          "id": "kibana2",
-          "name": "Kibana",
-          "tcp": "kibana2:5601",
           "interval": "120s"
       }]
   },{

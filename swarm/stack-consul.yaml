@@ -291,8 +291,8 @@ secrets:
     file: ${SECRETS_PATH}/consul_cert.pem
 configs:
   consul1_config:
-    file: consul1.json
+    file: consul.json
   consul2_config:
-    file: consul2.json
+    file: consul.json
   consul3_config:
-    file: consul3.json
+    file: consul.json

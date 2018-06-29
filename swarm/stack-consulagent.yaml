@@ -1,0 +1,194 @@
+version: '3.4'
+services:
+  consulagent0:
+    labels:
+        service: consul
+    image: consul:latest
+    command: 'consul agent -node=consulagent0 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+    logging:
+      options:
+        labels: "service"
+    # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.consul == true
+          - node.labels.zone == a
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    secrets:
+      - source: consul_cert
+        target: /consul/config/consul_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: consul0_config
+        target: /consul/config/consul.json
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+  consulagent1:
+      labels:
+          service: consul
+      image: consul:latest
+      command: 'consul agent -node=consulagent1 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+      logging:
+        options:
+          labels: "service"
+      # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
+      deploy:
+        mode: global
+        placement:
+          constraints:
+            - node.role == worker
+            - node.labels.consul == true
+            - node.labels.zone == a
+        endpoint_mode: dnsrr
+        update_config:
+          parallelism: 1
+          failure_action: rollback
+          delay: 30s
+        restart_policy:
+          condition: any
+          delay: 5s
+          window: 120s
+        resources:
+          limits:
+            cpus: '1'
+            memory: 128M
+          reservations:
+            cpus: '0.1'
+            memory: 64M
+      secrets:
+        - source: consul_cert
+          target: /consul/config/consul_cert.pem
+          uid: '100'
+          gid: '1000'
+          mode: 0440
+      configs:
+        - source: consul1_config
+          target: /consul/config/consul.json
+          uid: '100'
+          gid: '1000'
+          mode: 0440
+  consulagent2:
+    labels:
+        service: consul
+    image: consul:latest
+    command: 'consul agent -node=consulagent2 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+    logging:
+      options:
+        labels: "service"
+    # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.consul == true
+          - node.labels.zone == b
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    secrets:
+      - source: consul_cert
+        target: /consul/config/consul_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: consul2_config
+        target: /consul/config/consul.json
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+  consulagent3:
+    labels:
+        service: consul
+    image: consul:latest
+    command: 'consul agent -node=consulagent3 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+    logging:
+      options:
+        labels: "service"
+    # Use DNS Round Robin instead VIP for discovery. This ensures we get all running consul server instances when querying consul.server
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.consul == true
+          - node.labels.zone == c
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    secrets:
+      - source: consul_cert
+        target: /consul/config/consul_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: consul3_config
+        target: /consul/config/consul.json
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+networks:
+  default:
+    external:
+      name: services
+secrets:
+  consul_cert:
+    file: ${SECRETS_PATH}/consul_cert.pem
+configs:
+  consul0_config:
+    file: consul0.json
+  consul1_config:
+    file: consul1.json
+  consul2_config:
+    file: consul2.json
+  consul3_config:
+    file: consul3.json
