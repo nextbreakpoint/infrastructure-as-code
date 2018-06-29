@@ -2,9 +2,9 @@ version: '3.4'
 services:
   consulagent0:
     labels:
-        service: consul
+        service: consulagent
     image: consul:latest
-    command: 'consul agent -node=consulagent0 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+    command: 'consul agent -node=consulagent0 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_0}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     logging:
       options:
         labels: "service"
@@ -46,9 +46,9 @@ services:
         mode: 0440
   consulagent1:
       labels:
-          service: consul
+          service: consulagent
       image: consul:latest
-      command: 'consul agent -node=consulagent1 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+      command: 'consul agent -node=consulagent1 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
       logging:
         options:
           labels: "service"
@@ -90,9 +90,9 @@ services:
           mode: 0440
   consulagent2:
     labels:
-        service: consul
+        service: consulagent
     image: consul:latest
-    command: 'consul agent -node=consulagent2 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+    command: 'consul agent -node=consulagent2 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_1}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     logging:
       options:
         labels: "service"
@@ -134,9 +134,9 @@ services:
         mode: 0440
   consulagent3:
     labels:
-        service: consul
+        service: consulagent
     image: consul:latest
-    command: 'consul agent -node=consulagent3 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
+    command: 'consul agent -node=consulagent3 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client="0.0.0.0" -bind="0.0.0.0" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_1}" -advertise="${DOCKER_HOST_3}" --retry-join="${DOCKER_HOST_2}" --retry-join="${DOCKER_HOST_3}" -encrypt=${CONSUL_SECRET}'
     logging:
       options:
         labels: "service"
