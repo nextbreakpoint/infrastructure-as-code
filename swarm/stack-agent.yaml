@@ -13,7 +13,7 @@ services:
       placement:
         constraints:
           - node.role == manager
-          - node.labels.consul == true
+          - node.labels.agent == true
           - node.labels.zone == a
       endpoint_mode: dnsrr
       update_config:
@@ -56,7 +56,7 @@ services:
         placement:
           constraints:
             - node.role == worker
-            - node.labels.consul == true
+            - node.labels.agent == true
             - node.labels.zone == a
         endpoint_mode: dnsrr
         update_config:
@@ -100,7 +100,7 @@ services:
       placement:
         constraints:
           - node.role == worker
-          - node.labels.consul == true
+          - node.labels.agent == true
           - node.labels.zone == b
       endpoint_mode: dnsrr
       update_config:
@@ -144,7 +144,7 @@ services:
       placement:
         constraints:
           - node.role == worker
-          - node.labels.consul == true
+          - node.labels.agent == true
           - node.labels.zone == c
       endpoint_mode: dnsrr
       update_config:
@@ -183,10 +183,10 @@ secrets:
     file: ${SECRETS_PATH}/consul_cert.pem
 configs:
   consul0_config:
-    file: consul0.json
+    file: consul-agent0.json
   consul1_config:
-    file: consul1.json
+    file: consul-agent1.json
   consul2_config:
-    file: consul2.json
+    file: consul-agent2.json
   consul3_config:
-    file: consul3.json
+    file: consul-agent3.json

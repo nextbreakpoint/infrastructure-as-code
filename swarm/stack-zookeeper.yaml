@@ -56,7 +56,7 @@ services:
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
   zookeeper2:
@@ -115,7 +115,7 @@ services:
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
   zookeeper3:
@@ -174,7 +174,7 @@ services:
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
 networks:

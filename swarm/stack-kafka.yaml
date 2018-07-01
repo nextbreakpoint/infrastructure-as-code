@@ -62,27 +62,27 @@ services:
     secrets:
       - source: keystore1
         target: /secrets/keystore.jks
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: keystore_password1
         target: /secrets/keystore_password.txt
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: truststore1
         target: /secrets/truststore.jks
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: truststore_password1
         target: /secrets/truststore_password.txt
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: jaas_config
         target: /secrets/zookeeper_kafka_jaas.conf
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
   kafka2:
@@ -147,27 +147,27 @@ services:
     secrets:
       - source: keystore2
         target: /secrets/keystore.jks
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: keystore_password2
         target: /secrets/keystore_password.txt
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: truststore2
         target: /secrets/truststore.jks
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: truststore_password2
         target: /secrets/truststore_password.txt
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: jaas_config
         target: /secrets/zookeeper_kafka_jaas.conf
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
   kafka3:
@@ -232,27 +232,27 @@ services:
     secrets:
       - source: keystore3
         target: /secrets/keystore.jks
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: keystore_password3
         target: /secrets/keystore_password.txt
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: truststore3
         target: /secrets/truststore.jks
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: truststore_password3
         target: /secrets/truststore_password.txt
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
       - source: jaas_config
         target: /secrets/zookeeper_kafka_jaas.conf
-        uid: '100'
+        uid: '1000'
         gid: '1000'
         mode: 0440
 networks:
