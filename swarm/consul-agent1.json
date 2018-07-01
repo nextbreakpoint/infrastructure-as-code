@@ -40,61 +40,61 @@
           "interval": "120s"
       }]
   },{
-      "name": "zookeeper1",
+      "name": "zookeeper",
       "tags": [
           "tcp", "zookeeper"
       ],
       "port": 2181,
       "checks": [{
-          "id": "zookeeper1",
+          "id": "zookeeper",
           "name": "Zookeeper",
           "tcp": "zookeeper1:2181",
           "interval": "120s"
       }]
   },{
-      "name": "kafka1",
+      "name": "kafka",
       "tags": [
           "tcp", "kafka"
       ],
       "port": 9092,
       "checks": [{
-          "id": "kafka1",
+          "id": "kafka",
           "name": "Kafka",
           "tcp": "kafka1:9092",
           "interval": "120s"
       }]
   },{
-      "name": "elasticsearch1",
+      "name": "elasticsearch",
       "tags": [
           "tcp", "elasticsearch"
       ],
       "port": 9200,
       "checks": [{
-          "id": "elasticsearch1",
+          "id": "elasticsearch",
           "name": "Elasticsearch",
           "tcp": "elasticsearch1:9200",
           "interval": "120s"
       }]
   },{
-      "name": "logstash1",
+      "name": "logstash",
       "tags": [
           "tcp", "logstash"
       ],
       "port": 12201,
       "checks": [{
-          "id": "logstash1",
+          "id": "logstash",
           "name": "Logstash",
           "args": ["nc", "-z", "-u", "-v", "logstash1", "12201"],
           "interval": "120s"
       }]
   },{
-      "name": "cassandra1",
+      "name": "cassandra",
       "tags": [
           "tcp", "cassandra"
       ],
       "port": 9042,
       "checks": [{
-          "id": "cassandra1",
+          "id": "cassandra",
           "name": "Cassandra",
           "tcp": "cassandra1:9042",
           "interval": "120s"
