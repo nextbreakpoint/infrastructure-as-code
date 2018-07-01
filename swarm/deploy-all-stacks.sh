@@ -11,3 +11,4 @@ eval $(docker-machine env docker-master)
 ./deploy-stack.sh graphite
 ./deploy-stack.sh grafana
 ./deploy-stack.sh consul
+./deploy-stack.sh nginx

@@ -170,9 +170,7 @@ Or create the infrastructure in several steps:
     ./run_script.sh create_secrets
     ./run_script.sh create_network
     ./run_script.sh create_lb
-    ./run_script.sh create_stack
-    ./run_script.sh create_elk
-    ./run_script.sh create_pipeline
+    ./run_script.sh create_ecs
 
 ## Create OpenVPN server
 
@@ -227,9 +225,7 @@ Destroy the infrastructure with command:
 
 Or destroy the infrastructure in several steps:
 
-    ./run_script.sh destroy_pipeline
-    ./run_script.sh destroy_elk
-    ./run_script.sh destroy_stack
+    ./run_script.sh destroy_ecs
     ./run_script.sh destroy_lb
     ./run_script.sh destroy_network
     ./run_script.sh destroy_secrets

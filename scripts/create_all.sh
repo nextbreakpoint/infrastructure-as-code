@@ -13,13 +13,5 @@ sh scripts/create_lb.sh
 echo "done."
 
 echo "Creating Stack..."
-sh scripts/create_stack.sh
-echo "done."
-
-echo "Creating ELK..."
-sh scripts/create_elk.sh
-echo "done."
-
-echo "Creating Pipeline..."
-sh scripts/create_pipeline.sh
+sh scripts/create_ecs.sh
 echo "done."

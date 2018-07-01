@@ -2,6 +2,7 @@
 
 eval $(docker-machine env docker-master)
 
+./remove-stack.sh nginx
 ./remove-stack.sh consul
 ./remove-stack.sh grafana
 ./remove-stack.sh graphite

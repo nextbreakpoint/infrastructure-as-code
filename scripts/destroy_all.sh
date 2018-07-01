@@ -1,15 +1,7 @@
 #!/bin/sh
 
-echo "Destroying Pipeline..."
-sh scripts/destroy_pipeline.sh
-echo "done."
-
-echo "Destroying ELK..."
-sh scripts/destroy_elk.sh
-echo "done."
-
 echo "Destroying stack..."
-sh scripts/destroy_stack.sh
+sh scripts/destroy_ecs.sh
 echo "done."
 
 echo "Destroying LBs..."

@@ -9,6 +9,7 @@ export CASSANDRA_VERSION=3.11
 export CONSUL_VERSION=latest
 export GRAPHITE_VERSION=latest
 export GRAFANA_VERSION=5.2.0
+export NGINX_VERSION=latest
 
 export KAFKA_IMAGE=nextbreakpoint/kafka:$KAFKA_VERSION-$KAFKA_REVISION
 export ZOOKEEPER_IMAGE=nextbreakpoint/zookeeper:$ZOOKEEPER_VERSION-$ZOOKEEPER_REVISION
@@ -19,6 +20,7 @@ export CASSANDRA_IMAGE=cassandra:${CASSANDRA_VERSION}
 export CONSUL_IMAGE=consul:${CONSUL_VERSION}
 export GRAPHITE_IMAGE=graphiteapp/graphite-statsd:${GRAPHITE_VERSION}
 export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
+export NGINX_IMAGE=nginx:${NGINX_VERSION}
 
 export SECRETS_PATH=$(pwd)/../secrets/generated
 
