@@ -13,5 +13,5 @@ sh scripts/create_lb.sh
 echo "done."
 
 echo "Creating Stack..."
-sh scripts/create_ecs.sh
+sh scripts/create_swarm.sh
 echo "done."

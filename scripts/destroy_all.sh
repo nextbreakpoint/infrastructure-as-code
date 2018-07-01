@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Destroying stack..."
-sh scripts/destroy_ecs.sh
+sh scripts/destroy_swarm.sh
 echo "done."
 
 echo "Destroying LBs..."
