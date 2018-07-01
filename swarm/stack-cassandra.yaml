@@ -6,17 +6,15 @@ services:
     image: ${CASSANDRA_IMAGE}
     environment:
       CASSANDRA_BROADCAST_ADDRESS: cassandra1
-      CASSANDRA_RACK: 1
-      CASSANDRA_DC: 1
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
+      CASSANDRA_RACK: rack1
+      CASSANDRA_DC: datacenter1
     volumes:
       - storage:/var/lib/cassandra
     ports:
       - target: 9042
         published: 9042
-        protocol: tcp
-        mode: host
-      - target: 9142
-        published: 9142
         protocol: tcp
         mode: host
     logging:
@@ -53,17 +51,15 @@ services:
     environment:
       CASSANDRA_BROADCAST_ADDRESS: cassandra2
       CASSANDRA_SEEDS: cassandra1
-      CASSANDRA_RACK: 2
-      CASSANDRA_DC: 1
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
+      CASSANDRA_RACK: rack2
+      CASSANDRA_DC: datacenter1
     volumes:
       - storage:/var/lib/cassandra
     ports:
       - target: 9042
         published: 9042
-        protocol: tcp
-        mode: host
-      - target: 9142
-        published: 9142
         protocol: tcp
         mode: host
     logging:
@@ -100,17 +96,15 @@ services:
     environment:
       CASSANDRA_BROADCAST_ADDRESS: cassandra3
       CASSANDRA_SEEDS: cassandra1
-      CASSANDRA_RACK: 3
-      CASSANDRA_DC: 1
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
+      CASSANDRA_RACK: rack3
+      CASSANDRA_DC: datacenter1
     volumes:
       - storage:/var/lib/cassandra
     ports:
       - target: 9042
         published: 9042
-        protocol: tcp
-        mode: host
-      - target: 9142
-        published: 9142
         protocol: tcp
         mode: host
     logging:

@@ -1,0 +1,25 @@
+
+{
+        "log-driver": "json-file",
+        "log-opts": {
+          "labels": "service"
+        },
+        "default-ulimits":
+        {
+                "nproc": {
+                        "Name": "nproc",
+                        "Hard": 4096,
+                        "Soft": 4096
+                },
+                "nofile": {
+                        "Name": "nofile",
+                        "Hard": 65536,
+                        "Soft": 65536
+                },
+                "memlock": {
+                        "Name": "memlock",
+                        "Hard": -1,
+                        "Soft": -1
+                }
+        }
+}

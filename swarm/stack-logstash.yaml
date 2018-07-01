@@ -6,7 +6,7 @@ services:
     image: ${LOGSTASH_IMAGE}
     environment:
       LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
-      ELASTICSEARCH_URL: https://${DOCKER_HOST_0}:9200
+      ELASTICSEARCH_URL: https://elasticsearch0:9200
     volumes:
       - storage:/usr/share/logstash/data
     ports:
@@ -49,10 +49,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 256M
+          memory: 512M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 256M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -91,7 +91,7 @@ services:
     image: ${LOGSTASH_IMAGE}
     environment:
       LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
-      ELASTICSEARCH_URL: https://${DOCKER_HOST_1}:9200
+      ELASTICSEARCH_URL: https://elasticsearch1:9200
     volumes:
       - storage:/usr/share/logstash/data
     ports:
@@ -134,10 +134,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 256M
+          memory: 512M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 256M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -176,7 +176,7 @@ services:
     image: ${LOGSTASH_IMAGE}
     environment:
       LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
-      ELASTICSEARCH_URL: https://${DOCKER_HOST_2}:9200
+      ELASTICSEARCH_URL: https://elasticsearch2:9200
     volumes:
       - storage:/usr/share/logstash/data
     ports:
@@ -219,10 +219,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 256M
+          memory: 512M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 256M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -261,7 +261,7 @@ services:
     image: ${LOGSTASH_IMAGE}
     environment:
       LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
-      ELASTICSEARCH_URL: https://${DOCKER_HOST_3}:9200
+      ELASTICSEARCH_URL: https://elasticsearch3:9200
     volumes:
       - storage:/usr/share/logstash/data
     ports:
@@ -304,10 +304,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 256M
+          memory: 512M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 256M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8

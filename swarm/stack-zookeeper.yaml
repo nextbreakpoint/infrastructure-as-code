@@ -6,7 +6,7 @@ services:
     image: ${ZOOKEEPER_IMAGE}
     environment:
       ZOO_MY_ID: 1
-      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=${DOCKER_HOST_2}:2888:3888 server.3=${DOCKER_HOST_3}:2888:3888
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zookeeper2:2888:3888 server.3=zookeeper3:2888:3888
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"
@@ -65,7 +65,7 @@ services:
     image: ${ZOOKEEPER_IMAGE}
     environment:
       ZOO_MY_ID: 2
-      ZOO_SERVERS: server.1=${DOCKER_HOST_1}:2888:3888 server.2=0.0.0.0:2888:3888 server.3=${DOCKER_HOST_3}:2888:3888
+      ZOO_SERVERS: server.1=zookeeper1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zookeeper3:2888:3888
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"
@@ -124,7 +124,7 @@ services:
     image: ${ZOOKEEPER_IMAGE}
     environment:
       ZOO_MY_ID: 3
-      ZOO_SERVERS: server.1=${DOCKER_HOST_1}:2888:3888 server.2=${DOCKER_HOST_2}:2888:3888 server.3=0.0.0.0:2888:3888
+      ZOO_SERVERS: server.1=zookeeper1:2888:3888 server.2=zookeeper2:2888:3888 server.3=0.0.0.0:2888:3888
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"

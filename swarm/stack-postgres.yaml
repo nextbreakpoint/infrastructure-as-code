@@ -12,7 +12,7 @@ services:
       - target: 5432
         published: 5432
         protocol: tcp
-        mode: ingress
+        mode: host
     logging:
       options:
         labels: "service"
@@ -22,6 +22,7 @@ services:
         constraints:
           - node.role == manager
           - node.labels.postgres == true
+      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback

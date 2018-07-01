@@ -6,7 +6,7 @@ services:
     image: ${ELASTICSEARCH_IMAGE}
     environment:
       ES_JAVA_OPTS: "-Xms400M -Xmx400M -Dnetworkaddress.cache.ttl=1"
-      network.publish_host: ${DOCKER_HOST_0}
+      network.publish_host: elasticsearch0
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:
@@ -73,7 +73,7 @@ services:
     image: ${ELASTICSEARCH_IMAGE}
     environment:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
-      network.publish_host: ${DOCKER_HOST_1}
+      network.publish_host: elasticsearch1
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:
@@ -140,7 +140,7 @@ services:
     image: ${ELASTICSEARCH_IMAGE}
     environment:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
-      network.publish_host: ${DOCKER_HOST_2}
+      network.publish_host: elasticsearch2
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:
@@ -207,7 +207,7 @@ services:
     image: ${ELASTICSEARCH_IMAGE}
     environment:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
-      network.publish_host: ${DOCKER_HOST_3}
+      network.publish_host: elasticsearch3
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:

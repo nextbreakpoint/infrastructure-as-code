@@ -5,8 +5,8 @@ services:
         service: kibana
     image: ${KIBANA_IMAGE}
     environment:
-      SERVER_NAME: ${DOCKER_HOST_0}
-      ELASTICSEARCH_URL: https://${DOCKER_HOST_0}:9200
+      SERVER_NAME: kibana
+      ELASTICSEARCH_URL: https://elasticsearch0:9200
       NODE_TLS_REJECT_UNAUTHORIZED: 0
       NODE_EXTRA_CA_CERTS: /usr/share/kibana/config/ca_cert.pem
     volumes:
