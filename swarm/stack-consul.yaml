@@ -10,6 +10,18 @@ services:
     volumes:
       - storage:/consul/data
     ports:
+      - target: 8300
+        published: 8300
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: udp
+        mode: host
       - target: 8500
         published: 8500
         protocol: tcp
@@ -80,6 +92,18 @@ services:
     volumes:
       - storage:/consul/data
     ports:
+      - target: 8300
+        published: 8300
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: udp
+        mode: host
       - target: 8500
         published: 8500
         protocol: tcp
@@ -150,6 +174,18 @@ services:
     volumes:
       - storage:/consul/data
     ports:
+      - target: 8300
+        published: 8300
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: tcp
+        mode: host
+      - target: 8302
+        published: 8302
+        protocol: udp
+        mode: host
       - target: 8500
         published: 8500
         protocol: tcp

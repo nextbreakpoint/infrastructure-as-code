@@ -3,7 +3,7 @@ services:
   postgres:
     labels:
         service: postgres
-    image: postgres
+    image: postgres:latest
     environment:
       POSTGRES_PASSWORD: password
     volumes:
@@ -34,7 +34,7 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '2'
+          cpus: '1'
           memory: 512M
         reservations:
           cpus: '0.1'

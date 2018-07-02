@@ -22,6 +22,12 @@ export GRAPHITE_IMAGE=graphiteapp/graphite-statsd:${GRAPHITE_VERSION}
 export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
 export NGINX_IMAGE=nginx:${NGINX_VERSION}
 
+export ADVERTISE_AGENT_0=$(docker-machine ip docker-master)
+export ADVERTISE_AGENT_1=$(docker-machine ip docker-worker1)
+export ADVERTISE_AGENT_2=$(docker-machine ip docker-worker2)
+export ADVERTISE_AGENT_3=$(docker-machine ip docker-worker3)
+
+export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments
 export SECRETS_PATH=$(pwd)/../secrets/generated
 
 export CONSUL_SECRET=$(cat $(pwd)/../config/consul.tfvars | jq -r ".consul_secret")
