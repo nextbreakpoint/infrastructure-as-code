@@ -169,122 +169,115 @@ data "aws_ami" "swarm" {
   owners = ["${var.account_id}"]
 }
 
-data "template_file" "swarm" {
+data "template_file" "swarm-manager" {
   template = "${file("provision/swarm.tpl")}"
 
   vars {
     aws_region        = "${var.aws_region}"
     environment       = "${var.environment}"
-    bucket_name       = "${var.secrets_bucket_name}"
-    cluster_name      = "${aws_ecs_cluster.services.name}"
-    consul_secret     = "${var.consul_secret}"
-    consul_datacenter = "${var.consul_datacenter}"
-    consul_nodes      = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
-    filebeat_version  = "${var.filebeat_version}"
-    security_groups   = "${aws_security_group.swarm.id}"
     hosted_zone_name  = "${var.hosted_zone_name}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
   }
 }
 
-resource "aws_instance" "swarm_master_a" {
+data "template_file" "swarm-worker" {
+  template = "${file("provision/swarm.tpl")}"
+
+  vars {
+    aws_region        = "${var.aws_region}"
+    environment       = "${var.environment}"
+    hosted_zone_name  = "${var.hosted_zone_name}"
+    hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+  }
+}
+
+resource "aws_instance" "swarm_manager_a" {
   ami                         = "${data.aws_ami.swarm.id}"
   instance_type               = "${var.swarm_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "150")}"
   security_groups             = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm.rendered}"
+  user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.key_name}"
 
   tags {
-    Name   = "swarm-master-a"
+    Name   = "swarm-manager-a"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_instance" "swarm_worker1_a" {
-  ami                         = "${data.aws_ami.swarm.id}"
-  instance_type               = "${var.swarm_instance_type}"
-  subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
-  private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "151")}"
-  security_groups             = ["${aws_security_group.swarm.id}"]
-  iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm.rendered}"
-  associate_public_ip_address = "false"
-  key_name                    = "${var.key_name}"
-
-  tags {
-    Name   = "swarm-worker1-a"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_instance" "swarm_worker2_a" {
-  ami                         = "${data.aws_ami.swarm.id}"
-  instance_type               = "${var.swarm_instance_type}"
-  subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
-  private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "152")}"
-  security_groups             = ["${aws_security_group.swarm.id}"]
-  iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm.rendered}"
-  associate_public_ip_address = "false"
-  key_name                    = "${var.key_name}"
-
-  tags {
-    Name   = "swarm-worker2-a"
-    Stream = "${var.stream_tag}"
-  }
-}
-
-resource "aws_instance" "swarm_master_b" {
+resource "aws_instance" "swarm_manager_b" {
   ami                         = "${data.aws_ami.swarm.id}"
   instance_type               = "${var.swarm_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "150")}"
-  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
+  security_groups             = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm.rendered}"
+  user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.key_name}"
 
   tags {
-    Name   = "swarm-master-b"
+    Name   = "swarm-manager-b"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_instance" "swarm_worker1_b" {
+resource "aws_instance" "swarm_manager_c" {
   ami                         = "${data.aws_ami.swarm.id}"
   instance_type               = "${var.swarm_instance_type}"
-  subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
-  private_ip                  = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "151")}"
-  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
+  subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
+  private_ip                  = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "150")}"
+  security_groups             = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm.rendered}"
+  user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.key_name}"
 
   tags {
-    Name   = "swarm-worker1-b"
+    Name   = "swarm-manager-c"
     Stream = "${var.stream_tag}"
   }
 }
 
-resource "aws_instance" "swarm_worker2_b" {
-  ami                         = "${data.aws_ami.swarm.id}"
+resource "aws_launch_configuration" "swarm-worker" {
+  name_prefix                 = "swarm-worker-"
+  image_id                    = "${data.aws_ami.swarm.id}"
   instance_type               = "${var.swarm_instance_type}"
-  subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
-  private_ip                  = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "152")}"
-  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
+  security_groups             = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm.rendered}"
+  user_data                   = "${data.template_file.swarm-worker.rendered}"
   associate_public_ip_address = "false"
-  key_name                    = "${var.key_name}"
 
-  tags {
-    Name   = "swarm-worker2-b"
-    Stream = "${var.stream_tag}"
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_autoscaling_group" "swarm-worker" {
+  name                      = "swarm-worker"
+  max_size                  = 12
+  min_size                  = 0
+  health_check_grace_period = 300
+  health_check_type         = "EC2"
+  desired_capacity          = 0
+  force_delete              = true
+  launch_configuration      = "${aws_launch_configuration.swarm-worker.name}"
+  vpc_zone_identifier       = ["${var.aws_subnet_private_a}", "${var.aws_subnet_private_b}", "${var.aws_subnet_private_c}"]
+
+  lifecycle {
+    create_before_destroy   = true
+  }
+
+  tag {
+    key                     = "Name"
+    value                   = "swarm-worker"
+    propagate_at_launch     = true
+  }
+
+  timeouts {
+    delete = "15m"
   }
 }

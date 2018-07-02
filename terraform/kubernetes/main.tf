@@ -153,30 +153,7 @@ data "template_file" "kubernetes_master_a" {
     environment       = "${var.environment}"
     bucket_name       = "${var.secrets_bucket_name}"
     security_groups   = "${aws_security_group.kubernetes.id}"
-    consul_secret     = "${var.consul_secret}"
-    consul_datacenter = "${var.consul_datacenter}"
-    consul_nodes      = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
     hosted_zone_name  = "${var.hosted_zone_name}"
-    filebeat_version  = "${var.filebeat_version}"
-    kubernetes_token  = "${var.kubernetes_token}"
-    pod_network_cidr  = "${var.kubernetes_pod_network_cidr}"
-    hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
-  }
-}
-
-data "template_file" "kubernetes_master_b" {
-  template = "${file("provision/kubernetes-master.tpl")}"
-
-  vars {
-    aws_region        = "${var.aws_region}"
-    environment       = "${var.environment}"
-    bucket_name       = "${var.secrets_bucket_name}"
-    security_groups   = "${aws_security_group.kubernetes.id}"
-    consul_datacenter = "${var.consul_datacenter}"
-    consul_secret     = "${var.consul_secret}"
-    consul_nodes      = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
-    hosted_zone_name  = "${var.hosted_zone_name}"
-    filebeat_version  = "${var.filebeat_version}"
     kubernetes_token  = "${var.kubernetes_token}"
     pod_network_cidr  = "${var.kubernetes_pod_network_cidr}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
@@ -184,18 +161,14 @@ data "template_file" "kubernetes_master_b" {
 }
 
 data "template_file" "kubernetes_worker_a" {
-  template = "${file("provision/kubernetes-node.tpl")}"
+  template = "${file("provision/kubernetes-worker.tpl")}"
 
   vars {
     aws_region             = "${var.aws_region}"
     environment            = "${var.environment}"
     bucket_name            = "${var.secrets_bucket_name}"
     security_groups        = "${aws_security_group.kubernetes.id}"
-    consul_secret          = "${var.consul_secret}"
-    consul_datacenter      = "${var.consul_datacenter}"
-    consul_nodes           = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
     hosted_zone_name       = "${var.hosted_zone_name}"
-    filebeat_version       = "${var.filebeat_version}"
     kubernetes_master_ip   = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "200")}"
     kubernetes_master_port = "6443"
     kubernetes_token       = "${var.kubernetes_token}"
@@ -203,27 +176,7 @@ data "template_file" "kubernetes_worker_a" {
   }
 }
 
-data "template_file" "kubernetes_worker_b" {
-  template = "${file("provision/kubernetes-node.tpl")}"
-
-  vars {
-    aws_region             = "${var.aws_region}"
-    environment            = "${var.environment}"
-    bucket_name            = "${var.secrets_bucket_name}"
-    security_groups        = "${aws_security_group.kubernetes.id}"
-    consul_secret          = "${var.consul_secret}"
-    consul_datacenter      = "${var.consul_datacenter}"
-    consul_nodes           = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_b, "0/24", "90")},${replace(var.aws_network_private_subnet_cidr_c, "0/24", "90")}"
-    hosted_zone_name       = "${var.hosted_zone_name}"
-    filebeat_version       = "${var.filebeat_version}"
-    kubernetes_master_ip   = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "200")}"
-    kubernetes_master_port = "6443"
-    kubernetes_token       = "${var.kubernetes_token}"
-    hosted_zone_dns        = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
-  }
-}
-
-resource "aws_instance" "kubernetes_a" {
+resource "aws_instance" "kubernetes_master_a" {
   ami                         = "${data.aws_ami.kubernetes.id}"
   instance_type               = "${var.kubernetes_instance_type}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "200")}"
@@ -240,8 +193,8 @@ resource "aws_instance" "kubernetes_a" {
   }
 }
 
-resource "aws_launch_configuration" "kubernetes" {
-  name_prefix                 = "kubernetes-"
+resource "aws_launch_configuration" "kubernetes_workers_a" {
+  name_prefix                 = "kubernetes-worker-"
   image_id                    = "${data.aws_ami.kubernetes.id}"
   instance_type               = "${var.kubernetes_instance_type}"
   security_groups             = ["${aws_security_group.kubernetes.id}"]
@@ -255,15 +208,15 @@ resource "aws_launch_configuration" "kubernetes" {
   }
 }
 
-resource "aws_autoscaling_group" "kubernetes" {
-  name                      = "kubernetes"
+resource "aws_autoscaling_group" "kubernetes_workers_a" {
+  name                      = "kubernetes-worker"
   max_size                  = 4
   min_size                  = 0
   health_check_grace_period = 300
   health_check_type         = "ELB"
   desired_capacity          = 1
   force_delete              = true
-  launch_configuration      = "${aws_launch_configuration.kubernetes.name}"
+  launch_configuration      = "${aws_launch_configuration.kubernetes_workers_a.name}"
 
   vpc_zone_identifier = [
     "${data.terraform_remote_state.network.network-private-subnet-a-id}",
@@ -281,7 +234,7 @@ resource "aws_autoscaling_group" "kubernetes" {
 
   tag {
     key                 = "Name"
-    value               = "kubernetes"
+    value               = "kubernetes-worker"
     propagate_at_launch = true
   }
 

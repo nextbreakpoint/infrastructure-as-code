@@ -81,16 +81,6 @@ variable "secrets_bucket_name" {}
 ### MANDATORY ###
 variable "base_version" {}
 
-### MANDATORY ###
-variable "filebeat_version" {}
-
 variable "swarm_instance_type" {
-  default = "t2.medium"
-}
-
-### MANDATORY ###
-variable "consul_secret" {}
-
-variable "consul_datacenter" {
-  default = "terraform"
+  default = "m4.large"
 }

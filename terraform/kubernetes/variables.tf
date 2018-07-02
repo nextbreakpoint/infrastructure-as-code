@@ -70,9 +70,6 @@ variable "secrets_bucket_name" {}
 variable "base_version" {}
 
 ### MANDATORY ###
-variable "filebeat_version" {}
-
-### MANDATORY ###
 variable "kubernetes_version" {}
 
 variable "kubernetes_instance_type" {
@@ -93,11 +90,4 @@ variable "kubernetes_elb_certificate_path" {
 
 variable "kubernetes_elb_private_key_path" {
   default = "../../secrets/server_key.pem"
-}
-
-### MANDATORY ###
-variable "consul_secret" {}
-
-variable "consul_datacenter" {
-  default = "terraform"
 }
