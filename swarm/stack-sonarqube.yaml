@@ -3,7 +3,7 @@ services:
   sonarqube:
     labels:
         service: sonarqube
-    image: sonarqube:7.1
+    image: ${SONARQUBE_IMAGE}
     environment:
       SONARQUBE_JDBC_USERNAME: sonarqube
       SONARQUBE_JDBC_PASSWORD: password

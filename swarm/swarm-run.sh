@@ -12,6 +12,7 @@ export CONSUL_VERSION=latest
 export GRAPHITE_VERSION=latest
 export GRAFANA_VERSION=5.2.0
 export NGINX_VERSION=latest
+export SONARQUBE_VERSION=6.5
 
 export KAFKA_IMAGE=nextbreakpoint/kafka:$KAFKA_VERSION-$KAFKA_REVISION
 export ZOOKEEPER_IMAGE=nextbreakpoint/zookeeper:$ZOOKEEPER_VERSION-$ZOOKEEPER_REVISION
@@ -24,6 +25,7 @@ export CONSUL_IMAGE=consul:${CONSUL_VERSION}
 export GRAPHITE_IMAGE=graphiteapp/graphite-statsd:${GRAPHITE_VERSION}
 export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
 export NGINX_IMAGE=nginx:${NGINX_VERSION}
+export SONARQUBE_IMAGE=sonarqube:${SONARQUBE_VERSION}
 
 export ADVERTISE_AGENT_0=$(docker-machine ip docker-master)
 export ADVERTISE_AGENT_1=$(docker-machine ip docker-worker1)
