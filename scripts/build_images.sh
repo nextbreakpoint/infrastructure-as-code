@@ -14,10 +14,6 @@ echo "Creating Docker AMI..."
 cd $ROOT/packer/docker && pk_create
 echo "done."
 
-echo "Creating ECS AMI..."
-cd $ROOT/packer/ecs && pk_create
-echo "done."
-
 echo "Creating OpenVPN AMI..."
 cd $ROOT/packer/openvpn && pk_create
 echo "done."
