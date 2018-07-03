@@ -2,10 +2,10 @@
 manage_etc_hosts: true
 manage_resolv_conf: false
 runcmd:
+  - sudo bash -c 'echo \"vm.max_map_count=1048575\" > /etc/sysctl.d/20-docker.conf'
+  - sudo bash -c 'echo \"vm.swappiness=1\" > /etc/sysctl.d/20-docker.conf'
   - sudo sysctl -w vm.max_map_count=1048575
   - sudo sysctl -w vm.swappiness=1
-  - sudo 'sed -i -e "\$a sysctl -w vm.max_map_count=1048575" /etc/sysctl.conf'
-  - sudo 'sed -i -e "\$a sysctl -w vm.swappiness=1" /etc/sysctl.conf'
   - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/swarm/ca_cert.pem /etc/docker/ca_cert.pem
   - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/swarm/server_key.pem /etc/docker/server_key.pem
   - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/swarm/server_cert.pem /etc/docker/server_cert.pem
