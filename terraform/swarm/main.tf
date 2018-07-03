@@ -158,7 +158,7 @@ data "aws_ami" "swarm" {
 
   filter {
     name   = "name"
-    values = ["base-${var.base_version}-*"]
+    values = ["docker-${var.base_version}-*"]
   }
 
   filter {

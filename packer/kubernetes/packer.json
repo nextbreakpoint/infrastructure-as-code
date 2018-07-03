@@ -14,7 +14,8 @@
     "ami_name_prefix": "kubernetes",
     "bastion_host": "",
     "bastion_username": "ec2-user",
-    "kubernetes_version": "",
+    "base_version": "",
+    "kubernetes_version": "1.8.0",
     "stream_tag": ""
   },
   "builders": [{
@@ -35,7 +36,7 @@
     "instance_type": "{{user `aws_instance_type`}}",
     "vpc_id": "{{user `aws_vpc_id`}}",
     "subnet_id": "{{user `aws_subnet_id`}}",
-    "ami_name": "{{user `ami_name_prefix`}}-{{user `kubernetes_version`}}-{{timestamp}}",
+    "ami_name": "{{user `ami_name_prefix`}}-{{user `base_version`}}-{{timestamp}}",
     "ami_regions": "{{user `aws_build_regions`}}",
     "communicator": "ssh",
     "ssh_pty": "true",
@@ -57,12 +58,12 @@
     },
     {
       "type": "shell",
-      "script": "../scripts/docker.sh",
+      "script": "../scripts/aws-cli.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
       "type": "shell",
-      "script": "../scripts/java.sh",
+      "script": "../scripts/docker.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
@@ -71,11 +72,6 @@
       "environment_vars": [
         "KUBERNETES_VERSION={{user `kubernetes_version`}}"
       ],
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "../scripts/aws-cli.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]

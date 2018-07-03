@@ -11,7 +11,7 @@
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
-    "ami_name_prefix": "base",
+    "ami_name_prefix": "docker",
     "bastion_host": "",
     "bastion_username": "ec2-user",
     "base_version": "",
@@ -53,22 +53,12 @@
     },
     {
       "type": "shell",
-      "script": "../scripts/docker.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
-      "script": "../scripts/java.sh",
-      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
-    },
-    {
-      "type": "shell",
       "script": "../scripts/aws-cli.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {
       "type": "shell",
-      "script": "../scripts/kibana-index-patterns.sh",
+      "script": "../scripts/docker.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     }
   ]

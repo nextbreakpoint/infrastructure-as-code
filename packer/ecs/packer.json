@@ -47,7 +47,7 @@
   }],
   "provisioners": [{
       "type": "shell",
-      "script": "../scripts/ecs-tools.sh",
+      "script": "../scripts/tools.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {

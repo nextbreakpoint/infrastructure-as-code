@@ -69,9 +69,6 @@ variable "secrets_bucket_name" {}
 ### MANDATORY ###
 variable "base_version" {}
 
-### MANDATORY ###
-variable "kubernetes_version" {}
-
 variable "kubernetes_instance_type" {
   default = "t2.medium"
 }

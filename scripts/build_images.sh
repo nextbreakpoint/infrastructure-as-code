@@ -10,8 +10,8 @@ echo "Network variables:"
 echo "{\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/network_vars.json
 cat $ROOT/config/network_vars.json
 
-echo "Creating Base AMI..."
-cd $ROOT/packer/base && pk_create
+echo "Creating Docker AMI..."
+cd $ROOT/packer/docker && pk_create
 echo "done."
 
 echo "Creating ECS AMI..."

@@ -136,7 +136,7 @@ data "aws_ami" "kubernetes" {
 
   filter {
     name   = "name"
-    values = ["kubernetes-${var.kubernetes_version}-*"]
+    values = ["kubernetes-${var.base_version}-*"]
   }
 
   filter {
