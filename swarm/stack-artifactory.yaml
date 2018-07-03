@@ -1,0 +1,51 @@
+version: '3.4'
+services:
+  artifactory:
+    labels:
+        service: artifactory
+    image: ${ARTIFACTORY_IMAGE}
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: artifactory
+      DB_PASSWORD: password
+    volumes:
+      - storage:/var/opt/jfrog/artifactory
+    ports:
+      - target: 8081
+        published: 8081
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.artifactory == true
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 600M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    storage:

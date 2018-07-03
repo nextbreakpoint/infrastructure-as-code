@@ -4,6 +4,8 @@ export KAFKA_VERSION=1.1.0
 export KAFKA_REVISION=1
 export ZOOKEEPER_VERSION=3.4.12
 export ZOOKEEPER_REVISION=1
+export ARTIFACTORY_VERSION=5.4.6
+export ARTIFACTORY_REVISION=1
 export ELASTICSTACK_VERSION=5.6.10
 export CASSANDRA_VERSION=3.11
 export CONSUL_VERSION=latest
@@ -13,6 +15,7 @@ export NGINX_VERSION=latest
 
 export KAFKA_IMAGE=nextbreakpoint/kafka:$KAFKA_VERSION-$KAFKA_REVISION
 export ZOOKEEPER_IMAGE=nextbreakpoint/zookeeper:$ZOOKEEPER_VERSION-$ZOOKEEPER_REVISION
+export ARTIFACTORY_IMAGE=nextbreakpoint/artifactory:$ARTIFACTORY_VERSION-$ARTIFACTORY_REVISION
 export ELASTICSEARCH_IMAGE=docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSTACK_VERSION}
 export LOGSTASH_IMAGE=docker.elastic.co/logstash/logstash:${ELASTICSTACK_VERSION}
 export KIBANA_IMAGE=docker.elastic.co/kibana/kibana:${ELASTICSTACK_VERSION}
