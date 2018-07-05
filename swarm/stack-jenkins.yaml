@@ -58,4 +58,4 @@ volumes:
     storage:
 secrets:
   jenkins_keystore:
-    file: ${ENVIRONMENT_SECRETS_PATH}/production/jenkins/keystore.jks
+    file: ${ENVIRONMENT_SECRETS_PATH}/jenkins/keystore.jks

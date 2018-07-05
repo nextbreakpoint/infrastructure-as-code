@@ -7,6 +7,12 @@ services:
     environment:
       ES_JAVA_OPTS: "-Xms400M -Xmx400M -Dnetworkaddress.cache.ttl=1"
       network.publish_host: elasticsearch0
+      discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
+      discovery.zen.minimum_master_nodes: 3
+      node.master: false
+      node.ingest: false
+      node.data: false
+      node.ml: false
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:
@@ -62,7 +68,7 @@ services:
         gid: '1000'
         mode: 0440
     configs:
-      - source: elasticsearch_route_config
+      - source: elasticsearch_config
         target: /usr/share/elasticsearch/config/elasticsearch.yml
         uid: '1000'
         gid: '1000'
@@ -74,6 +80,8 @@ services:
     environment:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: elasticsearch1
+      discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
+      discovery.zen.minimum_master_nodes: 3
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:
@@ -141,6 +149,8 @@ services:
     environment:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: elasticsearch2
+      discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
+      discovery.zen.minimum_master_nodes: 3
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:
@@ -208,6 +218,8 @@ services:
     environment:
       ES_JAVA_OPTS: "-Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1"
       network.publish_host: elasticsearch3
+      discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
+      discovery.zen.minimum_master_nodes: 3
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:
@@ -276,13 +288,11 @@ volumes:
     storage:
 secrets:
   elasticsearch_key:
-    file: ${SECRETS_PATH}/elasticsearch_key.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/elasticsearch/elasticsearch_key.pem
   elasticsearch_cert:
-    file: ${SECRETS_PATH}/elasticsearch_cert.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/elasticsearch/elasticsearch_cert.pem
   ca_cert:
-    file: ${SECRETS_PATH}/ca_cert.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/elasticsearch/ca_cert.pem
 configs:
   elasticsearch_config:
     file: elasticsearch.yaml
-  elasticsearch_route_config:
-    file: elasticsearch_route.yaml

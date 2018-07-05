@@ -32,8 +32,8 @@ export ADVERTISE_AGENT_1=$(docker-machine ip docker-worker1)
 export ADVERTISE_AGENT_2=$(docker-machine ip docker-worker2)
 export ADVERTISE_AGENT_3=$(docker-machine ip docker-worker3)
 
-export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments
-export SECRETS_PATH=$(pwd)/../secrets/generated
+export ENVIRONMENT=production
+export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}
 
 export CONSUL_SECRET=$(cat $(pwd)/../config/consul.tfvars | jq -r ".consul_secret")
 export CONSUL_DATACENTER=internal

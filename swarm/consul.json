@@ -1,7 +1,7 @@
 {
   "ca_file": "/consul/config/ca_cert.pem",
-  "key_file": "/consul/config/consul_key.pem",
-  "cert_file": "/consul/config/consul_cert.pem",
+  "key_file": "/consul/config/server_key.pem",
+  "cert_file": "/consul/config/server_cert.pem",
   "log_level": "info",
   "verify_outgoing": true,
   "leave_on_terminate": true,

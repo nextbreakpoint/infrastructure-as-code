@@ -66,13 +66,13 @@ services:
         uid: '100'
         gid: '1000'
         mode: 0440
-      - source: consul_key
-        target: /consul/config/consul_key.pem
+      - source: server_key
+        target: /consul/config/server_key.pem
         uid: '100'
         gid: '1000'
         mode: 0440
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
+      - source: server_cert
+        target: /consul/config/server_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -148,13 +148,13 @@ services:
         uid: '100'
         gid: '1000'
         mode: 0440
-      - source: consul_key
-        target: /consul/config/consul_key.pem
+      - source: server_key
+        target: /consul/config/server_key.pem
         uid: '100'
         gid: '1000'
         mode: 0440
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
+      - source: server_cert
+        target: /consul/config/server_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -230,13 +230,13 @@ services:
         uid: '100'
         gid: '1000'
         mode: 0440
-      - source: consul_key
-        target: /consul/config/consul_key.pem
+      - source: server_key
+        target: /consul/config/server_key.pem
         uid: '100'
         gid: '1000'
         mode: 0440
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
+      - source: server_cert
+        target: /consul/config/server_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -254,11 +254,11 @@ volumes:
     storage:
 secrets:
   ca_cert:
-    file: ${SECRETS_PATH}/ca_cert.pem
-  consul_key:
-    file: ${SECRETS_PATH}/consul_key.pem
-  consul_cert:
-    file: ${SECRETS_PATH}/consul_cert.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/consul/ca_cert.pem
+  server_key:
+    file: ${ENVIRONMENT_SECRETS_PATH}/consul/server_key.pem
+  server_cert:
+    file: ${ENVIRONMENT_SECRETS_PATH}/consul/server_cert.pem
 configs:
   consul_config:
     file: consul.json

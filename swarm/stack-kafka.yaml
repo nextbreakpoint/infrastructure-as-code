@@ -60,22 +60,22 @@ services:
           cpus: '0.1'
           memory: 512M
     secrets:
-      - source: keystore1
+      - source: keystore
         target: /secrets/keystore.jks
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: keystore_password1
+      - source: keystore_password
         target: /secrets/keystore_password.txt
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: truststore1
+      - source: truststore
         target: /secrets/truststore.jks
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: truststore_password1
+      - source: truststore_password
         target: /secrets/truststore_password.txt
         uid: '1000'
         gid: '1000'
@@ -145,22 +145,22 @@ services:
           cpus: '0.1'
           memory: 512m
     secrets:
-      - source: keystore2
+      - source: keystore
         target: /secrets/keystore.jks
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: keystore_password2
+      - source: keystore_password
         target: /secrets/keystore_password.txt
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: truststore2
+      - source: truststore
         target: /secrets/truststore.jks
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: truststore_password2
+      - source: truststore_password
         target: /secrets/truststore_password.txt
         uid: '1000'
         gid: '1000'
@@ -230,22 +230,22 @@ services:
           cpus: '0.1'
           memory: 512M
     secrets:
-      - source: keystore3
+      - source: keystore
         target: /secrets/keystore.jks
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: keystore_password3
+      - source: keystore_password
         target: /secrets/keystore_password.txt
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: truststore3
+      - source: truststore
         target: /secrets/truststore.jks
         uid: '1000'
         gid: '1000'
         mode: 0440
-      - source: truststore_password3
+      - source: truststore_password
         target: /secrets/truststore_password.txt
         uid: '1000'
         gid: '1000'
@@ -262,29 +262,13 @@ networks:
 volumes:
     storage:
 secrets:
-  keystore1:
-    file: ${SECRETS_PATH}/kafka1-server-keystore.jks
-  keystore_password1:
+  keystore:
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/server-keystore.jks
+  keystore_password:
     file: secrets/password_keystore.txt
-  keystore2:
-    file: ${SECRETS_PATH}/kafka2-server-keystore.jks
-  keystore_password2:
-    file: secrets/password_keystore.txt
-  keystore3:
-    file: ${SECRETS_PATH}/kafka3-server-keystore.jks
-  keystore_password3:
-    file: secrets/password_keystore.txt
-  truststore1:
-    file: ${SECRETS_PATH}/kafka1-server-truststore.jks
-  truststore_password1:
-    file: secrets/password_truststore.txt
-  truststore2:
-    file: ${SECRETS_PATH}/kafka2-server-truststore.jks
-  truststore_password2:
-    file: secrets/password_truststore.txt
-  truststore3:
-    file: ${SECRETS_PATH}/kafka3-server-truststore.jks
-  truststore_password3:
+  truststore:
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/server-truststore.jks
+  truststore_password:
     file: secrets/password_truststore.txt
   jaas_config:
     file: secrets/zookeeper_kafka_jaas.conf

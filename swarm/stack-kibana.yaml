@@ -73,11 +73,11 @@ volumes:
     storage:
 secrets:
   kibana_key:
-    file: ${SECRETS_PATH}/kibana_key.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/kibana/kibana_key.pem
   kibana_cert:
-    file: ${SECRETS_PATH}/kibana_cert.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/kibana/kibana_cert.pem
   ca_cert:
-    file: ${SECRETS_PATH}/ca_cert.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/kibana/ca_cert.pem
 configs:
   kibana_config:
     file: kibana.yaml

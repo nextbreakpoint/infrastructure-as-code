@@ -41,8 +41,8 @@ services:
           cpus: '0.1'
           memory: 64M
     secrets:
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
+      - source: server_cert
+        target: /consul/config/server_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -93,8 +93,8 @@ services:
             cpus: '0.1'
             memory: 64M
       secrets:
-        - source: consul_cert
-          target: /consul/config/consul_cert.pem
+        - source: server_cert
+          target: /consul/config/server_cert.pem
           uid: '100'
           gid: '1000'
           mode: 0440
@@ -145,8 +145,8 @@ services:
           cpus: '0.1'
           memory: 64M
     secrets:
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
+      - source: server_cert
+        target: /consul/config/server_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -197,8 +197,8 @@ services:
           cpus: '0.1'
           memory: 64M
     secrets:
-      - source: consul_cert
-        target: /consul/config/consul_cert.pem
+      - source: server_cert
+        target: /consul/config/server_cert.pem
         uid: '100'
         gid: '1000'
         mode: 0440
@@ -213,8 +213,8 @@ networks:
     external:
       name: services
 secrets:
-  consul_cert:
-    file: ${SECRETS_PATH}/consul_cert.pem
+  server_cert:
+    file: ${ENVIRONMENT_SECRETS_PATH}/consul/server_cert.pem
 configs:
   consul0_config:
     file: consul-agent0.json

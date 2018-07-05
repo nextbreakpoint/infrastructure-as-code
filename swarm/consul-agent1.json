@@ -1,5 +1,5 @@
 {
-  "cert_file": "/consul/config/consul_cert.pem",
+  "cert_file": "/consul/config/server_cert.pem",
   "log_level": "info",
   "leave_on_terminate": true,
   "translate_wan_addrs": true,

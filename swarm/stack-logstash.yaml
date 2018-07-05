@@ -348,11 +348,11 @@ volumes:
     storage:
 secrets:
   logstash_key:
-    file: ${SECRETS_PATH}/logstash_key.pkcs8
+    file: ${ENVIRONMENT_SECRETS_PATH}/logstash/logstash_key.pkcs8
   logstash_cert:
-    file: ${SECRETS_PATH}/logstash_cert.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/logstash/logstash_cert.pem
   ca_cert:
-    file: ${SECRETS_PATH}/ca_cert.pem
+    file: ${ENVIRONMENT_SECRETS_PATH}/logstash/ca_cert.pem
 configs:
   logstash_config:
     file: logstash.yaml
