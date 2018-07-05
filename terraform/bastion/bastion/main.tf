@@ -16,7 +16,6 @@ resource "aws_instance" "bastion" {
   user_data                   = "${var.user_data}"
   key_name                    = "${var.key_name}"
   associate_public_ip_address = true
-  # source_dest_check           = false
 
   tags = {
     Name   = "${var.name}"

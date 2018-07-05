@@ -86,27 +86,27 @@ resource "aws_subnet" "bastion_a" {
   }
 }
 
-resource "aws_subnet" "bastion_b" {
-  vpc_id                  = "${data.terraform_remote_state.vpc.bastion-vpc-id}"
-  availability_zone       = "${format("%s%s", var.aws_region, "b")}"
-  cidr_block              = "${var.aws_bastion_subnet_cidr_b}"
-  map_public_ip_on_launch = true
-
-  tags {
-    Name   = "bastion-b"
-    Stream = "${var.stream_tag}"
-  }
-}
+# resource "aws_subnet" "bastion_b" {
+#   vpc_id                  = "${data.terraform_remote_state.vpc.bastion-vpc-id}"
+#   availability_zone       = "${format("%s%s", var.aws_region, "b")}"
+#   cidr_block              = "${var.aws_bastion_subnet_cidr_b}"
+#   map_public_ip_on_launch = true
+#
+#   tags {
+#     Name   = "bastion-b"
+#     Stream = "${var.stream_tag}"
+#   }
+# }
 
 resource "aws_route_table_association" "bastion_a" {
   subnet_id      = "${aws_subnet.bastion_a.id}"
   route_table_id = "${aws_route_table.bastion.id}"
 }
 
-resource "aws_route_table_association" "bastion_b" {
-  subnet_id      = "${aws_subnet.bastion_b.id}"
-  route_table_id = "${aws_route_table.bastion.id}"
-}
+# resource "aws_route_table_association" "bastion_b" {
+#   subnet_id      = "${aws_subnet.bastion_b.id}"
+#   route_table_id = "${aws_route_table.bastion.id}"
+# }
 
 data "template_file" "bastion" {
   template = "${file("provision/bastion.tpl")}"
@@ -148,10 +148,26 @@ module "bastion_a" {
   user_data       = "${data.template_file.bastion.rendered}"
 }
 
+module "bastion_b" {
+  source = "./bastion"
+
+  name            = "bastion-b"
+  stream_tag      = "${var.stream_tag}"
+  ami             = "${lookup(var.amazon_nat_ami, var.aws_region)}"
+  # ami             = "${data.aws_ami.bastion.id}"
+  instance_type   = "${var.bastion_instance_type}"
+  key_name        = "${var.key_name}"
+  key_path        = "${var.key_path}"
+  security_groups = "${aws_security_group.bastion.id}"
+  subnet_id       = "${aws_subnet.bastion_b.id}"
+  user_data       = "${data.template_file.bastion.rendered}"
+}
+
 resource "aws_route53_record" "bastion" {
   zone_id = "${var.hosted_zone_id}"
   name    = "bastion.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "60"
   records = ["${module.bastion_a.public-ips}"]
+  # records = ["${module.bastion_a.public-ips}","${module.bastion_b.public-ips}"]
 }
