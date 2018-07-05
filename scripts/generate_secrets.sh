@@ -241,6 +241,8 @@ else
 
 fi
 
+### Copy certificates and keys
+
 DST=$ROOT/secrets/environments/production/keystores
 
 mkdir -p $DST
@@ -250,7 +252,14 @@ cp $OUTPUT/keystore-server.jks $DST
 cp $OUTPUT/truststore-client.jks $DST
 cp $OUTPUT/truststore-server.jks $DST
 
-### Copy certificates and keys
+DST=$ROOT/secrets/environments/production/kafka
+
+mkdir -p $DST
+
+cp $OUTPUT/keystore-client.jks $DST
+cp $OUTPUT/keystore-server.jks $DST
+cp $OUTPUT/truststore-client.jks $DST
+cp $OUTPUT/truststore-server.jks $DST
 
 DST=$ROOT/secrets/environments/production/nginx
 
