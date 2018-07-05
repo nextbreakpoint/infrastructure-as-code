@@ -43,7 +43,14 @@ resource "aws_security_group" "swarm" {
     from_port   = 2376
     to_port     = 2376
     protocol    = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port   = 2375
+    to_port     = 2375
+    protocol    = "tcp"
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}"]
   }
 
   ingress {
@@ -280,4 +287,16 @@ resource "aws_autoscaling_group" "swarm-worker" {
   timeouts {
     delete = "15m"
   }
+}
+
+resource "aws_route53_record" "bastion" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "swarm.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [
+    "${aws_instance.swarm_manager_a.private_ip}",
+    "${aws_instance.swarm_manager_b.private_ip}",
+    "${aws_instance.swarm_manager_c.private_ip}"
+  ]
 }

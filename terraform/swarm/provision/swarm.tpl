@@ -21,12 +21,12 @@ write_files:
     permissions: '0644'
     content: |
         {
+            "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"],
             "tls": true,
             "tlsverify": true,
             "tlscacert": "/etc/docker/ssl/ca.pem",
             "tlscert": "/etc/docker/ssl/server-cert.pem",
-            "tlskey": "/etc/docker/ssl/server-key.pem"
-            "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
+            "tlskey": "/etc/docker/ssl/server-key.pem",
             "experimental": true,
             "log-driver": "gelf",
             "log-opts": {
