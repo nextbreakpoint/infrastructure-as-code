@@ -169,7 +169,6 @@ resource "aws_security_group" "network_nat" {
 resource "aws_instance" "network_nat_a" {
   instance_type = "${var.nat_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
   subnet_id                   = "${aws_subnet.network_public_a.id}"
@@ -180,7 +179,6 @@ resource "aws_instance" "network_nat_a" {
   source_dest_check = false
 
   connection {
-    # The default username for our AMI
     user     = "ec2-user"
     type     = "ssh"
     key_file = "${var.key_path}"
@@ -195,7 +193,6 @@ resource "aws_instance" "network_nat_a" {
 resource "aws_instance" "network_nat_b" {
   instance_type = "${var.nat_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
   subnet_id                   = "${aws_subnet.network_public_b.id}"
@@ -206,7 +203,6 @@ resource "aws_instance" "network_nat_b" {
   source_dest_check = false
 
   connection {
-    # The default username for our AMI
     user     = "ec2-user"
     type     = "ssh"
     key_file = "${var.key_path}"
@@ -221,7 +217,6 @@ resource "aws_instance" "network_nat_b" {
 resource "aws_instance" "network_nat_c" {
   instance_type = "${var.nat_instance_type}"
 
-  # Lookup the correct AMI based on the region we specified
   ami = "${lookup(var.amazon_nat_ami, var.aws_region)}"
 
   subnet_id                   = "${aws_subnet.network_public_c.id}"
@@ -232,7 +227,6 @@ resource "aws_instance" "network_nat_c" {
   source_dest_check = false
 
   connection {
-    # The default username for our AMI
     user     = "ec2-user"
     type     = "ssh"
     key_file = "${var.key_path}"
