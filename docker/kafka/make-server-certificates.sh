@@ -14,27 +14,27 @@ fi
 
 if [ "$NAME" == "" ] ; then
   echo "Please provide the subject CN as second argument."
-  exit 2
+  exit 1
 fi
 
 if [ "$KEYSTORE_PASSWORD" == "" ] ; then
   echo "Please provide a keystore password as third argument"
-  exit 3
+  exit 1
 fi
 
 if [ "$TRUSTSTORE_PASSWORD" == "" ] ; then
   echo "Please provide a truststore password as fourth argument"
-  exit 4
+  exit 1
 fi
 
 if [ "$CA_KEY_PASSWORD" == "" ] ; then
   echo "Please provide a CA key password as fifth argument"
-  exit 5
+  exit 1
 fi
 
 if [ "$CA_PREFIX" == "" ] ; then
   echo "Please provide a CA certificate prefix as first argument"
-  exit 6
+  exit 1
 fi
 
 docker run --rm -it -v $(pwd)/secrets:/secrets openjdk:10-jre-slim bash -c " \

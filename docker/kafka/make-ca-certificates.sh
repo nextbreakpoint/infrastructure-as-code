@@ -11,12 +11,12 @@ fi
 
 if [ "$NAME" == "" ] ; then
   echo "Please provide the subject CN as second argument."
-  exit 2
+  exit 1
 fi
 
 if [ "$CA_KEY_PASSWORD" == "" ] ; then
   echo "Please provide a CA key password as third argument"
-  exit 3
+  exit 1
 fi
 
 docker run --rm -it -v $(pwd)/secrets:/secrets openjdk:10-jre-slim bash -c " \
