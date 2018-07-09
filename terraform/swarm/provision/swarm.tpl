@@ -9,6 +9,8 @@ runcmd:
   - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/swarm/ca_cert.pem /etc/docker/ca_cert.pem
   - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/swarm/server_key.pem /etc/docker/server_key.pem
   - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/swarm/server_cert.pem /etc/docker/server_cert.pem
+  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/swarm/client_key.pem /etc/docker/client_key.pem
+  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/swarm/client_cert.pem /etc/docker/client_cert.pem
   - sudo chown -R docker:docker /etc/docker/*.pem
   - sudo usermod -aG docker ubuntu
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`

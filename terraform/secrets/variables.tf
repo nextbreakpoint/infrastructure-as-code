@@ -19,4 +19,9 @@ variable "stream_tag" {
 }
 
 ### MANDATORY ###
+variable "environment" {
+  default = "production"  
+}
+
+### MANDATORY ###
 variable "secrets_bucket_name" {}

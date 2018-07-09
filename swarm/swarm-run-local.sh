@@ -27,12 +27,7 @@ export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
 export NGINX_IMAGE=nginx:${NGINX_VERSION}
 export SONARQUBE_IMAGE=sonarqube:${SONARQUBE_VERSION}
 
-export ADVERTISE_AGENT_0=$(docker-machine ip docker-master)
-export ADVERTISE_AGENT_1=$(docker-machine ip docker-worker1)
-export ADVERTISE_AGENT_2=$(docker-machine ip docker-worker2)
-export ADVERTISE_AGENT_3=$(docker-machine ip docker-worker3)
-
-export ENVIRONMENT=production
+export ENVIRONMENT=$(cat $(pwd)/../config/config.tfvars | grep environment)
 export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}
 
 export CONSUL_SECRET=$(cat $(pwd)/../config/consul.tfvars | jq -r ".consul_secret")

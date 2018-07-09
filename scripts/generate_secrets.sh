@@ -243,7 +243,7 @@ fi
 
 ### Copy certificates and keys
 
-DST=$ROOT/secrets/environments/production/keystores
+DST=$ROOT/secrets/environments/$ENVIRONMENT/keystores
 
 mkdir -p $DST
 
@@ -252,7 +252,17 @@ cp $OUTPUT/keystore-server.jks $DST
 cp $OUTPUT/truststore-client.jks $DST
 cp $OUTPUT/truststore-server.jks $DST
 
-DST=$ROOT/secrets/environments/production/kafka
+DST=$ROOT/secrets/environments/$ENVIRONMENT/swarm
+
+mkdir -p $DST
+
+cp $OUTPUT/ca_cert.pem $DST
+cp $OUTPUT/server_cert.pem $DST
+cp $OUTPUT/server_key.pem $DST
+cp $OUTPUT/client_cert.pem $DST
+cp $OUTPUT/client_key.pem $DST
+
+DST=$ROOT/secrets/environments/$ENVIRONMENT/kafka
 
 mkdir -p $DST
 
@@ -261,7 +271,7 @@ cp $OUTPUT/keystore-server.jks $DST
 cp $OUTPUT/truststore-client.jks $DST
 cp $OUTPUT/truststore-server.jks $DST
 
-DST=$ROOT/secrets/environments/production/nginx
+DST=$ROOT/secrets/environments/$ENVIRONMENT/nginx
 
 mkdir -p $DST
 
@@ -270,7 +280,7 @@ cp $OUTPUT/server_cert.pem $DST
 cp $OUTPUT/server_key.pem $DST
 cp $OUTPUT/ca_and_server_cert.pem $DST
 
-DST=$ROOT/secrets/environments/production/filebeat
+DST=$ROOT/secrets/environments/$ENVIRONMENT/filebeat
 
 mkdir -p $DST
 
@@ -279,7 +289,7 @@ cp $OUTPUT/filebeat_cert.pem $DST
 cp $OUTPUT/filebeat_key.pem $DST
 cp $OUTPUT/filebeat_key.pkcs8 $DST
 
-DST=$ROOT/secrets/environments/production/kibana
+DST=$ROOT/secrets/environments/$ENVIRONMENT/kibana
 
 mkdir -p $DST
 
@@ -288,7 +298,7 @@ cp $OUTPUT/kibana_cert.pem $DST
 cp $OUTPUT/kibana_key.pem $DST
 cp $OUTPUT/kibana_key.pkcs8 $DST
 
-DST=$ROOT/secrets/environments/production/logstash
+DST=$ROOT/secrets/environments/$ENVIRONMENT/logstash
 
 mkdir -p $DST
 
@@ -297,7 +307,7 @@ cp $OUTPUT/logstash_cert.pem $DST
 cp $OUTPUT/logstash_key.pem $DST
 cp $OUTPUT/logstash_key.pkcs8 $DST
 
-DST=$ROOT/secrets/environments/production/elasticsearch
+DST=$ROOT/secrets/environments/$ENVIRONMENT/elasticsearch
 
 mkdir -p $DST
 
@@ -306,7 +316,7 @@ cp $OUTPUT/elasticsearch_cert.pem $DST
 cp $OUTPUT/elasticsearch_key.pem $DST
 cp $OUTPUT/elasticsearch_key.pkcs8 $DST
 
-DST=$ROOT/secrets/environments/production/consul
+DST=$ROOT/secrets/environments/$ENVIRONMENT/consul
 
 mkdir -p $DST
 
@@ -314,13 +324,13 @@ cp $OUTPUT/ca_cert.pem $DST
 cp $OUTPUT/consul_cert.pem $DST/server_cert.pem
 cp $OUTPUT/consul_key.pem $DST/server_key.pem
 
-DST=$ROOT/secrets/environments/production/jenkins
+DST=$ROOT/secrets/environments/$ENVIRONMENT/jenkins
 
 mkdir -p $DST
 
 cp $OUTPUT/keystore-jenkins.jks $DST/keystore.jks
 
-DST=$ROOT/secrets/environments/production/openvpn
+DST=$ROOT/secrets/environments/$ENVIRONMENT/openvpn
 
 mkdir -p $DST
 
