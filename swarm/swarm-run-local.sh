@@ -27,7 +27,7 @@ export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
 export NGINX_IMAGE=nginx:${NGINX_VERSION}
 export SONARQUBE_IMAGE=sonarqube:${SONARQUBE_VERSION}
 
-export ENVIRONMENT=$(cat $(pwd)/../config/config.tfvars | grep environment)
+export ENVIRONMENT=$(cat $(pwd)/../config/config.tfvars | grep environment | awk -F = '{ print $2 }')
 export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}
 
 export CONSUL_SECRET=$(cat $(pwd)/../config/consul.tfvars | jq -r ".consul_secret")

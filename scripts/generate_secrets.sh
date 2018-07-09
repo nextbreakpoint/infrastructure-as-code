@@ -1,5 +1,9 @@
 #!/bin/sh
 
+export ENVIRONMENT=$(cat $(pwd)/config/config.tfvars | grep environment | awk -F = '{ print $2 }')
+
+echo "Generating secrets for environment "$ENVIRONMENT
+
 OUTPUT=$ROOT/secrets/generated
 
 if [ ! -d "$OUTPUT" ]; then
@@ -280,7 +284,7 @@ EOF
 
 else
 
-echo "Secrets folder already exists. Skipping!"
+echo "Secrets folder already exists. Just copying files..."
 
 fi
 
@@ -321,7 +325,7 @@ DST=$ROOT/secrets/environments/$ENVIRONMENT/zookeeper
 
 mkdir -p $DST
 
-cp $OUTPUT/zookeeper_jaas.conf $DST/server_jaas.conf 
+cp $OUTPUT/zookeeper_jaas.conf $DST/server_jaas.conf
 
 DST=$ROOT/secrets/environments/$ENVIRONMENT/nginx
 
