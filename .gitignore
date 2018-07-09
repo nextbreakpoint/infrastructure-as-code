@@ -21,5 +21,3 @@ network_vars.json
 /openvpn
 **/tfplan
 images.json
-docker/kafka/secrets
-swarm/secrets
