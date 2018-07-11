@@ -15,18 +15,10 @@ variable "aws_profile" {
 ###################################################################
 
 ### MANDATORY ###
-variable "key_name" {
-  description = "Name of the SSH keypair to use in AWS."
-}
+variable "environment" {}
 
 ### MANDATORY ###
-variable "key_path" {
-  description = "Path to the private portion of the SSH key specified."
-}
-
-variable "stream_tag" {
-  default = "terraform"
-}
+variable "colour" {}
 
 ### MANDATORY ###
 variable "hosted_zone_name" {}
@@ -42,28 +34,3 @@ variable "aws_network_vpc_cidr" {}
 
 ### MANDATORY ###
 variable "aws_openvpn_vpc_cidr" {}
-
-### MANDATORY ###
-variable "aws_network_private_subnet_cidr_a" {
-  description = "Private subnet A cidr block"
-}
-
-### MANDATORY ###
-variable "aws_network_private_subnet_cidr_b" {
-  description = "Private subnet B cidr block"
-}
-
-### MANDATORY ###
-variable "aws_network_private_subnet_cidr_c" {
-  description = "Private subnet C cidr block"
-}
-
-### MANDATORY ###
-variable "account_id" {}
-
-variable "environment" {
-  default = "production"
-}
-
-### MANDATORY ###
-variable "secrets_bucket_name" {}

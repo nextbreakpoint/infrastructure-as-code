@@ -19,8 +19,9 @@ resource "aws_subnet" "network_public_a" {
   map_public_ip_on_launch = true
 
   tags {
-    Name   = "public-a"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-public-a"
   }
 }
 
@@ -31,8 +32,9 @@ resource "aws_subnet" "network_public_b" {
   map_public_ip_on_launch = true
 
   tags {
-    Name   = "public-b"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-public-b"
   }
 }
 
@@ -43,8 +45,9 @@ resource "aws_subnet" "network_public_c" {
   map_public_ip_on_launch = true
 
   tags {
-    Name   = "public-c"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-public-c"
   }
 }
 
@@ -54,8 +57,9 @@ resource "aws_subnet" "network_private_a" {
   cidr_block        = "${var.aws_network_private_subnet_cidr_a}"
 
   tags {
-    Name   = "private-a"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-private-a"
   }
 }
 
@@ -65,8 +69,9 @@ resource "aws_subnet" "network_private_b" {
   cidr_block        = "${var.aws_network_private_subnet_cidr_b}"
 
   tags {
-    Name   = "private-b"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-private-b"
   }
 }
 
@@ -76,8 +81,9 @@ resource "aws_subnet" "network_private_c" {
   cidr_block        = "${var.aws_network_private_subnet_cidr_c}"
 
   tags {
-    Name   = "private-c"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-private-c"
   }
 }
 
@@ -104,8 +110,9 @@ resource "aws_route_table" "network_public" {
   }
 
   tags {
-    Name   = "network-public"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network-public"
   }
 }
 
@@ -129,7 +136,7 @@ resource "aws_route_table_association" "network_public_c" {
 ##############################################################################
 
 resource "aws_security_group" "network_nat" {
-  name        = "NAT"
+  name        = "${var.environment}-${var.colour}-NAT"
   description = "NAT security group"
   vpc_id      = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -162,7 +169,8 @@ resource "aws_security_group" "network_nat" {
   }
 
   tags {
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
   }
 }
 
@@ -174,19 +182,20 @@ resource "aws_instance" "network_nat_a" {
   subnet_id                   = "${aws_subnet.network_public_a.id}"
   associate_public_ip_address = "true"
   vpc_security_group_ids      = ["${aws_security_group.network_nat.id}"]
-  key_name                    = "${var.key_name}"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   source_dest_check = false
 
-  connection {
-    user     = "ec2-user"
-    type     = "ssh"
-    key_file = "${var.key_path}"
-  }
+  # connection {
+  #   user     = "ec2-user"
+  #   type     = "ssh"
+  #   key_file = "${var.key_path}/${var.environment}-${var.colour}-${var.key_name}.pem"
+  # }
 
   tags {
-    Name   = "nat-box-a"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-natbox-a"
   }
 }
 
@@ -198,19 +207,20 @@ resource "aws_instance" "network_nat_b" {
   subnet_id                   = "${aws_subnet.network_public_b.id}"
   associate_public_ip_address = "true"
   vpc_security_group_ids      = ["${aws_security_group.network_nat.id}"]
-  key_name                    = "${var.key_name}"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   source_dest_check = false
 
-  connection {
-    user     = "ec2-user"
-    type     = "ssh"
-    key_file = "${var.key_path}"
-  }
+  # connection {
+  #   user     = "ec2-user"
+  #   type     = "ssh"
+  #   key_file = "${var.key_path}/${var.environment}-${var.colour}-${var.key_name}.pem"
+  # }
 
   tags {
-    Name   = "nat-box-b"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-natbox-b"
   }
 }
 
@@ -222,19 +232,20 @@ resource "aws_instance" "network_nat_c" {
   subnet_id                   = "${aws_subnet.network_public_c.id}"
   associate_public_ip_address = "true"
   vpc_security_group_ids      = ["${aws_security_group.network_nat.id}"]
-  key_name                    = "${var.key_name}"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   source_dest_check = false
 
-  connection {
-    user     = "ec2-user"
-    type     = "ssh"
-    key_file = "${var.key_path}"
-  }
+  # connection {
+  #   user     = "ec2-user"
+  #   type     = "ssh"
+  #   key_file = "${var.key_path}/${var.environment}-${var.colour}-${var.key_name}.pem"
+  # }
 
   tags {
-    Name   = "nat-box-c"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-natbox-c"
   }
 }
 
@@ -289,8 +300,9 @@ resource "aws_route_table" "network_private_a" {
   }
 
   tags {
-    Name   = "network-private-a"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network-private-a"
   }
 }
 
@@ -315,8 +327,9 @@ resource "aws_route_table" "network_private_b" {
   }
 
   tags {
-    Name   = "network-private-b"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network-private-b"
   }
 }
 
@@ -341,8 +354,9 @@ resource "aws_route_table" "network_private_c" {
   }
 
   tags {
-    Name   = "network-private-c"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network-private-c"
   }
 }
 

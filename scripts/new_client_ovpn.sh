@@ -2,7 +2,10 @@
 
 echo "Generating OpenVPN client configuration..."
 
-OUTPUT=$ROOT/secrets/openvpn
+ENVIRONMENT=$(cat $ROOT/config/config.json | jq -r ".environment")
+COLOUR=$(cat $ROOT/config/config.json | jq -r ".colour")
+
+OUTPUT=$ROOT/secrets/openvpn/$ENVIRONMENT/$COLOUR
 SOURCE=$ROOT/secrets
 
 if [ ! -z "$1" ]; then

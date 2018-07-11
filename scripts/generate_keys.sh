@@ -1,6 +1,10 @@
 #!/bin/sh
 
-KEYFILE=$ROOT/deployer_key.pem
+ENVIRONMENT=$(cat $ROOT/config/config.json | jq -r ".environment")
+COLOUR=$(cat $ROOT/config/config.json | jq -r ".colour")
+KEY_NAME=$(cat $ROOT/config/other.json | jq -r ".key_name")
+
+KEYFILE=$ROOT/${ENVIRONMENT}-${COLOUR}-${KEY_NAME}.pem
 
 if [ ! -f "$KEYFILE" ]; then
 

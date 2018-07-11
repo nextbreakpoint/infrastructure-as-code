@@ -27,14 +27,18 @@ export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
 export NGINX_IMAGE=nginx:${NGINX_VERSION}
 export SONARQUBE_IMAGE=sonarqube:${SONARQUBE_VERSION}
 
-export ENVIRONMENT=$(cat $(pwd)/../config/config.tfvars | grep environment | awk -F = '{ print $2 }')
-export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}
+export ENVIRONMENT=$(cat $(pwd)/../config/config.json | jq -r ".environment")
+export COLOUR=$(cat $(pwd)/../config/config.json | jq -r ".colour")
 
-export CONSUL_SECRET=$(cat $(pwd)/../config/consul.tfvars | jq -r ".consul_secret")
-export CONSUL_DATACENTER=internal
+export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}/${COLOUR}
 
-export DOCKER_HOST=tcp://swarm.$(cat $(pwd)/../config/config.tfvars | grep hosted_zone_name | awk -F = '{ print $2 }'):2375
+export CONSUL_DATACENTER=$(cat $(pwd)/../config/config.json | jq -r ".consul_datacenter")
+export CONSUL_SECRET=$(cat $(pwd)/../config/consul.json | jq -r ".consul_secret")
+
+export HOSTED_ZONE_NAME=$(cat $(pwd)/../config/config.json | jq -r ".hosted_zone_name")
+
+export DOCKER_HOST=tcp://${ENVIRONMENT}-${COLOUR}-swarm.${HOSTED_ZONE_NAME}:2375
 export DOCKER_TLS=1
 export DOCKER_CERT_PATH=${ENVIRONMENT_SECRETS_PATH}/swarm
 
-$2
+$1

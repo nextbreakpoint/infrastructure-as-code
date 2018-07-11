@@ -7,4 +7,4 @@ find . -name "*.tf.backup" -exec rm {} \;
 find . -name "*.tfstate.backup" -exec rm {} \;
 find . -name ".terraform" -exec rm -fR {} \;
 
-rm -fR secrets config/consult.tfvars config/network_vars.json
+rm -fR secrets config/consult.json config/bastion.json

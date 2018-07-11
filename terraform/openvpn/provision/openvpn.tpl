@@ -2,11 +2,11 @@
 manage_etc_hosts: true
 manage_resolv_conf: false
 runcmd:
-  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/openvpn/ca_cert.pem /etc/openvpn/ca_cert.pem
-  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/openvpn/server_key.pem /etc/openvpn/server_key.pem
-  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/openvpn/server_cert.pem /etc/openvpn/server_cert.pem
-  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/openvpn/ta.pem /etc/openvpn/ta.pem
-  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/openvpn/dh2048.pem /etc/openvpn/dh2048.pem
+  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/${colour}/openvpn/ca_cert.pem /etc/openvpn/ca_cert.pem
+  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/${colour}/openvpn/server_key.pem /etc/openvpn/server_key.pem
+  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/${colour}/openvpn/server_cert.pem /etc/openvpn/server_cert.pem
+  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/${colour}/openvpn/ta.pem /etc/openvpn/ta.pem
+  - sudo aws s3 cp s3://${bucket_name}/environments/${environment}/${colour}/openvpn/dh2048.pem /etc/openvpn/dh2048.pem
   - export HOST_IP_ADDRESS=`ifconfig eth0 | grep "inet " | awk '{ print substr($2,6) }'`
   - sudo sed -i "10i \*nat\n:POSTROUTING ACCEPT \[0:0\]\n-A POSTROUTING -s ${openvpn_cidr} -o eth0 -j MASQUERADE\nCOMMIT" /etc/ufw/before.rules
   - sudo sed -i 's/DEFAULT_FORWARD_POLICY=\"DROP\"/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/g' /etc/default/ufw
@@ -24,6 +24,7 @@ write_files:
     permissions: '0644'
     content: |
         ENVIRONMENT=${environment}
+        COLOUR=${colour}
   - path: /etc/sysctl.conf
     permissions: '0644'
     content: |

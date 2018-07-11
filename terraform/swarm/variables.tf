@@ -15,17 +15,14 @@ variable "aws_profile" {
 ###################################################################
 
 ### MANDATORY ###
-variable "key_name" {
-  description = "Name of the SSH keypair to use in AWS."
-}
+variable "environment" {}
 
 ### MANDATORY ###
-variable "key_path" {
-  description = "Path to the private portion of the SSH key specified."
-}
+variable "colour" {}
 
-variable "stream_tag" {
-  default = "terraform"
+### MANDATORY ###
+variable "key_name" {
+  description = "Name of the SSH keypair to use in AWS."
 }
 
 variable "volume_name" {
@@ -41,7 +38,19 @@ variable "volume_encrypted" {
 }
 
 ### MANDATORY ###
+variable "account_id" {}
+
+### MANDATORY ###
+variable "base_version" {}
+
+### MANDATORY ###
 variable "hosted_zone_name" {}
+
+### MANDATORY ###
+variable "hosted_zone_id" {}
+
+### MANDATORY ###
+variable "secrets_bucket_name" {}
 
 ### MANDATORY ###
 variable "aws_bastion_vpc_cidr" {}
@@ -66,20 +75,6 @@ variable "aws_network_private_subnet_cidr_b" {
 variable "aws_network_private_subnet_cidr_c" {
   description = "Private subnet C cidr block"
 }
-
-### MANDATORY ###
-variable "account_id" {}
-
-### MANDATORY ###
-variable "environment" {
-  default = "production"
-}
-
-### MANDATORY ###
-variable "secrets_bucket_name" {}
-
-### MANDATORY ###
-variable "base_version" {}
 
 variable "swarm_instance_type" {
   default = "m4.large"

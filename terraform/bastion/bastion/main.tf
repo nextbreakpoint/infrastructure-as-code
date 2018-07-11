@@ -1,11 +1,11 @@
+variable "environment" {}
+variable "colour" {}
 variable "name" {}
-variable "stream_tag" {}
 variable "ami" {}
 variable "instance_type" {}
-variable "key_path" {}
-variable "key_name" {}
 variable "security_groups" {}
 variable "subnet_id" {}
+variable "key_name" {}
 variable "user_data" {}
 
 resource "aws_instance" "bastion" {
@@ -18,7 +18,8 @@ resource "aws_instance" "bastion" {
   associate_public_ip_address = true
 
   tags = {
-    Name   = "${var.name}"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.name}"
   }
 }

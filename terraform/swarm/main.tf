@@ -8,10 +8,6 @@ provider "aws" {
   version = "~> 0.1"
 }
 
-provider "terraform" {
-  version = "~> 0.1"
-}
-
 provider "template" {
   version = "~> 0.1"
 }
@@ -21,7 +17,7 @@ provider "template" {
 ##############################################################################
 
 resource "aws_security_group" "swarm" {
-  name        = "swarm"
+  name        = "${var.environment}-${var.colour}-swarm"
   description = "Swarm security group"
   vpc_id      = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -96,12 +92,13 @@ resource "aws_security_group" "swarm" {
   }
 
   tags {
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
   }
 }
 
 resource "aws_iam_role" "swarm" {
-  name = "swarm"
+  name = "${var.environment}-${var.colour}-swarm"
 
   assume_role_policy = <<EOF
 {
@@ -129,7 +126,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "swarm" {
-  name = "swarm"
+  name = "${var.environment}-${var.colour}-swarm"
   role = "${aws_iam_role.swarm.id}"
 
   policy = <<EOF
@@ -156,7 +153,7 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "swarm" {
-  name = "swarm"
+  name = "${var.environment}-${var.colour}-swarm"
   role = "${aws_iam_role.swarm.name}"
 }
 
@@ -165,7 +162,7 @@ data "aws_ami" "swarm" {
 
   filter {
     name   = "name"
-    values = ["docker-${var.base_version}-*"]
+    values = ["docker-${var.environment}-${var.colour}-${var.base_version}-*"]
   }
 
   filter {
@@ -182,6 +179,8 @@ data "template_file" "swarm-manager" {
   vars {
     aws_region        = "${var.aws_region}"
     environment       = "${var.environment}"
+    colour            = "${var.colour}"
+    bucket_name       = "${var.secrets_bucket_name}"
     hosted_zone_name  = "${var.hosted_zone_name}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
   }
@@ -193,6 +192,8 @@ data "template_file" "swarm-worker" {
   vars {
     aws_region        = "${var.aws_region}"
     environment       = "${var.environment}"
+    colour            = "${var.colour}"
+    bucket_name       = "${var.secrets_bucket_name}"
     hosted_zone_name  = "${var.hosted_zone_name}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
   }
@@ -207,11 +208,12 @@ resource "aws_instance" "swarm_manager_a" {
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
-  key_name                    = "${var.key_name}"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   tags {
-    Name   = "swarm-manager-a"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-swarm-manager-a"
   }
 }
 
@@ -224,11 +226,12 @@ resource "aws_instance" "swarm_manager_b" {
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
-  key_name                    = "${var.key_name}"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   tags {
-    Name   = "swarm-manager-b"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-swarm-manager-b"
   }
 }
 
@@ -241,16 +244,17 @@ resource "aws_instance" "swarm_manager_c" {
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
-  key_name                    = "${var.key_name}"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   tags {
-    Name   = "swarm-manager-c"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-swarm-manager-c"
   }
 }
 
 resource "aws_launch_configuration" "swarm-worker" {
-  name_prefix                 = "swarm-worker-"
+  name_prefix                 = "${var.environment}-${var.colour}-swarm-worker-"
   image_id                    = "${data.aws_ami.swarm.id}"
   instance_type               = "${var.swarm_instance_type}"
   security_groups             = ["${aws_security_group.swarm.id}"]
@@ -264,7 +268,7 @@ resource "aws_launch_configuration" "swarm-worker" {
 }
 
 resource "aws_autoscaling_group" "swarm-worker" {
-  name                      = "swarm-worker"
+  name                      = "${var.environment}-${var.colour}-swarm-worker"
   max_size                  = 12
   min_size                  = 0
   health_check_grace_period = 300
@@ -272,15 +276,31 @@ resource "aws_autoscaling_group" "swarm-worker" {
   desired_capacity          = 0
   force_delete              = true
   launch_configuration      = "${aws_launch_configuration.swarm-worker.name}"
-  vpc_zone_identifier       = ["${var.aws_subnet_private_a}", "${var.aws_subnet_private_b}", "${var.aws_subnet_private_c}"]
+  vpc_zone_identifier       = [
+    "${data.terraform_remote_state.network.network-private-subnet-a-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-b-id}",
+    "${data.terraform_remote_state.network.network-private-subnet-c-id}"
+  ]
 
   lifecycle {
     create_before_destroy   = true
   }
 
   tag {
+    key                     = "Environment"
+    value                   = "${var.environment}"
+    propagate_at_launch     = true
+  }
+
+  tag {
+    key                     = "Colour"
+    value                   = "${var.colour}"
+    propagate_at_launch     = true
+  }
+
+  tag {
     key                     = "Name"
-    value                   = "swarm-worker"
+    value                   = "${var.environment}-${var.colour}-swarm-worker"
     propagate_at_launch     = true
   }
 
@@ -291,7 +311,7 @@ resource "aws_autoscaling_group" "swarm-worker" {
 
 resource "aws_route53_record" "bastion" {
   zone_id = "${var.hosted_zone_id}"
-  name    = "swarm.${var.hosted_zone_name}"
+  name    = "${var.environment}-${var.colour}-swarm.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "60"
   records = [

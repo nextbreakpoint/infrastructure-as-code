@@ -15,18 +15,21 @@ variable "aws_profile" {
 ###################################################################
 
 ### MANDATORY ###
+variable "environment" {}
+
+### MANDATORY ###
+variable "colour" {}
+
+### MANDATORY ###
 variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
 }
 
 ### MANDATORY ###
-variable "key_path" {
-  description = "Path to the private portion of the SSH key specified."
-}
+variable "base_version" {}
 
-variable "stream_tag" {
-  default = "terraform"
-}
+### MANDATORY ###
+variable "account_id" {}
 
 ### MANDATORY ###
 variable "hosted_zone_name" {}
@@ -44,25 +47,10 @@ variable "aws_openvpn_vpc_cidr" {}
 variable "aws_bastion_vpc_cidr" {}
 
 ### MANDATORY ###
-variable "account_id" {}
-
-### MANDATORY ###
-variable "environment" {
-  default = "production"
-}
-
-### MANDATORY ###
 variable "secrets_bucket_name" {}
 
-### MANDATORY ###
-variable "base_version" {}
-
-### MANDATORY ###
-variable "openvpn_ami" {}
-
-### MANDATORY ###
-variable "openvpn_instance_type" {
-  default = "t2.small"
+variable "openvpn_cidr" {
+  default = "10.8.0.0/16"
 }
 
 ### MANDATORY ###
@@ -71,6 +59,9 @@ variable "aws_openvpn_subnet_cidr_a" {}
 ### MANDATORY ###
 variable "aws_openvpn_subnet_cidr_b" {}
 
-variable "openvpn_cidr" {
-  default = "10.8.0.0/16"
+### MANDATORY ###
+variable "aws_openvpn_subnet_cidr_c" {}
+
+variable "openvpn_instance_type" {
+  default = "t2.small"
 }

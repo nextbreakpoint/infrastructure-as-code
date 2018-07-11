@@ -76,32 +76,32 @@ The script will set the bucket name and region in all remote_state.tf files.
 
 ## Configure Terraform and Packer
 
-Create a file config.tfvars in config directory. The file should look like:
-
-    # AWS Account
-    account_id="your_account_id"
-
-    # Public Hosted Zone
-    hosted_zone_name="yourdomain.com"
-    hosted_zone_id="your_public_zone_id"
-
-    # Secrets bucket
-    secrets_bucket_name="secrets_bucket_name"
-
-    # Usernames and passwords
-    mysql_root_password="your_password"
-    mysql_sonarqube_password="your_password"
-    mysql_artifactory_password="your_password"
-
-    kibana_password="your_password"
-    logstash_password="your_password"
-    elasticsearch_password="your_password"
-
-Create a file config_vars.json in config directory. The file should look like:
+Create a file config.json in config directory. The file should look like:
 
     {
-      "account_id": "your_account_id",
-      "bastion_host": "bastion.yourdomain.com"
+        "account_id": "your_account_id",
+
+        "environment": "production",
+
+        "colour": "green",
+
+        "hosted_zone_name": "yourdomain.com",
+        "hosted_zone_id": "your_public_zone_id",
+
+        "bastion_host": "bastion.yourdomain.com",
+
+        "secrets_bucket_name": "your_bucket_name",
+
+        "consul_datacenter": "internal",
+
+        "kafka_password": "your_password",
+        "zoo_password": "your_password",
+        "mysql_root_password": "your_password",
+        "mysql_sonarqube_password": "your_password",
+        "mysql_artifactory_password": "your_password",
+        "kibana_password": "your_password",
+        "logstash_password": "your_password",
+        "elasticsearch_password": "your_password"
     }
 
 The domain yourdomain.com must be a valid domain hosted in a Route53 public zone.
@@ -170,7 +170,7 @@ Or create the infrastructure in several steps:
     ./run_script.sh create_secrets
     ./run_script.sh create_network
     ./run_script.sh create_lb
-    ./run_script.sh create_ecs
+    ./run_script.sh create_swarm
 
 ## Create OpenVPN server
 
@@ -182,28 +182,28 @@ Create OpenVPN server with command:
 
 Copy the deployer key to Bastion machine:
 
-    scp -i deployer_key.pem deployer_key.pem ec2-user@bastion.yourdomain.com:~
+    scp -i production-green-deployer.pem production-green-deployer.pem ec2-user@bastion.yourdomain.com:~
 
 Connect to bastion server using the command:
 
-    ssh -i deployer_key.pem ec2-user@bastion.yourdomain.com
+    ssh -i production-green-deployer.pem ec2-user@bastion.yourdomain.com
 
 Connect to other machines using the command:
 
-    ssh -i deployer_key.pem ubuntu@private_ip_address
+    ssh -i production-green-deployer.pem ubuntu@private_ip_address
 
 ## Access machines using OpenVPN
 
 A default client configuration is automatically generated at location:
 
-    secrets/openvpn_client.ovpn
+    secrets/openvpn/production/green/openvpn_client.ovpn
 
 Install the configuration in your OpenVPN client. Connect your client.
 OpenVPN server is configured to allow connections to any internal servers.
 
 Login into OpenVPN server if you need to modify the server configuration:
 
-    ssh -i deployer_key.pem ubuntu@openvpn.yourdomain.com
+    ssh -i production-green-deployer.pem ubuntu@openvpn.yourdomain.com
 
 Edit file /etc/openvpn/server.conf and then restart the server:
 
@@ -215,7 +215,7 @@ Finally, you should create a new configuration for each client using the command
 
 The new client configuration is generated at location:
 
-    secrets/openvpn/openvpn_name.ovpn
+    secrets/openvpn/production/green/openvpn_name.ovpn
 
 ## Destroy infrastructure
 
@@ -225,7 +225,7 @@ Destroy the infrastructure with command:
 
 Or destroy the infrastructure in several steps:
 
-    ./run_script.sh destroy_ecs
+    ./run_script.sh destroy_swarm
     ./run_script.sh destroy_lb
     ./run_script.sh destroy_network
     ./run_script.sh destroy_secrets
