@@ -32,21 +32,21 @@ resource "aws_security_group" "swarm" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
     from_port   = 2376
     to_port     = 2376
     protocol    = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
     from_port   = 2375
     to_port     = 2375
     protocol    = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
@@ -135,7 +135,8 @@ resource "aws_iam_role_policy" "swarm" {
   "Statement": [
     {
       "Action": [
-        "ec2:DescribeInstances"
+        "ec2:DescribeInstances",
+        "ssm:UpdateInstanceInformation"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -309,7 +310,7 @@ resource "aws_autoscaling_group" "swarm-worker" {
   }
 }
 
-resource "aws_route53_record" "bastion" {
+resource "aws_route53_record" "swarm" {
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-swarm.${var.hosted_zone_name}"
   type    = "A"

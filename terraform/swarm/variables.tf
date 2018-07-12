@@ -77,5 +77,5 @@ variable "aws_network_private_subnet_cidr_c" {
 }
 
 variable "swarm_instance_type" {
-  default = "m4.large"
+  default = "t2.large"
 }
