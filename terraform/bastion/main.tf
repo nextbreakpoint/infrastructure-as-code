@@ -33,7 +33,7 @@ resource "aws_security_group" "bastion" {
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}","${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"]
   }
 
   egress {
@@ -62,6 +62,11 @@ resource "aws_route_table" "bastion" {
   route {
     vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-bastion-peering-connection-id}"
     cidr_block                = "${data.terraform_remote_state.vpc.network-vpc-cidr}"
+  }
+
+  route {
+    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.bastion-to-openvpn-peering-connection-id}"
+    cidr_block                = "${data.terraform_remote_state.vpc.openvpn-vpc-cidr}"
   }
 
   route {
@@ -130,6 +135,81 @@ resource "aws_route_table_association" "bastion_c" {
   route_table_id = "${aws_route_table.bastion.id}"
 }
 
+resource "aws_iam_role" "bastion" {
+  name = "${var.environment}-${var.colour}-bastion"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "bastion" {
+  name = "${var.environment}-${var.colour}-bastion"
+  role = "${aws_iam_role.bastion.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+        "Action": [
+            "ssm:UpdateInstanceInformation",
+            "ssm:ListAssociations",
+            "ssm:ListInstanceAssociations"
+        ],
+        "Effect": "Allow",
+        "Resource": "*"
+    },
+    {
+        "Action": [
+            "route53:ChangeResourceRecordSets",
+            "route53:GetHostedZone",
+            "route53:ListResourceRecordSets"
+        ],
+        "Effect": "Allow",
+        "Resource": [
+            "arn:aws:route53:::${var.hosted_zone_name}/<ZoneID>"
+        ]
+    },
+    {
+        "Action": [
+            "route53:ListHostedZones",
+            "route53:ListHostedZonesByName"
+        ],
+        "Effect": "Allow",
+        "Resource": [
+            "*"
+        ]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "bastion" {
+  name = "${var.environment}-${var.colour}-bastion"
+  role = "${aws_iam_role.bastion.name}"
+}
+
 data "template_file" "bastion" {
   template = "${file("provision/bastion.tpl")}"
 }
@@ -158,46 +238,49 @@ data "template_file" "bastion" {
 module "bastion_a" {
   source = "./bastion"
 
-  environment     = "${var.environment}"
-  colour          = "${var.colour}"
-  name            = "${var.environment}-${var.colour}-bastion-a"
-  ami             = "${lookup(var.amazon_nat_ami, var.aws_region)}"
-  # ami             = "${data.aws_ami.bastion.id}"
-  instance_type   = "${var.bastion_instance_type}"
-  key_name        = "${var.environment}-${var.colour}-${var.key_name}"
-  security_groups = "${aws_security_group.bastion.id}"
-  subnet_id       = "${aws_subnet.bastion_a.id}"
-  user_data       = "${data.template_file.bastion.rendered}"
+  environment           = "${var.environment}"
+  colour                = "${var.colour}"
+  name                  = "${var.environment}-${var.colour}-bastion-a"
+  ami                   = "${lookup(var.amazon_nat_ami, var.aws_region)}"
+  # ami                 = "${data.aws_ami.bastion.id}"
+  instance_profile      = "${aws_iam_instance_profile.bastion.id}"
+  instance_type         = "${var.bastion_instance_type}"
+  key_name              = "${var.environment}-${var.colour}-${var.key_name}"
+  security_groups       = "${aws_security_group.bastion.id}"
+  subnet_id             = "${aws_subnet.bastion_a.id}"
+  user_data             = "${data.template_file.bastion.rendered}"
 }
 
 # module "bastion_b" {
 #   source = "./bastion"
 #
-#   environment     = "${var.environment}"
-#   colour          = "${var.colour}"
-#   name            = "${var.environment}-${var.colour}-bastion-b"
-#   ami             = "${lookup(var.amazon_nat_ami, var.aws_region)}"
-#   # ami             = "${data.aws_ami.bastion.id}"
-#   instance_type   = "${var.bastion_instance_type}"
-#   key_name        = "${var.environment}-${var.colour}-${var.key_name}"
-#   security_groups = "${aws_security_group.bastion.id}"
-#   subnet_id       = "${aws_subnet.bastion_b.id}"
-#   user_data       = "${data.template_file.bastion.rendered}"
+  # environment           = "${var.environment}"
+  # colour                = "${var.colour}"
+  # name                  = "${var.environment}-${var.colour}-bastion-b"
+  # ami                   = "${lookup(var.amazon_nat_ami, var.aws_region)}"
+  # # ami                 = "${data.aws_ami.bastion.id}"
+  # instance_profile      = "${aws_iam_instance_profile.bastion.id}"
+  # instance_type         = "${var.bastion_instance_type}"
+  # key_name              = "${var.environment}-${var.colour}-${var.key_name}"
+  # security_groups       = "${aws_security_group.bastion.id}"
+  # subnet_id             = "${aws_subnet.bastion_b.id}"
+  # user_data             = "${data.template_file.bastion.rendered}"
 # }
 
 # module "bastion_c" {
 #   source = "./bastion"
 #
-#   environment     = "${var.environment}"
-#   colour          = "${var.colour}"
-#   name            = "${var.environment}-${var.colour}-bastion-c"
-#   ami             = "${lookup(var.amazon_nat_ami, var.aws_region)}"
-#   # ami             = "${data.aws_ami.bastion.id}"
-#   instance_type   = "${var.bastion_instance_type}"
-#   key_name        = "${var.environment}-${var.colour}-${var.key_name}"
-#   security_groups = "${aws_security_group.bastion.id}"
-#   subnet_id       = "${aws_subnet.bastion_c.id}"
-#   user_data       = "${data.template_file.bastion.rendered}"
+  # environment           = "${var.environment}"
+  # colour                = "${var.colour}"
+  # name                  = "${var.environment}-${var.colour}-bastion-c"
+  # ami                   = "${lookup(var.amazon_nat_ami, var.aws_region)}"
+  # # ami                 = "${data.aws_ami.bastion.id}"
+  # instance_profile      = "${aws_iam_instance_profile.bastion.id}"
+  # instance_type         = "${var.bastion_instance_type}"
+  # key_name              = "${var.environment}-${var.colour}-${var.key_name}"
+  # security_groups       = "${aws_security_group.bastion.id}"
+  # subnet_id             = "${aws_subnet.bastion_c.id}"
+  # user_data             = "${data.template_file.bastion.rendered}"
 # }
 
 resource "aws_route53_record" "bastion" {

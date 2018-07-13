@@ -35,7 +35,7 @@ write_files:
             "dns": ["8.8.8.8", "8.8.4.4"],
             "ipv6": false,
             "tls": true,
-            "tlsverify": true,
+            "tlsverify": false,
             "tlscacert": "/etc/docker/ca_cert.pem",
             "tlscert": "/etc/docker/server_cert.pem",
             "tlskey": "/etc/docker/server_key.pem",

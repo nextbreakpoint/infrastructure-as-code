@@ -32,7 +32,7 @@ resource "aws_security_group" "swarm" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
@@ -134,12 +134,12 @@ resource "aws_iam_role_policy" "swarm" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": [
-        "ec2:DescribeInstances",
-        "ssm:UpdateInstanceInformation"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
+        "Action": [
+            "ec2:DescribeInstances",
+            "ec2messages:GetMessages"
+        ],
+        "Effect": "Allow",
+        "Resource": "*"
     },
     {
         "Action": [
@@ -152,6 +152,16 @@ resource "aws_iam_role_policy" "swarm" {
 }
 EOF
 }
+
+# {
+#     "Action": [
+#         "ssm:UpdateInstanceInformation",
+#         "ssm:ListAssociations",
+#         "ssm:ListInstanceAssociations"
+#     ],
+#     "Effect": "Allow",
+#     "Resource": "*"
+# }
 
 resource "aws_iam_instance_profile" "swarm" {
   name = "${var.environment}-${var.colour}-swarm"

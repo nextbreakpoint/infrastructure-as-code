@@ -155,3 +155,15 @@ resource "aws_vpc_peering_connection" "network_to_openvpn" {
     Name        = "${var.environment}-${var.colour}-network-to-openvpn"
   }
 }
+
+resource "aws_vpc_peering_connection" "bastion_to_openvpn" {
+  peer_vpc_id = "${aws_vpc.openvpn.id}"
+  vpc_id      = "${aws_vpc.bastion.id}"
+  auto_accept = true
+
+  tags {
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-bastion-to-openvpn"
+  }
+}

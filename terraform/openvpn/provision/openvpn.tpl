@@ -54,6 +54,7 @@ write_files:
 
         push "route ${aws_openvpn_subnet} 255.255.0.0"
         push "route ${aws_network_subnet} 255.255.0.0"
+        push "route ${aws_bastion_subnet} 255.255.0.0"
 
         push "redirect-gateway def1 bypass-dhcp"
 

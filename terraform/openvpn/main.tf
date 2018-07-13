@@ -43,7 +43,7 @@ resource "aws_security_group" "openvpn" {
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}","${data.terraform_remote_state.vpc.bastion-vpc-cidr}"]
   }
 
   egress {
@@ -135,6 +135,39 @@ resource "aws_iam_role_policy" "openvpn" {
 EOF
 }
 
+
+# {
+#     "Action": [
+#         "ssm:UpdateInstanceInformation",
+#         "ssm:ListAssociations",
+#         "ssm:ListInstanceAssociations"
+#     ],
+#     "Effect": "Allow",
+#     "Resource": "*"
+# },
+# {
+#     "Action": [
+#         "route53:ChangeResourceRecordSets",
+#         "route53:GetHostedZone",
+#         "route53:ListResourceRecordSets"
+#     ],
+#     "Effect": "Allow",
+#     "Resource": [
+#         "arn:aws:route53:::${var.hosted_zone_name}/<ZoneID>"
+#     ]
+# },
+# {
+#     "Action": [
+#         "route53:ListHostedZones",
+#         "route53:ListHostedZonesByName"
+#     ],
+#     "Effect": "Allow",
+#     "Resource": [
+#         "*"
+#     ]
+# }
+
+
 resource "aws_iam_instance_profile" "openvpn" {
   name = "${var.environment}-${var.colour}-openvpn"
   role = "${aws_iam_role.openvpn.name}"
@@ -146,6 +179,11 @@ resource "aws_route_table" "openvpn" {
   route {
     vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
     cidr_block                = "${data.terraform_remote_state.vpc.network-vpc-cidr}"
+  }
+
+  route {
+    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.bastion-to-openvpn-peering-connection-id}"
+    cidr_block                = "${data.terraform_remote_state.vpc.bastion-vpc-cidr}"
   }
 
   route {
@@ -243,6 +281,7 @@ data "template_file" "openvpn" {
     hosted_zone_name           = "${var.hosted_zone_name}"
     aws_openvpn_subnet         = "${replace(var.aws_openvpn_vpc_cidr, "0/16", "0")}"
     aws_network_subnet         = "${replace(var.aws_network_vpc_cidr, "0/16", "0")}"
+    aws_bastion_subnet         = "${replace(var.aws_bastion_vpc_cidr, "0/16", "0")}"
     aws_network_dns            = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
   }
 }
