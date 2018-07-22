@@ -76,6 +76,10 @@ variable "aws_network_private_subnet_cidr_c" {
   description = "Private subnet C cidr block"
 }
 
-variable "swarm_instance_type" {
+variable "swarm_manager_instance_type" {
+  default = "t2.small"
+}
+
+variable "swarm_worker_instance_type" {
   default = "t2.large"
 }

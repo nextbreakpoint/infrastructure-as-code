@@ -31,8 +31,8 @@ write_files:
     permissions: '0644'
     content: |
         {
-            "hosts": ["fd://", "tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"],
-            "dns": ["8.8.8.8", "8.8.4.4"],
+            "hosts": ["fd://", "tcp://0.0.0.0:2376", "unix:///var/run/docker.sock"],
+            "dns": ["${hosted_zone_dns}", "8.8.8.8", "8.8.4.4"],
             "ipv6": false,
             "tls": true,
             "tlsverify": false,
