@@ -9,10 +9,10 @@ services:
       network.publish_host: elasticsearch0
       discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
       discovery.zen.minimum_master_nodes: 3
-      node.master: false
-      node.ingest: false
-      node.data: false
-      node.ml: false
+      node.master: "false"
+      node.ingest: "false"
+      node.data: "false"
+      node.ml: "false"
     volumes:
       - storage:/usr/share/elasticsearch/data
     ports:

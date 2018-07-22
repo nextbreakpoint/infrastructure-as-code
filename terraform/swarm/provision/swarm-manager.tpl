@@ -40,11 +40,6 @@ write_files:
             "tlscert": "/etc/docker/server_cert.pem",
             "tlskey": "/etc/docker/server_key.pem",
             "experimental": true,
-            "log-driver": "gelf",
-            "log-opts": {
-              "gelf-address": "udp://localhost:12201",
-              "labels": "service"
-            },
             "default-ulimits":
             {
                     "nproc": {

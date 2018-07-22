@@ -4,7 +4,7 @@
   "environment": "production",
 
   "colour": "green",
-  
+
   "hosted_zone_name": "nextbreakpoint.com",
   "hosted_zone_id": "Z1XAF7NWT4WCJG",
 
@@ -14,8 +14,11 @@
 
   "consul_datacenter": "internal",
 
+  "key_password": "your_key_password",
+  "keystore_password": "your_keystore_password",
+  "truststore_password": "your_truststore_password",
   "kafka_password": "your_password",
-  "zoo_password": "your_password",
+  "zookeeper_password": "your_password",
   "mysql_root_password": "your_password",
   "mysql_sonarqube_password": "your_password",
   "mysql_artifactory_password": "your_password",

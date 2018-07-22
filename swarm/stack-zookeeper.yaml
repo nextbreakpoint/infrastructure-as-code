@@ -186,4 +186,4 @@ volumes:
     storagelog:
 secrets:
   jaas-config:
-    file: secrets/zookeeper_server_jaas.conf
+    file: ${ENVIRONMENT_SECRETS_PATH}/zookeeper/server_jaas.conf

@@ -263,12 +263,12 @@ volumes:
     storage:
 secrets:
   keystore:
-    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/server-keystore.jks
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/keystore-server.jks
   keystore_password:
-    file: secrets/password_keystore.txt
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/password_keystore.txt
   truststore:
-    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/server-truststore.jks
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/truststore-server.jks
   truststore_password:
-    file: secrets/password_truststore.txt
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/password_truststore.txt
   jaas_config:
-    file: secrets/zookeeper_kafka_jaas.conf
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/client_jaas.conf

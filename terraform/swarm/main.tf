@@ -29,6 +29,13 @@ resource "aws_security_group" "swarm" {
   }
 
   ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -39,14 +46,21 @@ resource "aws_security_group" "swarm" {
     from_port   = 2376
     to_port     = 2376
     protocol    = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   ingress {
     from_port   = 2377
     to_port     = 2377
     protocol    = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}","${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
+  }
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   egress {
