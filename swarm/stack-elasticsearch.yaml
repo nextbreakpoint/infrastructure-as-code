@@ -47,10 +47,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 0.5G
+          memory: 2524M
         reservations:
           cpus: '0.1'
-          memory: 0.5G
+          memory: 2524M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
@@ -116,10 +116,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 1.1G
+          memory: 2524M
         reservations:
           cpus: '0.1'
-          memory: 1.1G
+          memory: 2524M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
@@ -185,10 +185,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 1.1G
+          memory: 2524M
         reservations:
           cpus: '0.1'
-          memory: 1.1G
+          memory: 2524M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
@@ -254,10 +254,10 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 1.1G
+          memory: 2524M
         reservations:
           cpus: '0.1'
-          memory: 1.1G
+          memory: 2524M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
