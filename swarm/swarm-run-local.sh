@@ -35,6 +35,8 @@ export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}/${
 export CONSUL_DATACENTER=$(cat $(pwd)/../config/config.json | jq -r ".consul_datacenter")
 export CONSUL_SECRET=$(cat $(pwd)/../config/consul.json | jq -r ".consul_secret")
 
+export KEYSTORE_PASSWORD=$(cat $(pwd)/../config/config.json | jq -r ".keystore_password")
+
 eval $(docker-machine env $1)
 
 #$(aws ecr get-login --no-include-email --region eu-west-1)

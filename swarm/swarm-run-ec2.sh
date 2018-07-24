@@ -37,6 +37,8 @@ export CONSUL_SECRET=$(cat $(pwd)/../config/consul.json | jq -r ".consul_secret"
 
 export HOSTED_ZONE_NAME=$(cat $(pwd)/../config/config.json | jq -r ".hosted_zone_name")
 
+export KEYSTORE_PASSWORD=$(cat $(pwd)/../config/config.json | jq -r ".keystore_password")
+
 #export DOCKER_HOST=tcp://${ENVIRONMENT}-${COLOUR}-swarm.${HOSTED_ZONE_NAME}:2376
 export DOCKER_HOST=tcp://$1:2376
 export DOCKER_TLS=1
