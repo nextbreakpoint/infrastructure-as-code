@@ -214,6 +214,10 @@ resource "aws_instance" "swarm_manager_a" {
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
+  root_block_device {
+    volume_size = 20
+  }
+
   tags {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
@@ -231,6 +235,10 @@ resource "aws_instance" "swarm_manager_b" {
   user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
+
+  root_block_device {
+    volume_size = 20
+  }
 
   tags {
     Environment = "${var.environment}"
@@ -250,6 +258,10 @@ resource "aws_instance" "swarm_manager_c" {
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
+  root_block_device {
+    volume_size = 20
+  }
+
   tags {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
@@ -267,6 +279,10 @@ resource "aws_instance" "swarm_worker_a" {
   user_data                   = "${data.template_file.swarm-worker.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
+
+  root_block_device {
+    volume_size = 40
+  }
 
   tags {
     Environment = "${var.environment}"
@@ -286,6 +302,10 @@ resource "aws_instance" "swarm_worker_b" {
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
+  root_block_device {
+    volume_size = 40
+  }
+
   tags {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
@@ -303,6 +323,10 @@ resource "aws_instance" "swarm_worker_c" {
   user_data                   = "${data.template_file.swarm-worker.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
+
+  root_block_device {
+    volume_size = 40
+  }
 
   tags {
     Environment = "${var.environment}"
