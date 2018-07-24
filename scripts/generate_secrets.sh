@@ -396,6 +396,7 @@ DST=$OUTPUT_ENV/jenkins
 mkdir -p $DST
 
 cp $OUTPUT_GEN/keystore-jenkins.jks $DST/keystore.jks
+cp $OUTPUT_GEN/password_keystore.txt $DST
 
 DST=$OUTPUT_ENV/openvpn
 
