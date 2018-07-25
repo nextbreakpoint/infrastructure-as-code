@@ -1,0 +1,29 @@
+{
+  "cert_file": "/consul/config/server_cert.pem",
+  "log_level": "info",
+  "leave_on_terminate": true,
+  "translate_wan_addrs": true,
+  "disable_update_check": true,
+  "enable_script_checks": true,
+  "skip_leave_on_interrupt": true,
+  "dns_config": {
+    "allow_stale": true,
+    "max_stale": "1s",
+    "service_ttl": {
+      "*": "5s"
+    }
+  },
+  "services": [{
+      "name": "kibana",
+      "tags": [
+          "tcp", "kibana"
+      ],
+      "port": 5601,
+      "checks": [{
+          "id": "kibana",
+          "name": "Kibana",
+          "tcp": "kibana:5601",
+          "interval": "120s"
+      }]
+  }]
+}

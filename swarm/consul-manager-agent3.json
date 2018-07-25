@@ -22,7 +22,7 @@
       "checks": [{
           "id": "elasticsearch03",
           "name": "Elasticsearch",
-          "tcp": "elasticsearch0:9200",
+          "tcp": "elasticsearch03:9200",
           "interval": "120s"
       }]
   },{
@@ -35,18 +35,6 @@
           "id": "logstash03",
           "name": "Logstash",
           "args": ["nc", "-z", "-u", "-v", "logstash03", "12201"],
-          "interval": "120s"
-      }]
-  },{
-      "name": "kibana",
-      "tags": [
-          "tcp", "kibana"
-      ],
-      "port": 5601,
-      "checks": [{
-          "id": "kibana",
-          "name": "Kibana",
-          "tcp": "kibana:5601",
           "interval": "120s"
       }]
   }]
