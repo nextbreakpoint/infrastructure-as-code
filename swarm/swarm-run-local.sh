@@ -37,6 +37,13 @@ export CONSUL_SECRET=$(cat $(pwd)/../config/consul.json | jq -r ".consul_secret"
 
 export KEYSTORE_PASSWORD=$(cat $(pwd)/../config/config.json | jq -r ".keystore_password")
 
+export ADVERTISE_MANAGER_AGENT_1=$(docker-machine ip docker-master)
+export ADVERTISE_MANAGER_AGENT_2=$(docker-machine ip docker-master)
+export ADVERTISE_MANAGER_AGENT_3=$(docker-machine ip docker-master)
+export ADVERTISE_WORKER_AGENT_1=$(docker-machine ip docker-worker1)
+export ADVERTISE_WORKER_AGENT_2=$(docker-machine ip docker-worker2)
+export ADVERTISE_WORKER_AGENT_3=$(docker-machine ip docker-worker3)
+
 eval $(docker-machine env $1)
 
 #$(aws ecr get-login --no-include-email --region eu-west-1)

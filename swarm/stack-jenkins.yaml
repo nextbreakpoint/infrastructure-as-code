@@ -27,7 +27,6 @@ services:
         constraints:
           - node.role == manager
           - node.labels.jenkins == true
-          - node.labels.zone == a
       endpoint_mode: dnsrr
       update_config:
         parallelism: 1

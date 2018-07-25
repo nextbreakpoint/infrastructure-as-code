@@ -14,27 +14,27 @@
     }
   },
   "services": [{
-      "name": "elasticsearch0",
+      "name": "elasticsearch03",
       "tags": [
           "tcp", "elasticsearch"
       ],
       "port": 9200,
       "checks": [{
-          "id": "elasticsearch0",
+          "id": "elasticsearch03",
           "name": "Elasticsearch",
           "tcp": "elasticsearch0:9200",
           "interval": "120s"
       }]
   },{
-      "name": "logstash0",
+      "name": "logstash03",
       "tags": [
           "tcp", "logstash"
       ],
       "port": 12201,
       "checks": [{
-          "id": "logstash0",
+          "id": "logstash03",
           "name": "Logstash",
-          "args": ["nc", "-z", "-u", "-v", "logstash0", "12201"],
+          "args": ["nc", "-z", "-u", "-v", "logstash03", "12201"],
           "interval": "120s"
       }]
   },{

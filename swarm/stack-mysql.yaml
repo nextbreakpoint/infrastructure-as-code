@@ -22,7 +22,6 @@ services:
         constraints:
           - node.role == manager
           - node.labels.mysql == true
-          - node.labels.zone == a
       endpoint_mode: dnsrr
       update_config:
         parallelism: 1

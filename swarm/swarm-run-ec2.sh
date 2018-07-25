@@ -39,6 +39,24 @@ export HOSTED_ZONE_NAME=$(cat $(pwd)/../config/config.json | jq -r ".hosted_zone
 
 export KEYSTORE_PASSWORD=$(cat $(pwd)/../config/config.json | jq -r ".keystore_password")
 
+export SUBNET_A=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_a")
+export SUBNET_B=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_b")
+export SUBNET_C=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_c")
+
+export MANAGER_A=$(echo ${SUBNET_A} | sed -e "s/\.0\/24/.150/g")
+export MANAGER_B=$(echo ${SUBNET_B} | sed -e "s/\.0\/24/.150/g")
+export MANAGER_C=$(echo ${SUBNET_C} | sed -e "s/\.0\/24/.150/g")
+export WORKER_A=$(echo ${SUBNET_A} | sed -e "s/\.0\/24/.151/g")
+export WORKER_B=$(echo ${SUBNET_B} | sed -e "s/\.0\/24/.151/g")
+export WORKER_C=$(echo ${SUBNET_C} | sed -e "s/\.0\/24/.151/g")
+
+export ADVERTISE_MANAGER_AGENT_1=$MANAGER_A
+export ADVERTISE_MANAGER_AGENT_2=$MANAGER_B
+export ADVERTISE_MANAGER_AGENT_3=$MANAGER_C
+export ADVERTISE_WORKER_AGENT_1=$WORKER_A
+export ADVERTISE_WORKER_AGENT_2=$WORKER_B
+export ADVERTISE_WORKER_AGENT_3=$WORKER_C
+
 #export DOCKER_HOST=tcp://${ENVIRONMENT}-${COLOUR}-swarm.${HOSTED_ZONE_NAME}:2376
 export DOCKER_HOST=tcp://$1:2376
 export DOCKER_TLS=1

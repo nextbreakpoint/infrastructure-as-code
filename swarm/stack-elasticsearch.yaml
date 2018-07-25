@@ -1,12 +1,12 @@
 version: '3.4'
 services:
-  elasticsearch0:
+  elasticsearch01:
     labels:
         service: elasticsearch
     image: ${ELASTICSEARCH_IMAGE}
     environment:
       ES_JAVA_OPTS: "-Xms400M -Xmx400M -Dnetworkaddress.cache.ttl=1"
-      network.publish_host: elasticsearch0
+      network.publish_host: elasticsearch01
       discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
       discovery.zen.minimum_master_nodes: 3
       node.master: "false"
@@ -47,10 +47,156 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2524M
+          memory: 500M
         reservations:
           cpus: '0.1'
-          memory: 2524M
+          memory: 500M
+    secrets:
+      - source: elasticsearch_key
+        target: /usr/share/elasticsearch/config/elasticsearch_key.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: elasticsearch_cert
+        target: /usr/share/elasticsearch/config/elasticsearch_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: ca_cert
+        target: /usr/share/elasticsearch/config/ca_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: elasticsearch_config
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  elasticsearch02:
+    labels:
+        service: elasticsearch
+    image: ${ELASTICSEARCH_IMAGE}
+    environment:
+      ES_JAVA_OPTS: "-Xms400M -Xmx400M -Dnetworkaddress.cache.ttl=1"
+      network.publish_host: elasticsearch02
+      discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
+      discovery.zen.minimum_master_nodes: 3
+      node.master: "false"
+      node.ingest: "false"
+      node.data: "false"
+      node.ml: "false"
+    volumes:
+      - storage:/usr/share/elasticsearch/data
+    ports:
+      - target: 9200
+        published: 9200
+        protocol: tcp
+        mode: host
+      - target: 9300
+        published: 9300
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.elasticsearch == true
+          - node.labels.zone == b
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+        reservations:
+          cpus: '0.1'
+          memory: 500M
+    secrets:
+      - source: elasticsearch_key
+        target: /usr/share/elasticsearch/config/elasticsearch_key.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: elasticsearch_cert
+        target: /usr/share/elasticsearch/config/elasticsearch_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: ca_cert
+        target: /usr/share/elasticsearch/config/ca_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: elasticsearch_config
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  elasticsearch03:
+    labels:
+        service: elasticsearch
+    image: ${ELASTICSEARCH_IMAGE}
+    environment:
+      ES_JAVA_OPTS: "-Xms400M -Xmx400M -Dnetworkaddress.cache.ttl=1"
+      network.publish_host: elasticsearch03
+      discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
+      discovery.zen.minimum_master_nodes: 3
+      node.master: "false"
+      node.ingest: "false"
+      node.data: "false"
+      node.ml: "false"
+    volumes:
+      - storage:/usr/share/elasticsearch/data
+    ports:
+      - target: 9200
+        published: 9200
+        protocol: tcp
+        mode: host
+      - target: 9300
+        published: 9300
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.elasticsearch == true
+          - node.labels.zone == c
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+        reservations:
+          cpus: '0.1'
+          memory: 500M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
