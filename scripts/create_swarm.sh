@@ -3,5 +3,11 @@
 . $ROOT/bash_aliases
 
 cd $ROOT/terraform/swarm && tf_init
+
 cd $ROOT/terraform/swarm && tf_plan
-cd $ROOT/terraform/swarm && tf_apply
+
+read -p "Do you want to apply this plan? " confirm
+
+if [ "$confirm" = "yes" ]; then
+  cd $ROOT/terraform/swarm && tf_apply
+fi

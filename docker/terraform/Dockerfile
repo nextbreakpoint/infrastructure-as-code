@@ -30,6 +30,4 @@ RUN curl -o consul.zip https://releases.hashicorp.com/consul/1.0.1/consul_1.0.1_
     rm consul.zip && \
     consul --version
 
-WORKDIR /terraform
-
-CMD ["bash", "-c", "sh create_all.sh"]
+WORKDIR /infrastructure

@@ -68,7 +68,7 @@ A S3 bucket is required for storing secrets and certificates used to provision t
 
 Create a S3 bucket with the command:
 
-    ./docker_run.sh create_bucket your_bucket_name eu-west-1
+    ./docker_run.sh make_bucket your_bucket_name eu-west-1
 
 Please note that the bucket name must be globally unique.
 
