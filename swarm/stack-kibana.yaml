@@ -79,4 +79,4 @@ secrets:
     file: ${ENVIRONMENT_SECRETS_PATH}/kibana/ca_cert.pem
 configs:
   kibana_config:
-    file: kibana.yaml
+    file: ${SWARM_RESOURCES_PATH}/kibana.yaml

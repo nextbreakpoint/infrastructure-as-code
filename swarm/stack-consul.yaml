@@ -261,4 +261,4 @@ secrets:
     file: ${ENVIRONMENT_SECRETS_PATH}/consul/server_cert.pem
 configs:
   consul_config:
-    file: consul.json
+    file: ${SWARM_RESOURCES_PATH}/consul.json

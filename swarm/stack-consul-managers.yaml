@@ -165,8 +165,8 @@ secrets:
     file: ${ENVIRONMENT_SECRETS_PATH}/consul/server_cert.pem
 configs:
   consul1_config:
-    file: consul-manager1.json
+    file: ${SWARM_RESOURCES_PATH}/consul-manager1.json
   consul2_config:
-    file: consul-manager2.json
+    file: ${SWARM_RESOURCES_PATH}/consul-manager2.json
   consul3_config:
-    file: consul-manager3.json
+    file: ${SWARM_RESOURCES_PATH}/consul-manager3.json

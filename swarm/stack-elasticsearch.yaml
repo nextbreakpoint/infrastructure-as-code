@@ -441,4 +441,4 @@ secrets:
     file: ${ENVIRONMENT_SECRETS_PATH}/elasticsearch/ca_cert.pem
 configs:
   elasticsearch_config:
-    file: elasticsearch.yaml
+    file: ${SWARM_RESOURCES_PATH}/elasticsearch.yaml

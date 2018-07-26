@@ -355,8 +355,8 @@ secrets:
     file: ${ENVIRONMENT_SECRETS_PATH}/logstash/ca_cert.pem
 configs:
   logstash_config:
-    file: logstash.yaml
+    file: ${SWARM_RESOURCES_PATH}/logstash.yaml
   logstash_pipeline:
-    file: logstash.conf
+    file: ${SWARM_RESOURCES_PATH}/logstash.conf
   logstash_template:
-    file: logstash.template
+    file: ${SWARM_RESOURCES_PATH}/logstash.template

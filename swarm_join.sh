@@ -1,13 +1,13 @@
 #!/bin/sh
 
-export ENVIRONMENT=$(cat $(pwd)/../config/config.json | jq -r ".environment")
-export COLOUR=$(cat $(pwd)/../config/config.json | jq -r ".colour")
+export ENVIRONMENT=$(cat $(pwd)/config/config.json | jq -r ".environment")
+export COLOUR=$(cat $(pwd)/config/config.json | jq -r ".colour")
 
-export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}/${COLOUR}
+export ENVIRONMENT_SECRETS_PATH=$(pwd)/secrets/environments/${ENVIRONMENT}/${COLOUR}
 
-export SUBNET_A=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_a")
-export SUBNET_B=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_b")
-export SUBNET_C=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_c")
+export SUBNET_A=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_a")
+export SUBNET_B=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_b")
+export SUBNET_C=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_c")
 
 export MANAGER_A=$(echo ${SUBNET_A} | sed -e "s/\.0\/24/.150/g")
 export DOCKER_HOST=tcp://${MANAGER_A}:2376

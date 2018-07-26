@@ -58,7 +58,7 @@ The certificates will be used to provision two ALBs, one internet facing and the
 
 Execute script run_build.sh to create the Docker image that you will use to build the infrastructure:
 
-    ./run_build.sh
+    ./docker_build.sh
 
 The image contain all the tools you need to manage the infrastructure, including AWS CLI, Terraform, Packer, and others.
 
@@ -68,13 +68,13 @@ A S3 bucket is required for storing secrets and certificates used to provision t
 
 Create a S3 bucket with the command:
 
-    ./run_script.sh create_bucket your_bucket_name eu-west-1
+    ./docker_run.sh create_bucket your_bucket_name eu-west-1
 
 Please note that the bucket name must be globally unique.
 
 Once the bucket has been created, execute the command:
 
-    ./run_script.sh configure_terraform your_bucket_name eu-west-1
+    ./docker_run.sh configure_terraform your_bucket_name eu-west-1
 
 The script will set the bucket name and region in all remote_state.tf files.
 
@@ -116,7 +116,7 @@ The domain yourdomain.com must be a valid domain hosted in a Route53 public zone
 
 Create the secrets with the command:
 
-    ./run_script.sh generate_secrets
+    ./docker_run.sh generate_secrets
 
 Certificates and keystores are required to create a secure infrastructure.
 
@@ -124,7 +124,7 @@ Certificates and keystores are required to create a secure infrastructure.
 
 Generate the SSH keys with the command:
 
-    ./run_script.sh generate_keys
+    ./docker_run.sh generate_keys
 
 SSH keys are required to access EC2 machines.
 
@@ -132,31 +132,31 @@ SSH keys are required to access EC2 machines.
 
 Create a configuration for Consul with the command:
 
-    ./run_script.sh configure_consul
+    ./docker_run.sh configure_consul
 
 ## Create VPCs
 
 Create the VPCs with command:
 
-    ./run_script.sh create_vpc
+    ./docker_run.sh create_vpc
 
 ## Create SSH keys
 
 Create the SSH keys with command:
 
-    ./run_script.sh create_keys
+    ./docker_run.sh create_keys
 
 ## Create Bastion server
 
 Create the Bastion server with command:
 
-    ./run_script.sh create_bastion
+    ./docker_run.sh create_bastion
 
 ## Build images with Packer
 
 Create the AMI images with command:
 
-    ./run_script.sh build_images
+    ./docker_run.sh build_images
 
 Some EC2 machines are provisioned using custom AMI.
 
@@ -167,20 +167,20 @@ If you destroyed the infrastructure, but you didn't delete the AMIs, then you ca
 
 Create the infrastructure with command:
 
-    ./run_script.sh create_all
+    ./docker_run.sh create_all
 
 Or create the infrastructure in several steps:
 
-    ./run_script.sh create_secrets
-    ./run_script.sh create_network
-    ./run_script.sh create_lb
-    ./run_script.sh create_swarm
+    ./docker_run.sh create_secrets
+    ./docker_run.sh create_network
+    ./docker_run.sh create_lb
+    ./docker_run.sh create_swarm
 
 ## Create OpenVPN server
 
 Create the OpenVPN server with command:
 
-    ./run_script.sh create_openvpn
+    ./docker_run.sh create_openvpn
 
 ## Access machines using Bastion
 
@@ -245,35 +245,39 @@ Verify that you can login into the machines:
 
 Create the Swarm with the command:
 
-    ./run_script.sh create_swarm_ec2
+    ./swarm_join.sh
 
 Configure the Swarm with the command:
 
-    ./run_script.sh update_labels_ec2
-
-Create the overlay network with the command:
-
-    ./run_script.sh swarm_run_ec2 "./create-network.sh"
+    ./swarm_configure.sh
 
 Verify that the Swarm is working with the command:
 
-    ./run_script.sh swarm_run_ec2 "docker node ls"
+    ./swarm_cmd.sh production-green-swarm-manager.yourdomain.com "docker node ls"
 
 It should print the list of the nodes, which should contain 6 nodes, 3 managers and 3 workers.
 
-## Deploy services
+## Create networks
+
+Create the overlay networks with the command:
+
+    ./swarm_run.sh production-green-swarm-manager.yourdomain.com create_network
+
+The overlay networks are used to allow communication between containers running on different machines.
+
+## Create services
 
 The services are deployed on the Swarm using Docker Stacks.
 
 Deploy a stack with the command:
 
-    ./run_script.sh swarm_run_ec2 "./deploy-stack.sh consul"
+    ./swarm_run.sh production-green-swarm-manager.yourdomain.com deploy_stack consul
 
 It should create volumes and services on the worker nodes.
 
 Verify that the services are running with the command:
 
-    ./run_script.sh swarm_run_ec2 "docker service ls"
+    ./swarm_cmd.sh production-green-swarm-manager.yourdomain.com "docker service ls"
 
 In a similar way, you can deploy any stack from this list:
 
@@ -294,7 +298,7 @@ In a similar way, you can deploy any stack from this list:
 
 Please note that before deploying SonarQube or Artifactory, you must configure MySQL with the command:
 
-    ./run_script.sh swarm_run_ec2 "./setup-mysql.sh"
+    ./swarm_run.sh production-green-swarm-manager.yourdomain.com setup_mysql
 
 Some services have ports exposed on the host machine, therefore are reachable from any other machine in the same VPC.
 Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
@@ -303,28 +307,34 @@ This is the list of ports which are exposed on the host:
 
     TODO
 
-## Delete services
+## Remove services
 
 Remove a service with the command:
 
-    ./run_script.sh swarm_run_ec2 "./remove-stack.sh consul"
+    ./swarm_run.sh production-green-swarm-manager.yourdomain.com remove_stack consul
 
 The volumes associated with the service are not deleted when deleting a stack.
 
     The content of the volumes will still be available when recreating the stack
 
+## Remove networks
+
+Remove the overlay networks with the command:
+
+    ./swarm_run.sh production-green-swarm-manager.yourdomain.com remove_networks
+
 ## Destroy infrastructure
 
 Destroy the infrastructure with command:
 
-    ./run_script.sh destroy_all
+    ./docker_run.sh destroy_all
 
 Or destroy the infrastructure in several steps:
 
-    ./run_script.sh destroy_swarm
-    ./run_script.sh destroy_lb
-    ./run_script.sh destroy_network
-    ./run_script.sh destroy_secrets
+    ./docker_run.sh destroy_swarm
+    ./docker_run.sh destroy_lb
+    ./docker_run.sh destroy_network
+    ./docker_run.sh destroy_secrets
 
 ## Services discovery
 
@@ -387,7 +397,7 @@ Bastion server can be stopped or destroyed if required. The server can be recrea
 
 Stop the Bastion server from AWS console or destroy it with command:
 
-    ./run_script.sh destroy_bastion
+    ./docker_run.sh destroy_bastion
 
 ## Disable access via OpenVPN
 
@@ -395,4 +405,4 @@ OpenVPN server can be stopped or destroyed if required. The server can be recrea
 
 Stop the OpenVPN server from AWS console or destroy it with command:
 
-    ./run_script.sh destroy_openvpn
+    ./docker_run.sh destroy_openvpn

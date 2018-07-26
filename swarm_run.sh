@@ -27,21 +27,23 @@ export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
 export NGINX_IMAGE=nginx:${NGINX_VERSION}
 export SONARQUBE_IMAGE=sonarqube:${SONARQUBE_VERSION}
 
-export ENVIRONMENT=$(cat $(pwd)/../config/config.json | jq -r ".environment")
-export COLOUR=$(cat $(pwd)/../config/config.json | jq -r ".colour")
+export ENVIRONMENT=$(cat $(pwd)/config/config.json | jq -r ".environment")
+export COLOUR=$(cat $(pwd)/config/config.json | jq -r ".colour")
 
-export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}/${COLOUR}
+export ENVIRONMENT_SECRETS_PATH=$(pwd)/secrets/environments/${ENVIRONMENT}/${COLOUR}
 
-export CONSUL_DATACENTER=$(cat $(pwd)/../config/config.json | jq -r ".consul_datacenter")
-export CONSUL_SECRET=$(cat $(pwd)/../config/consul.json | jq -r ".consul_secret")
+export SWARM_RESOURCES_PATH=$(pwd)/swarm
 
-export HOSTED_ZONE_NAME=$(cat $(pwd)/../config/config.json | jq -r ".hosted_zone_name")
+export CONSUL_DATACENTER=$(cat $(pwd)/config/config.json | jq -r ".consul_datacenter")
+export CONSUL_SECRET=$(cat $(pwd)/config/consul.json | jq -r ".consul_secret")
 
-export KEYSTORE_PASSWORD=$(cat $(pwd)/../config/config.json | jq -r ".keystore_password")
+export HOSTED_ZONE_NAME=$(cat $(pwd)/config/config.json | jq -r ".hosted_zone_name")
 
-export SUBNET_A=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_a")
-export SUBNET_B=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_b")
-export SUBNET_C=$(cat $(pwd)/../config/network.json | jq -r ".aws_network_private_subnet_cidr_c")
+export KEYSTORE_PASSWORD=$(cat $(pwd)/config/config.json | jq -r ".keystore_password")
+
+export SUBNET_A=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_a")
+export SUBNET_B=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_b")
+export SUBNET_C=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_c")
 
 export MANAGER_A=$(echo ${SUBNET_A} | sed -e "s/\.0\/24/.150/g")
 export MANAGER_B=$(echo ${SUBNET_B} | sed -e "s/\.0\/24/.150/g")
@@ -57,9 +59,8 @@ export ADVERTISE_WORKER_AGENT_1=$WORKER_A
 export ADVERTISE_WORKER_AGENT_2=$WORKER_B
 export ADVERTISE_WORKER_AGENT_3=$WORKER_C
 
-#export DOCKER_HOST=tcp://${ENVIRONMENT}-${COLOUR}-swarm.${HOSTED_ZONE_NAME}:2376
 export DOCKER_HOST=tcp://$1:2376
 export DOCKER_TLS=1
 export DOCKER_CERT_PATH=${ENVIRONMENT_SECRETS_PATH}/swarm
 
-$2
+./swarm/$2.sh $3 $4 $5 $6

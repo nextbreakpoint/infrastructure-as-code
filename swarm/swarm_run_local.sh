@@ -32,6 +32,8 @@ export COLOUR=$(cat $(pwd)/../config/config.json | jq -r ".colour")
 
 export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}/${COLOUR}
 
+export SWARM_RESOURCES_PATH=$(pwd)
+
 export CONSUL_DATACENTER=$(cat $(pwd)/../config/config.json | jq -r ".consul_datacenter")
 export CONSUL_SECRET=$(cat $(pwd)/../config/consul.json | jq -r ".consul_secret")
 
@@ -46,6 +48,4 @@ export ADVERTISE_WORKER_AGENT_3=$(docker-machine ip docker-worker3)
 
 eval $(docker-machine env $1)
 
-#$(aws ecr get-login --no-include-email --region eu-west-1)
-
-$2
+./swarm/$2.sh $3 $4 $5 $6
