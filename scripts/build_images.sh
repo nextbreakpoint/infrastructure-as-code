@@ -14,14 +14,30 @@ echo "{\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/bastion.json
 cat $ROOT/config/bastion.json
 
 echo "Creating Docker AMI..."
+
 cd $ROOT/packer/docker && pk_create
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
 echo "done."
 
 echo "Creating OpenVPN AMI..."
+
 cd $ROOT/packer/openvpn && pk_create
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
 echo "done."
 
 aws ec2 describe-images --filters Name=tag:Environment,Values=${ENVIRONMENT},Name=tag:Colour,Values=${COLOUR},Name=is-public,Values=false --query 'Images[*].{ID:ImageId}' > $ROOT/images.json
 
-echo "Created images:"
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+echo "AMI images:"
 cat $ROOT/images.json
