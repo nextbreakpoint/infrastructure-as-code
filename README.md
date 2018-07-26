@@ -1,6 +1,6 @@
 # Infrastructure as code
 
-This repository contains scripts for creating a production-grade infrastructure for running micro-services on the Cloud. The scripts implement a fast, reliable, automated process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com).
+This repository contains scripts for creating a production-grade infrastructure for running micro-services on the Cloud. The scripts implement a quick and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com).
 
 The infrastructure includes the following components:
 
@@ -8,13 +8,17 @@ The infrastructure includes the following components:
 
 - [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
 
-- [ECS](https://aws.amazon.com/ecs/) for orchestrating Docker containers
+- [Docker Swarm](https://docker.com) for orchestrating Docker containers
 
-- [Consul](https://www.consul.io) for discovering services and basic monitoring
+- [Consul](https://www.consul.io) for discovering machines or services
 
-- [OpenVPN](https://openvpn.net) for securing connection to private machines
+- [Graphite]() and [Grafana]() for collecting metrics and monitoring services
 
-The infrastructure includes several EC2 machines which are created within a private network and they are accessible via SSH, using a Bastion machine, or via VPN connection, using a OpenVPN.
+- [Cassandra](), [Kafka](), [Zookeeper]() for creating event-based scalable services
+
+- [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
+
+The infrastructure includes several EC2 machines which are created within a private network and they are accessible via SSH, using a bastion machine, or via VPN connection, using OpenVPN.
 
 The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
@@ -24,7 +28,7 @@ Follow the [instructions](https://docs.docker.com/engine/installation) on Docker
 
 ## Configure AWS credentials
 
-Create a new [AWS account](https://aws.amazon.com) or use an existing one if you have the right permissions. Your account must have full administration permissions in order to create the infrastructure.
+Create a new [AWS account](https://aws.amazon.com) or use an existing one if you have the right permissions. Your account must have full administration permissions in order to create the infrastructure (or you can start with minimal permissions and add what is required as you go, but at the moment we don't provide the complete policy).
 
 Create a new Access Key and save your credentials on your workstation. AWS credentials are typically stored at location ~/.aws/credentials.
 
@@ -48,7 +52,7 @@ Second certificate must be issued for domain:
 
 The certificates will be used to provision two ALBs, one internet facing and the other internal.
 
-    You can use a self-signed certificates if you wish, but your browser will warn you when you try to access the domains above
+    You can use a self-signed certificates if you wish, but your browser will warn you when you access resources on those domains
 
 ## Build Docker image
 
@@ -60,7 +64,7 @@ The image contain all the tools you need to manage the infrastructure, including
 
 ## Configure S3 bucket
 
-A S3 bucket is required for storing secrets and certificates used to provision the machines. The bucket is also used as backend for storing Terraform's remote state. Since the bucket contains secrets, access must be restricted. Consider enabling KMS encryption to increase security.
+A S3 bucket is required for storing secrets and certificates used to provision the machines. The bucket is also used as backend for storing Terraform's remote state. Since the bucket contains secrets, the access must be restricted. Consider enabling KMS encryption to increase security.
 
 Create a S3 bucket with the command:
 
@@ -76,7 +80,7 @@ The script will set the bucket name and region in all remote_state.tf files.
 
 ## Configure Terraform and Packer
 
-Create a file config.json in config directory. The file should look like:
+Create a file config.json into the config directory. The file should look like:
 
     {
         "account_id": "your_account_id",
@@ -110,19 +114,19 @@ The domain yourdomain.com must be a valid domain hosted in a Route53 public zone
 
 ## Generate secrets
 
-Some certificates and keystores are required to create a secure infrastructure.
-
 Create the secrets with the command:
 
     ./run_script.sh generate_secrets
 
-## Generate SSH keys
+Certificates and keystores are required to create a secure infrastructure.
 
-SSH keys are required to access EC2 machines.
+## Generate SSH keys
 
 Generate the SSH keys with the command:
 
     ./run_script.sh generate_keys
+
+SSH keys are required to access EC2 machines.
 
 ## Configure Consul
 
@@ -132,32 +136,32 @@ Create a configuration for Consul with the command:
 
 ## Create VPCs
 
-Create VPCs with command:
+Create the VPCs with command:
 
     ./run_script.sh create_vpc
 
 ## Create SSH keys
 
-Create SSH keys with command:
+Create the SSH keys with command:
 
     ./run_script.sh create_keys
 
 ## Create Bastion server
 
-Create Bastion server with command:
+Create the Bastion server with command:
 
     ./run_script.sh create_bastion
 
 ## Build images with Packer
 
-EC2 machines are provisioned using custom AMI.
-
-Create the images with the command:
+Create the AMI images with command:
 
     ./run_script.sh build_images
 
-This command might take quite a while. Once the images have been created, you don't need to recreate them unless something has changed in the provisioning scripts. Reusing the same images considerably reduces the time required to create the infrastructure.
-If you destroyed the infrastructure but you didn't delete the AMIs, then you can skip this step when you recreate the infrastructure.
+Some EC2 machines are provisioned using custom AMI.
+
+This command might take quite a while. Once the images have been created, you don't need to recreate them unless something has changed in the provisioning scripts. Reusing the same images, considerably reduces the time required to create the infrastructure.
+If you destroyed the infrastructure, but you didn't delete the AMIs, then you can skip this step when you recreate the infrastructure.
 
 ## Create infrastructure
 
@@ -174,7 +178,7 @@ Or create the infrastructure in several steps:
 
 ## Create OpenVPN server
 
-Create OpenVPN server with command:
+Create the OpenVPN server with command:
 
     ./run_script.sh create_openvpn
 
@@ -182,15 +186,17 @@ Create OpenVPN server with command:
 
 Copy the deployer key to Bastion machine:
 
-    scp -i production-green-deployer.pem production-green-deployer.pem ec2-user@bastion.yourdomain.com:~
+    scp -i production-green-deployer.pem production-green-deployer.pem ec2-user@production-green-bastion.yourdomain.com:~
 
 Connect to bastion server using the command:
 
-    ssh -i production-green-deployer.pem ec2-user@bastion.yourdomain.com
+    ssh -i production-green-deployer.pem ec2-user@production-green-bastion.yourdomain.com
 
-Connect to other machines using the command:
+Connect to any other machines using the command:
 
     ssh -i production-green-deployer.pem ubuntu@private_ip_address
+
+You can find the ip address of the machines on the AWS console.
 
 ## Access machines using OpenVPN
 
@@ -203,7 +209,7 @@ OpenVPN server is configured to allow connections to any internal servers.
 
 Login into OpenVPN server if you need to modify the server configuration:
 
-    ssh -i production-green-deployer.pem ubuntu@openvpn.yourdomain.com
+    ssh -i production-green-deployer.pem ubuntu@production-green-openvpn.yourdomain.com
 
 Edit file /etc/openvpn/server.conf and then restart the server:
 
@@ -216,6 +222,96 @@ Finally, you should create a new configuration for each client using the command
 The new client configuration is generated at location:
 
     secrets/openvpn/production/green/openvpn_name.ovpn
+
+## Create the Swarm
+
+Docker Swarm can be created when all the EC2 machines are ready.
+
+Verify that you can ping the manager nodes:
+
+    ping production-green-swarm-manager-a.yourdomain.com
+    ping production-green-swarm-manager-a.yourdomain.com
+    ping production-green-swarm-manager-a.yourdomain.com
+
+Verify that you can ping the worker nodes:
+
+    ping production-green-swarm-worker-a.yourdomain.com
+    ping production-green-swarm-worker-a.yourdomain.com
+    ping production-green-swarm-worker-a.yourdomain.com
+
+Verify that you can login into the machines:
+
+    ssh -i production-green-deployer.pem ubuntu@production-green-swarm-manager-a.yourdomain.com
+
+Create the Swarm with the command:
+
+    ./run_script.sh create_swarm_ec2
+
+Configure the Swarm with the command:
+
+    ./run_script.sh update_labels_ec2
+
+Create the overlay network with the command:
+
+    ./run_script.sh swarm_run_ec2 "./create-network.sh"
+
+Verify that the Swarm is working with the command:
+
+    ./run_script.sh swarm_run_ec2 "docker node ls"
+
+It should print the list of the nodes, which should contain 6 nodes, 3 managers and 3 workers.
+
+## Deploy services
+
+The services are deployed on the Swarm using Docker Stacks.
+
+Deploy a stack with the command:
+
+    ./run_script.sh swarm_run_ec2 "./deploy-stack.sh consul"
+
+It should create volumes and services on the worker nodes.
+
+Verify that the services are running with the command:
+
+    ./run_script.sh swarm_run_ec2 "docker service ls"
+
+In a similar way, you can deploy any stack from this list:
+
+    consul
+    nginx
+    zookeeper
+    kafka
+    cassandra
+    elasticsearch
+    logstash
+    kibana
+    graphite
+    grafana
+    jenkins
+    mysql
+    sonarqube
+    artifactory
+
+Please note that before deploying SonarQube or Artifactory, you must configure MySQL with the command:
+
+    ./run_script.sh swarm_run_ec2 "./setup-mysql.sh"
+
+Some services have ports exposed on the host machine, therefore are reachable from any other machine in the same VPC.
+Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
+
+This is the list of ports which are exposed on the host:
+
+    TODO
+
+## Delete services
+
+Remove a service with the command:
+
+    ./run_script.sh swarm_run_ec2 "./remove-stack.sh consul"
+
+The volumes associated with the service are not deleted when deleting a stack.
+
+    The content of the volumes will still be available when recreating the stack
 
 ## Destroy infrastructure
 
@@ -232,43 +328,58 @@ Or destroy the infrastructure in several steps:
 
 ## Services discovery
 
-Use Consul UI to check the state of your services:
+Deploy Consul stack and use Consul UI to check the state of your services:
 
-    https://consul.yourdomain.com
+    https://production-green-swarm-worker.yourdomain.com:8500
 
 You might want to use Consul for services discovery in your applications as well.
 
-## Centralised logging
+You can use Consul as DNS server, and you can lookup for a service using a DNS query:
 
-Use Kibana to analyse log files and monitor servers:
+    dig @production-green-swarm-manager.yourdomain.com:8600 consul.service.internal
 
-    https://kibana.yourdomain.com
+## Centralised logs
+
+Use Kibana to analyse logs and monitor services:
+
+    https://production-green-swarm-manager.yourdomain.com:5601
 
     NOTE: Default user is "elastic" with password "changeme"
 
-If your applications are running in a Docker container managed by ECS, then log files are automatically collected and sent to Logstash. Alternatively you can ship your logs directly to Logstash using your logging framework or you can install Filebeat in your machine.
+All containers running on the Swarm are configured to send the logs to Logstash, therefore the logs are available in Kibana.
+
+## Metrics and monitoring
+
+Use Graphite and Grafana to collect metrics and monitor services:
+
+    https://production-green-swarm-manager.yourdomain.com:3000
+    https://production-green-swarm-manager.yourdomain.com:2080
+
+    NOTE: Default user is "admin" with password "admin"
+
+Configure your applications to send metrics to Graphite and create your dashboards with Grafana.
 
 ## Delivery pipelines
 
 Create your delivery pipelines using Jenkins:
 
-    https://jenkins.yourdomain.com
+    https://production-green-swarm-manager.yourdomain.com:8080
 
     NOTE: Security is disabled by default
 
 Integrate your build pipeline with SonarQube to analyse your code:
 
-    https://sonarqube.yourdomain.com
+    https://production-green-swarm-manager.yourdomain.com:9000
 
     NOTE: Default user is "admin" with password "admin"
 
 Integrate your build pipeline with Artifactory to manage your artifacts:
 
-    https://artifactory.yourdomain.com
+    https://production-green-swarm-manager.yourdomain.com:8081
 
     NOTE: Default user is "admin" with password "password"
 
-Deploy your applications to ECS or EC2, manually or using Jenkins CI.
+Deploy your applications to Docker Swarm or EC2, manually or using Jenkins CI.
 
 ## Disable access via Bastion
 
