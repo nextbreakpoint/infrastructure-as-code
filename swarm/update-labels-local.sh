@@ -4,6 +4,7 @@ eval $(docker-machine env docker-master)
 
 export NODE=$(docker node ls -q --filter "name=docker-master")
 
+docker node update --label-add zone=a $NODE
 docker node update --label-add postgres=true $NODE
 docker node update --label-add mysql=true $NODE
 docker node update --label-add jenkins=true $NODE
@@ -16,7 +17,6 @@ docker node update --label-add grafana=true $NODE
 docker node update --label-add kibana=true $NODE
 docker node update --label-add consul=true $NODE
 docker node update --label-add agent=true $NODE
-docker node update --label-add zone=a $NODE
 
 export NODE=$(docker node ls -q --filter "name=docker-worker1")
 
