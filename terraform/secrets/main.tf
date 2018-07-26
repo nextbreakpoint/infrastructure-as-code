@@ -290,7 +290,6 @@ resource "aws_s3_bucket_object" "swarm-ca-certificate" {
   etag   = "${md5(file("../../secrets/environments/${var.environment}/${var.colour}/swarm/ca_cert.pem"))}"
 }
 
-
 resource "aws_s3_bucket_object" "kafka-keystore-server" {
   bucket = "${var.secrets_bucket_name}"
   key    = "environments/${var.environment}/${var.colour}/kafka/keystore-server.jks"
