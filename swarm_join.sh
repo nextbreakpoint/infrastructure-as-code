@@ -1,7 +1,7 @@
 #!/bin/sh
 
-export ENVIRONMENT=$(cat $(pwd)/config/config.json | jq -r ".environment")
-export COLOUR=$(cat $(pwd)/config/config.json | jq -r ".colour")
+export ENVIRONMENT=$(cat $(pwd)/config/main.json | jq -r ".environment")
+export COLOUR=$(cat $(pwd)/config/main.json | jq -r ".colour")
 
 export ENVIRONMENT_SECRETS_PATH=$(pwd)/secrets/environments/${ENVIRONMENT}/${COLOUR}
 

@@ -7,8 +7,8 @@ cd $ROOT/terraform/bastion
 # BASTION_SUBNET variable is required by pk_create alias
 BASTION_SUBNET=$(terraform output -json bastion-public-subnet-a-id | jq -r '.value')
 
-ENVIRONMENT=$(cat $ROOT/config/config.json | jq -r ".environment")
-COLOUR=$(cat $ROOT/config/config.json | jq -r ".colour")
+ENVIRONMENT=$(cat $ROOT/config/main.json | jq -r ".environment")
+COLOUR=$(cat $ROOT/config/main.json | jq -r ".colour")
 
 #echo "Network variables:"
 #echo "{\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/bastion.json

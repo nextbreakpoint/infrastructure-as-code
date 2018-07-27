@@ -2,8 +2,8 @@
 
 echo "Generating OpenVPN client configuration..."
 
-ENVIRONMENT=$(cat $ROOT/config/config.json | jq -r ".environment")
-COLOUR=$(cat $ROOT/config/config.json | jq -r ".colour")
+ENVIRONMENT=$(cat $ROOT/config/main.json | jq -r ".environment")
+COLOUR=$(cat $ROOT/config/main.json | jq -r ".colour")
 
 OUTPUT=$ROOT/secrets/openvpn/$ENVIRONMENT/$COLOUR
 SOURCE=$ROOT/secrets

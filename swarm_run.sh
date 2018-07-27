@@ -27,19 +27,19 @@ export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
 export NGINX_IMAGE=nginx:${NGINX_VERSION}
 export SONARQUBE_IMAGE=sonarqube:${SONARQUBE_VERSION}
 
-export ENVIRONMENT=$(cat $(pwd)/config/config.json | jq -r ".environment")
-export COLOUR=$(cat $(pwd)/config/config.json | jq -r ".colour")
+export ENVIRONMENT=$(cat $(pwd)/config/main.json | jq -r ".environment")
+export COLOUR=$(cat $(pwd)/config/main.json | jq -r ".colour")
 
 export ENVIRONMENT_SECRETS_PATH=$(pwd)/secrets/environments/${ENVIRONMENT}/${COLOUR}
 
 export SWARM_RESOURCES_PATH=$(pwd)/swarm
 
-export CONSUL_DATACENTER=$(cat $(pwd)/config/config.json | jq -r ".consul_datacenter")
+export CONSUL_DATACENTER=$(cat $(pwd)/config/main.json | jq -r ".consul_datacenter")
 export CONSUL_SECRET=$(cat $(pwd)/config/consul.json | jq -r ".consul_secret")
 
-export HOSTED_ZONE_NAME=$(cat $(pwd)/config/config.json | jq -r ".hosted_zone_name")
+export HOSTED_ZONE_NAME=$(cat $(pwd)/config/main.json | jq -r ".hosted_zone_name")
 
-export KEYSTORE_PASSWORD=$(cat $(pwd)/config/config.json | jq -r ".keystore_password")
+export KEYSTORE_PASSWORD=$(cat $(pwd)/config/main.json | jq -r ".keystore_password")
 
 export SUBNET_A=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_a")
 export SUBNET_B=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_b")

@@ -62,19 +62,31 @@ Execute script run_build.sh to create the Docker image that you will use to buil
 
 The image contain all the tools you need to manage the infrastructure, including AWS CLI, Terraform, Packer, and others.
 
-## Configure S3 bucket
+## Configure S3 buckets
 
-A S3 bucket is required for storing secrets and certificates used to provision the machines. The bucket is also used as backend for storing Terraform's remote state. Since the bucket contains secrets, the access must be restricted. Consider enabling KMS encryption to increase security.
+Two S3 buckets are required for creating the infrstructure.
 
-Create a S3 bucket with the command:
+The first bucker is required for storing secrets and certificates.
 
-    ./docker_run.sh make_bucket your_bucket_name eu-west-1
+The second bucket is required for storing Terraform's remote state.
 
-Please note that the bucket name must be globally unique.
+Since the buckets contains sensible data, the access must be restricted.
 
-Once the bucket has been created, execute the command:
+    Consider enabling KMS encryption on the bucket to increase security
 
-    ./docker_run.sh configure_terraform your_bucket_name eu-west-1
+Create a S3 bucket for secrets with the command:
+
+    ./docker_run.sh make_bucket your_secrets_bucket_name
+
+Create a S3 bucket for Terraform with the command:
+
+    ./docker_run.sh make_bucket your_terraform_bucket_name
+
+Please note that the bucket names must be globally unique.
+
+Once the Terraform bucket has been created, execute the command:
+
+    ./docker_run.sh configure_terraform your_terraform_bucket_name
 
 The script will set the bucket name and region in all remote_state.tf files.
 
@@ -93,7 +105,7 @@ Create a file main.json in config directory. Copy the content from the file temp
 
         "bastion_host": "bastion.yourdomain.com",
 
-        "secrets_bucket_name": "your_bucket_name",
+        "secrets_bucket_name": "your_secrets_bucket_name",
 
         "consul_datacenter": "internal",
 

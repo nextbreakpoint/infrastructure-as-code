@@ -1,16 +1,16 @@
 #!/bin/sh
 
-ENVIRONMENT=$(cat $ROOT/config/config.json | jq -r ".environment")
-COLOUR=$(cat $ROOT/config/config.json | jq -r ".colour")
+ENVIRONMENT=$(cat $ROOT/config/main.json | jq -r ".environment")
+COLOUR=$(cat $ROOT/config/main.json | jq -r ".colour")
 
-CONSUL_DATACENTER=$(cat $ROOT/config/config.json | jq -r ".consul_datacenter")
+CONSUL_DATACENTER=$(cat $ROOT/config/main.json | jq -r ".consul_datacenter")
 
-KEY_PASSWORD=$(cat $ROOT/config/config.json | jq -r ".keystore_password")
-KEYSTORE_PASSWORD=$(cat $ROOT/config/config.json | jq -r ".keystore_password")
-TRUSTSTORE_PASSWORD=$(cat $ROOT/config/config.json | jq -r ".truststore_password")
+KEY_PASSWORD=$(cat $ROOT/config/main.json | jq -r ".keystore_password")
+KEYSTORE_PASSWORD=$(cat $ROOT/config/main.json | jq -r ".keystore_password")
+TRUSTSTORE_PASSWORD=$(cat $ROOT/config/main.json | jq -r ".truststore_password")
 
-KAFKA_PASSWORD=$(cat $ROOT/config/config.json | jq -r ".kafka_password")
-ZOOKEEPER_PASSWORD=$(cat $ROOT/config/config.json | jq -r ".zookeeper_password")
+KAFKA_PASSWORD=$(cat $ROOT/config/main.json | jq -r ".kafka_password")
+ZOOKEEPER_PASSWORD=$(cat $ROOT/config/main.json | jq -r ".zookeeper_password")
 
 OUTPUT_GEN=$ROOT/secrets/generated/$ENVIRONMENT/$COLOUR
 OUTPUT_ENV=$ROOT/secrets/environments/$ENVIRONMENT/$COLOUR

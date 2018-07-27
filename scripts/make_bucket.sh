@@ -1,11 +1,10 @@
 #!/bin/sh
 
-echo "Creating bucket..."
+echo "Creating bucket $1..."
 
-echo "Bucket = "$1
-echo "Region = "$2
+AWS_REGION=$(cat $ROOT/config/misc.json | jq -r ".aws_region")
 
-aws s3api create-bucket --bucket $1 --region $2 --create-bucket-configuration LocationConstraint=$2
+aws s3api create-bucket --bucket $1 --region $AWS_REGION --create-bucket-configuration LocationConstraint=$AWS_REGION
 
 if [ $? -ne 0 ]; then
     exit 1
