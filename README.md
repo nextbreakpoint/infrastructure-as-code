@@ -80,7 +80,7 @@ The script will set the bucket name and region in all remote_state.tf files.
 
 ## Configure Terraform and Packer
 
-Create a file main.json into the config directory. The file should look like:
+Create a file main.json in config directory. Copy the content from the file template-main.json. The file should look like:
 
     {
         "account_id": "your_account_id",
@@ -109,6 +109,8 @@ Create a file main.json into the config directory. The file should look like:
         "logstash_password": "your_password",
         "elasticsearch_password": "your_password"
     }
+
+Change the variables to the correct values for your infrastructure.
 
 The domain yourdomain.com must be a valid domain hosted in a Route53 public zone.
 
