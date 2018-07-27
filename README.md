@@ -40,7 +40,7 @@ The content of ~/.aws/credentials should look like:
 
 ## Configure SSL certificates
 
-Create and upload two SSL certificates using Certificate Manager in AWS console.
+Create and upload two SSL certificates using [Certificate Manager](https://eu-west-1.console.aws.amazon.com/acm/home?region=eu-west-1) in AWS console.
 
 First certificate must be issued for domain:
 
