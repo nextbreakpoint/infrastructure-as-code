@@ -52,25 +52,19 @@ Second certificate must be issued for domain:
 
 The certificates will be used to provision two ALBs, one internet facing and the other internal.
 
-    You can use a self-signed certificates if you wish, but your browser will warn you when you access resources on those domains
+    You can use self-signed certificates as well, just remember that your browser will warn you when accessing resources on those domains
 
 ## Build Docker image
 
-Execute script run_build.sh to create the Docker image that you will use to build the infrastructure:
+Create the Docker image that you will use to build the infrastructure:
 
     ./docker_build.sh
 
-The image contain all the tools you need to manage the infrastructure, including AWS CLI, Terraform, Packer, and others.
+The image contains the tools you need to manage the infrastructure, including AWS CLI, Terraform, Packer, and others.
 
 ## Configure S3 buckets
 
-Two S3 buckets are required for creating the infrstructure.
-
-The first bucker is required for storing secrets and certificates.
-
-The second bucket is required for storing Terraform's remote state.
-
-Since the buckets contains sensible data, the access must be restricted.
+Two S3 buckets are required for creating the infrastructure. The first bucket is required for storing secrets and certificates. The second bucket is required for storing Terraform's remote state. Since the buckets contains sensible data, the access must be restricted.
 
     Consider enabling KMS encryption on the bucket to increase security
 
@@ -82,9 +76,7 @@ Create a S3 bucket for Terraform with the command:
 
     ./docker_run.sh make_bucket your_terraform_bucket_name
 
-Please note that the bucket names must be globally unique.
-
-Once the Terraform bucket has been created, execute the command:
+Once the Terraform bucket has been created, configure the Terraform's backend with the command:
 
     ./docker_run.sh configure_terraform your_terraform_bucket_name
 
@@ -92,7 +84,7 @@ The script will set the bucket name and region in all remote_state.tf files.
 
 ## Configure Terraform and Packer
 
-Create a file main.json in config directory. Copy the content from the file template-main.json. The file should look like:
+Create a file main.json in the config directory. Copy the content from the file template-main.json. The file should look like:
 
     {
         "account_id": "your_account_id",
@@ -122,9 +114,7 @@ Create a file main.json in config directory. Copy the content from the file temp
         "elasticsearch_password": "your_password"
     }
 
-Change the variables to the correct values for your infrastructure.
-
-The domain yourdomain.com must be a valid domain hosted in a Route53 public zone.
+Change the variables to the correct values for your infrastructure. The account id must be a valid AWS account id and your AWS credentials must have the correct permissions on that account. The domain yourdomain.com must be a valid domain hosted in a Route53 public zone.
 
     Register a new domain with AWS if you don't have one already and create a new public zone
 
@@ -134,7 +124,7 @@ Create the secrets with the command:
 
     ./docker_run.sh generate_secrets
 
-Certificates and keystores are required to create a secure infrastructure.
+Several certificates and passwords are required to create a secure infrastructure.
 
 ## Generate SSH keys
 
@@ -177,9 +167,10 @@ Create the AMI images with command:
 Some EC2 machines are provisioned using custom AMI.
 
 This command might take quite a while. Once the images have been created, you don't need to recreate them unless something has changed in the provisioning scripts. Reusing the same images, considerably reduces the time required to create the infrastructure.
-If you destroyed the infrastructure, but you didn't delete the AMIs, then you can skip this step when you recreate the infrastructure.
 
-## Create infrastructure
+    If you destroyed the infrastructure, but you didn't delete the AMIs, then you can skip this step when you recreate the infrastructure.
+
+## Create the infrastructure
 
 Create the infrastructure with command:
 
@@ -220,26 +211,25 @@ A default client configuration is automatically generated at location:
 
     secrets/openvpn/production/green/openvpn_client.ovpn
 
-Install the configuration in your OpenVPN client. Connect your client.
-OpenVPN server is configured to allow connections to any internal servers.
+Install the configuration in your OpenVPN client and connect your client. OpenVPN server is configured to allow connections to any internal servers.
 
-Login into OpenVPN server if you need to modify the server configuration:
-
-    ssh -i prod-green-deployer.pem ubuntu@prod-green-openvpn.yourdomain.com
-
-Edit file /etc/openvpn/server.conf and then restart the server:
-
-    sudo service openvpn restart
-
-Finally, you should create a new configuration for each client using the command:
+You should create a different configuration for each client using the command:
 
     ./run_script new_client_ovpn name
 
-The new client configuration is generated at location:
+The client configuration is generated at location:
 
     secrets/openvpn/production/green/openvpn_name.ovpn
 
-## Create the Swarm
+If you need to modify the server configuration, login into OpenVPN server:
+
+    ssh -i prod-green-deployer.pem ubuntu@prod-green-openvpn.yourdomain.com
+
+Edit the file /etc/openvpn/server.conf and then restart the server:
+
+    sudo service openvpn restart
+
+## Create the Docker Swarm
 
 Docker Swarm can be created when all the EC2 machines are ready.
 
@@ -316,8 +306,7 @@ Please note that before deploying SonarQube or Artifactory, you must configure M
 
     ./swarm_run.sh prod-green-swarm-manager.yourdomain.com setup_mysql
 
-Some services have ports exposed on the host machine, therefore are reachable from any other machine in the same VPC.
-Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
+Some services have ports exposed on the host machine, therefore are reachable from any other machine in the same VPC. Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
 
 This is the list of ports which are exposed on the host:
 
@@ -354,7 +343,7 @@ Or destroy the infrastructure in several steps:
 
 ## Services discovery
 
-Deploy Consul stack and use Consul UI to check the state of your services:
+Use Consul UI to check the state of your services:
 
     https://prod-green-swarm-worker.yourdomain.com:8500
 
