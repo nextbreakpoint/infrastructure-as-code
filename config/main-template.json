@@ -1,0 +1,27 @@
+{
+  "account_id": "your_account_id",
+
+  "environment": "prod",
+  "colour": "green",
+
+  "hosted_zone_name": "yourdomain.com",
+  "hosted_zone_id": "your_public_zone_id",
+
+  "bastion_host": "bastion.yourdomain.com",
+
+  "secrets_bucket_name": "your_bucket_name",
+
+  "consul_datacenter": "internal",
+
+  "key_password": "your_key_password",
+  "keystore_password": "your_keystore_password",
+  "truststore_password": "your_truststore_password",
+  "kafka_password": "your_password",
+  "zookeeper_password": "your_password",
+  "mysql_root_password": "your_password",
+  "mysql_sonarqube_password": "your_password",
+  "mysql_artifactory_password": "your_password",
+  "kibana_password": "your_password",
+  "logstash_password": "your_password",
+  "elasticsearch_password": "your_password"
+}
