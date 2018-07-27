@@ -22,6 +22,8 @@ The infrastructure includes several EC2 machines which are created within a priv
 
 The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
+    BEWARE OF THE COST OF RUNNING THE INFRASTRUCTURE ON AWS. WE ARE NOT RESPONSIBLE FOR ANY CHARGES
+
 ## Prepare workstation
 
 Follow the [instructions](https://docs.docker.com/engine/installation) on Docker.com to install Docker CE version 17.09 or later. Docker is the only tool that you need to install on your workstation.
@@ -152,11 +154,11 @@ Create the SSH keys with command:
 
     ./docker_run.sh create_keys
 
-## Create Bastion server
+## Create Bastion network
 
-Create the Bastion server with command:
+Create the Bastion network with command:
 
-    ./docker_run.sh create_bastion
+    ./docker_run.sh create_bastion_network
 
 ## Build images with Packer
 
@@ -166,9 +168,9 @@ Create the AMI images with command:
 
 Some EC2 machines are provisioned using custom AMI.
 
-This command might take quite a while. Once the images have been created, you don't need to recreate them unless something has changed in the provisioning scripts. Reusing the same images, considerably reduces the time required to create the infrastructure.
+The script might take quite a while. Once the images have been created, you don't need to recreate them unless something has changed in the provisioning scripts. Reusing the same images, considerably reduces the time required to create the infrastructure.
 
-    If you destroyed the infrastructure, but you didn't delete the AMIs, then you can skip this step when you recreate the infrastructure.
+    If you destroy the infrastructure but you don't delete the AMIs, then you can skip this step when you recreate the infrastructure
 
 ## Create the infrastructure
 
@@ -182,6 +184,12 @@ Or create the infrastructure in several steps:
     ./docker_run.sh create_network
     ./docker_run.sh create_lb
     ./docker_run.sh create_swarm
+
+## Create Bastion server
+
+Create the Bastion server with command:
+
+    ./docker_run.sh create_bastion
 
 ## Create OpenVPN server
 

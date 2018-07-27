@@ -12,17 +12,17 @@ provider "aws" {
 # Resources
 ##############################################################################
 
-resource "aws_s3_bucket" "secrets" {
-  bucket        = "${var.secrets_bucket_name}"
-  region        = "${var.aws_region}"
-  acl           = "private"
-  force_destroy = true
-
-  tags {
-    Environment = "${var.environment}"
-    Colour      = "${var.colour}"
-  }
-}
+# resource "aws_s3_bucket" "secrets" {
+#   bucket        = "${var.secrets_bucket_name}"
+#   region        = "${var.aws_region}"
+#   acl           = "private"
+#   force_destroy = true
+#
+#   tags {
+#     Environment = "${var.environment}"
+#     Colour      = "${var.colour}"
+#   }
+# }
 
 resource "aws_s3_bucket_object" "keystore-client" {
   bucket = "${var.secrets_bucket_name}"

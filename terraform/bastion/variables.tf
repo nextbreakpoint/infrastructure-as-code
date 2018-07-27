@@ -55,3 +55,7 @@ variable "amazon_nat_ami" {
 variable "bastion_instance_type" {
   default     = "t2.micro"
 }
+
+variable "bastion_count" {
+  default     = 0
+}

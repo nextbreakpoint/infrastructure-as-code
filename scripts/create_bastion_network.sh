@@ -8,7 +8,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cd $ROOT/terraform/bastion && tf_plan --var bastion_count=1
+cd $ROOT/terraform/bastion && tf_plan
 
 if [ $? -ne 0 ]; then
     exit 1

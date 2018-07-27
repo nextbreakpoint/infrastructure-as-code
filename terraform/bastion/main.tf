@@ -238,6 +238,7 @@ data "template_file" "bastion" {
 module "bastion_a" {
   source = "./bastion"
 
+  count                 = "${var.bastion_count}"
   environment           = "${var.environment}"
   colour                = "${var.colour}"
   name                  = "${var.environment}-${var.colour}-bastion-a"
@@ -254,6 +255,7 @@ module "bastion_a" {
 # module "bastion_b" {
 #   source = "./bastion"
 #
+  # count                 = "${var.bastion_count}"
   # environment           = "${var.environment}"
   # colour                = "${var.colour}"
   # name                  = "${var.environment}-${var.colour}-bastion-b"
@@ -270,6 +272,7 @@ module "bastion_a" {
 # module "bastion_c" {
 #   source = "./bastion"
 #
+  # count                 = "${var.bastion_count}"
   # environment           = "${var.environment}"
   # colour                = "${var.colour}"
   # name                  = "${var.environment}-${var.colour}-bastion-c"
@@ -284,6 +287,7 @@ module "bastion_a" {
 # }
 
 resource "aws_route53_record" "bastion" {
+  count   = "${var.bastion_count}"
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-bastion.${var.hosted_zone_name}"
   type    = "A"

@@ -36,11 +36,11 @@ fi
 
 echo "done."
 
-aws ec2 describe-images --filters Name=tag:Environment,Values=${ENVIRONMENT},Name=tag:Colour,Values=${COLOUR},Name=is-public,Values=false --query 'Images[*].{ID:ImageId}' > $ROOT/images.json
+aws ec2 describe-images --filters Name=tag:Environment,Values=${ENVIRONMENT},Name=tag:Colour,Values=${COLOUR},Name=is-public,Values=false --query 'Images[*].{ID:ImageId}'
 
 if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "AMI images:"
-cat $ROOT/images.json
+#echo "AMI images:"
+#cat $ROOT/images.json
