@@ -4,19 +4,19 @@ This repository contains scripts for creating a production-grade infrastructure 
 
 The infrastructure includes the following components:
 
-- [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and analysing logs
+-   [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and analysing logs
 
-- [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
+-   [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
 
-- [Docker Swarm](https://docker.com) for orchestrating Docker containers
+-   [Docker Swarm](https://docker.com) for orchestrating Docker containers
 
-- [Consul](https://www.consul.io) for discovering machines or services
+-   [Consul](https://www.consul.io) for discovering machines or services
 
-- [Graphite]() and [Grafana]() for collecting metrics and monitoring services
+-   [Graphite](https://graphiteapp.org) and [Grafana](https://grafana.com) for collecting metrics and monitoring services
 
-- [Cassandra](), [Kafka](), [Zookeeper]() for creating event-based scalable services
+-   [Cassandra](http://cassandra.apache.org), [Kafka](https://kafka.apache.org), [Zookeeper](https://zookeeper.apache.org) for creating event-based scalable services
 
-- [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
+-   [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
 
 The infrastructure includes several EC2 machines which are created within a private network and they are accessible via SSH, using a bastion machine, or via VPN connection, using OpenVPN.
 
@@ -80,13 +80,12 @@ The script will set the bucket name and region in all remote_state.tf files.
 
 ## Configure Terraform and Packer
 
-Create a file config.json into the config directory. The file should look like:
+Create a file main.json into the config directory. The file should look like:
 
     {
         "account_id": "your_account_id",
 
-        "environment": "production",
-
+        "environment": "prod",
         "colour": "green",
 
         "hosted_zone_name": "yourdomain.com",
@@ -98,8 +97,11 @@ Create a file config.json into the config directory. The file should look like:
 
         "consul_datacenter": "internal",
 
+        "key_password": "your_key_password",
+        "keystore_password": "your_keystore_password",
+        "truststore_password": "your_truststore_password",
         "kafka_password": "your_password",
-        "zoo_password": "your_password",
+        "zookeeper_password": "your_password",
         "mysql_root_password": "your_password",
         "mysql_sonarqube_password": "your_password",
         "mysql_artifactory_password": "your_password",
@@ -186,15 +188,15 @@ Create the OpenVPN server with command:
 
 Copy the deployer key to Bastion machine:
 
-    scp -i production-green-deployer.pem production-green-deployer.pem ec2-user@production-green-bastion.yourdomain.com:~
+    scp -i prod-green-deployer.pem prod-green-deployer.pem ec2-user@prod-green-bastion.yourdomain.com:~
 
 Connect to bastion server using the command:
 
-    ssh -i production-green-deployer.pem ec2-user@production-green-bastion.yourdomain.com
+    ssh -i prod-green-deployer.pem ec2-user@prod-green-bastion.yourdomain.com
 
 Connect to any other machines using the command:
 
-    ssh -i production-green-deployer.pem ubuntu@private_ip_address
+    ssh -i prod-green-deployer.pem ubuntu@private_ip_address
 
 You can find the ip address of the machines on the AWS console.
 
@@ -209,7 +211,7 @@ OpenVPN server is configured to allow connections to any internal servers.
 
 Login into OpenVPN server if you need to modify the server configuration:
 
-    ssh -i production-green-deployer.pem ubuntu@production-green-openvpn.yourdomain.com
+    ssh -i prod-green-deployer.pem ubuntu@prod-green-openvpn.yourdomain.com
 
 Edit file /etc/openvpn/server.conf and then restart the server:
 
@@ -229,19 +231,19 @@ Docker Swarm can be created when all the EC2 machines are ready.
 
 Verify that you can ping the manager nodes:
 
-    ping production-green-swarm-manager-a.yourdomain.com
-    ping production-green-swarm-manager-a.yourdomain.com
-    ping production-green-swarm-manager-a.yourdomain.com
+    ping prod-green-swarm-manager-a.yourdomain.com
+    ping prod-green-swarm-manager-a.yourdomain.com
+    ping prod-green-swarm-manager-a.yourdomain.com
 
 Verify that you can ping the worker nodes:
 
-    ping production-green-swarm-worker-a.yourdomain.com
-    ping production-green-swarm-worker-a.yourdomain.com
-    ping production-green-swarm-worker-a.yourdomain.com
+    ping prod-green-swarm-worker-a.yourdomain.com
+    ping prod-green-swarm-worker-a.yourdomain.com
+    ping prod-green-swarm-worker-a.yourdomain.com
 
 Verify that you can login into the machines:
 
-    ssh -i production-green-deployer.pem ubuntu@production-green-swarm-manager-a.yourdomain.com
+    ssh -i prod-green-deployer.pem ubuntu@prod-green-swarm-manager-a.yourdomain.com
 
 Create the Swarm with the command:
 
@@ -253,7 +255,7 @@ Configure the Swarm with the command:
 
 Verify that the Swarm is working with the command:
 
-    ./swarm_cmd.sh production-green-swarm-manager.yourdomain.com "docker node ls"
+    ./swarm_cmd.sh prod-green-swarm-manager.yourdomain.com "docker node ls"
 
 It should print the list of the nodes, which should contain 6 nodes, 3 managers and 3 workers.
 
@@ -261,7 +263,7 @@ It should print the list of the nodes, which should contain 6 nodes, 3 managers 
 
 Create the overlay networks with the command:
 
-    ./swarm_run.sh production-green-swarm-manager.yourdomain.com create_network
+    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com create_network
 
 The overlay networks are used to allow communication between containers running on different machines.
 
@@ -271,13 +273,13 @@ The services are deployed on the Swarm using Docker Stacks.
 
 Deploy a stack with the command:
 
-    ./swarm_run.sh production-green-swarm-manager.yourdomain.com deploy_stack consul
+    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com deploy_stack consul
 
 It should create volumes and services on the worker nodes.
 
 Verify that the services are running with the command:
 
-    ./swarm_cmd.sh production-green-swarm-manager.yourdomain.com "docker service ls"
+    ./swarm_cmd.sh prod-green-swarm-manager.yourdomain.com "docker service ls"
 
 In a similar way, you can deploy any stack from this list:
 
@@ -298,7 +300,7 @@ In a similar way, you can deploy any stack from this list:
 
 Please note that before deploying SonarQube or Artifactory, you must configure MySQL with the command:
 
-    ./swarm_run.sh production-green-swarm-manager.yourdomain.com setup_mysql
+    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com setup_mysql
 
 Some services have ports exposed on the host machine, therefore are reachable from any other machine in the same VPC.
 Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
@@ -311,7 +313,7 @@ This is the list of ports which are exposed on the host:
 
 Remove a service with the command:
 
-    ./swarm_run.sh production-green-swarm-manager.yourdomain.com remove_stack consul
+    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com remove_stack consul
 
 The volumes associated with the service are not deleted when deleting a stack.
 
@@ -321,7 +323,7 @@ The volumes associated with the service are not deleted when deleting a stack.
 
 Remove the overlay networks with the command:
 
-    ./swarm_run.sh production-green-swarm-manager.yourdomain.com remove_networks
+    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com remove_networks
 
 ## Destroy infrastructure
 
@@ -340,19 +342,19 @@ Or destroy the infrastructure in several steps:
 
 Deploy Consul stack and use Consul UI to check the state of your services:
 
-    https://production-green-swarm-worker.yourdomain.com:8500
+    https://prod-green-swarm-worker.yourdomain.com:8500
 
 You might want to use Consul for services discovery in your applications as well.
 
 You can use Consul as DNS server, and you can lookup for a service using a DNS query:
 
-    dig @production-green-swarm-manager.yourdomain.com:8600 consul.service.internal
+    dig @prod-green-swarm-manager.yourdomain.com:8600 consul.service.internal
 
 ## Centralised logs
 
 Use Kibana to analyse logs and monitor services:
 
-    https://production-green-swarm-manager.yourdomain.com:5601
+    https://prod-green-swarm-manager.yourdomain.com:5601
 
     NOTE: Default user is "elastic" with password "changeme"
 
@@ -362,8 +364,8 @@ All containers running on the Swarm are configured to send the logs to Logstash,
 
 Use Graphite and Grafana to collect metrics and monitor services:
 
-    https://production-green-swarm-manager.yourdomain.com:3000
-    https://production-green-swarm-manager.yourdomain.com:2080
+    https://prod-green-swarm-manager.yourdomain.com:3000
+    https://prod-green-swarm-manager.yourdomain.com:2080
 
     NOTE: Default user is "admin" with password "admin"
 
@@ -373,19 +375,19 @@ Configure your applications to send metrics to Graphite and create your dashboar
 
 Create your delivery pipelines using Jenkins:
 
-    https://production-green-swarm-manager.yourdomain.com:8080
+    https://prod-green-swarm-manager.yourdomain.com:8080
 
     NOTE: Security is disabled by default
 
 Integrate your build pipeline with SonarQube to analyse your code:
 
-    https://production-green-swarm-manager.yourdomain.com:9000
+    https://prod-green-swarm-manager.yourdomain.com:9000
 
     NOTE: Default user is "admin" with password "admin"
 
 Integrate your build pipeline with Artifactory to manage your artifacts:
 
-    https://production-green-swarm-manager.yourdomain.com:8081
+    https://prod-green-swarm-manager.yourdomain.com:8081
 
     NOTE: Default user is "admin" with password "password"
 

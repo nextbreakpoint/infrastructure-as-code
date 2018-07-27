@@ -4,14 +4,17 @@
 
 cd $ROOT/terraform/bastion
 
-SUBNET=$(terraform output -json bastion-public-subnet-a-id | jq -r '.value')
+# BASTION_SUBNET variable is required by pk_create alias
+BASTION_SUBNET=$(terraform output -json bastion-public-subnet-a-id | jq -r '.value')
 
 ENVIRONMENT=$(cat $ROOT/config/config.json | jq -r ".environment")
 COLOUR=$(cat $ROOT/config/config.json | jq -r ".colour")
 
-echo "Network variables:"
-echo "{\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/bastion.json
-cat $ROOT/config/bastion.json
+#echo "Network variables:"
+#echo "{\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/bastion.json
+#cat $ROOT/config/bastion.json
+
+echo "Using subnet $BASTION_SUBNET"
 
 echo "Creating Docker AMI..."
 

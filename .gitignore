@@ -11,13 +11,10 @@
 *.tf.backup
 *.tfstate
 *.tfstate.backup
-config_vars.json
-config.tfvars
-consul.tfvars
 terraform.tfstate*
 .terraform
-network_vars.json
 /secrets
 /openvpn
 **/tfplan
 images.json
+main.json
