@@ -2,17 +2,11 @@
 
 . $ROOT/bash_aliases
 
-cd $ROOT/terraform/bastion
-
 # BASTION_SUBNET variable is required by pk_create alias
 BASTION_SUBNET=$(terraform output -json bastion-public-subnet-a-id | jq -r '.value')
 
 ENVIRONMENT=$(cat $ROOT/config/main.json | jq -r ".environment")
 COLOUR=$(cat $ROOT/config/main.json | jq -r ".colour")
-
-#echo "Network variables:"
-#echo "{\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/bastion.json
-#cat $ROOT/config/bastion.json
 
 echo "Using subnet $BASTION_SUBNET"
 
@@ -35,12 +29,3 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "done."
-
-aws ec2 describe-images --filters Name=tag:Environment,Values=${ENVIRONMENT},Name=tag:Colour,Values=${COLOUR},Name=is-public,Values=false --query 'Images[*].{ID:ImageId}'
-
-if [ $? -ne 0 ]; then
-    exit 1
-fi
-
-#echo "AMI images:"
-#cat $ROOT/images.json
