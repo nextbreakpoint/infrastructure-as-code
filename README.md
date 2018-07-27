@@ -8,7 +8,7 @@ The infrastructure includes the following components:
 
 -   [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
 
--   [Docker Swarm](https://docker.com) for orchestrating Docker containers
+-   [Docker Swarm](https://docs.docker.com/engine/swarm/) for orchestrating Docker containers
 
 -   [Consul](https://www.consul.io) for discovering machines or services
 
@@ -68,15 +68,15 @@ Two S3 buckets are required for creating the infrastructure. The first bucket is
 
     Consider enabling KMS encryption on the bucket to increase security
 
-Create a S3 bucket for secrets with the command:
+Create a S3 bucket for secrets with command:
 
     ./docker_run.sh make_bucket your_secrets_bucket_name
 
-Create a S3 bucket for Terraform with the command:
+Create a S3 bucket for Terraform with command:
 
     ./docker_run.sh make_bucket your_terraform_bucket_name
 
-Once the Terraform bucket has been created, configure the Terraform's backend with the command:
+Once the Terraform bucket has been created, configure the Terraform's backend with command:
 
     ./docker_run.sh configure_terraform your_terraform_bucket_name
 
@@ -120,7 +120,7 @@ Change the variables to the correct values for your infrastructure. The account 
 
 ## Generate secrets
 
-Create the secrets with the command:
+Create the secrets with command:
 
     ./docker_run.sh generate_secrets
 
@@ -128,7 +128,7 @@ Several certificates and passwords are required to create a secure infrastructur
 
 ## Generate SSH keys
 
-Generate the SSH keys with the command:
+Generate the SSH keys with command:
 
     ./docker_run.sh generate_keys
 
@@ -136,7 +136,7 @@ SSH keys are required to access EC2 machines.
 
 ## Configure Consul
 
-Create a configuration for Consul with the command:
+Create a configuration for Consul with command:
 
     ./docker_run.sh configure_consul
 
@@ -249,15 +249,15 @@ Verify that you can login into the machines:
 
     ssh -i prod-green-deployer.pem ubuntu@prod-green-swarm-manager-a.yourdomain.com
 
-Create the Swarm with the command:
+Create the Swarm with command:
 
     ./swarm_join.sh
 
-Configure the Swarm with the command:
+Configure the Swarm with command:
 
     ./swarm_configure.sh
 
-Verify that the Swarm is working with the command:
+Verify that the Swarm is working with command:
 
     ./swarm_cmd.sh prod-green-swarm-manager.yourdomain.com "docker node ls"
 
@@ -265,7 +265,7 @@ It should print the list of the nodes, which should contain 6 nodes, 3 managers 
 
 ## Create networks
 
-Create the overlay networks with the command:
+Create the overlay networks with command:
 
     ./swarm_run.sh prod-green-swarm-manager.yourdomain.com create_network
 
@@ -275,13 +275,13 @@ The overlay networks are used to allow communication between containers running 
 
 The services are deployed on the Swarm using Docker Stacks.
 
-Deploy a stack with the command:
+Deploy a stack with command:
 
     ./swarm_run.sh prod-green-swarm-manager.yourdomain.com deploy_stack consul
 
 It should create volumes and services on the worker nodes.
 
-Verify that the services are running with the command:
+Verify that the services are running with command:
 
     ./swarm_cmd.sh prod-green-swarm-manager.yourdomain.com "docker service ls"
 
@@ -302,7 +302,7 @@ In a similar way, you can deploy any stack from this list:
     sonarqube
     artifactory
 
-Please note that before deploying SonarQube or Artifactory, you must configure MySQL with the command:
+Please note that before deploying SonarQube or Artifactory, you must configure MySQL with command:
 
     ./swarm_run.sh prod-green-swarm-manager.yourdomain.com setup_mysql
 
@@ -314,7 +314,7 @@ This is the list of ports which are exposed on the host:
 
 ## Remove services
 
-Remove a service with the command:
+Remove a service with command:
 
     ./swarm_run.sh prod-green-swarm-manager.yourdomain.com remove_stack consul
 
@@ -324,7 +324,7 @@ The volumes associated with the service are not deleted when deleting a stack.
 
 ## Remove networks
 
-Remove the overlay networks with the command:
+Remove the overlay networks with command:
 
     ./swarm_run.sh prod-green-swarm-manager.yourdomain.com remove_networks
 
