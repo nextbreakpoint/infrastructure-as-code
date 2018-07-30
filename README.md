@@ -359,7 +359,7 @@ You might want to use Consul for services discovery in your applications as well
 
 You can use Consul as DNS server, and you can lookup for a service using a DNS query:
 
-    dig @prod-green-swarm-manager.yourdomain.com:8600 consul.service.internal
+    dig @prod-green-swarm-worker.yourdomain.com -p 8600 consul.service.internal.consul
 
 ## Centralised logs
 
