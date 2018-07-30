@@ -208,7 +208,7 @@ resource "aws_instance" "swarm_manager_a" {
   instance_type               = "${var.swarm_manager_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "150")}"
-  security_groups             = ["${aws_security_group.swarm.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
@@ -230,7 +230,7 @@ resource "aws_instance" "swarm_manager_b" {
   instance_type               = "${var.swarm_manager_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "150")}"
-  security_groups             = ["${aws_security_group.swarm.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
@@ -252,7 +252,7 @@ resource "aws_instance" "swarm_manager_c" {
   instance_type               = "${var.swarm_manager_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "150")}"
-  security_groups             = ["${aws_security_group.swarm.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-manager.rendered}"
   associate_public_ip_address = "false"
@@ -274,7 +274,7 @@ resource "aws_instance" "swarm_worker_a" {
   instance_type               = "${var.swarm_worker_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "151")}"
-  security_groups             = ["${aws_security_group.swarm.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-worker.rendered}"
   associate_public_ip_address = "false"
@@ -296,7 +296,7 @@ resource "aws_instance" "swarm_worker_b" {
   instance_type               = "${var.swarm_worker_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "151")}"
-  security_groups             = ["${aws_security_group.swarm.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-worker.rendered}"
   associate_public_ip_address = "false"
@@ -318,7 +318,7 @@ resource "aws_instance" "swarm_worker_c" {
   instance_type               = "${var.swarm_worker_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "151")}"
-  security_groups             = ["${aws_security_group.swarm.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
   user_data                   = "${data.template_file.swarm-worker.rendered}"
   associate_public_ip_address = "false"
@@ -439,9 +439,9 @@ resource "aws_route53_record" "swarm-worker" {
   type    = "A"
   ttl     = "60"
   records = [
-    "${aws_instance.swarm_manager_a.private_ip}",
-    "${aws_instance.swarm_manager_b.private_ip}",
-    "${aws_instance.swarm_manager_c.private_ip}"
+    "${aws_instance.swarm_worker_a.private_ip}",
+    "${aws_instance.swarm_worker_b.private_ip}",
+    "${aws_instance.swarm_worker_c.private_ip}"
   ]
 }
 
@@ -451,7 +451,7 @@ resource "aws_route53_record" "swarm-worker-a" {
   type    = "A"
   ttl     = "60"
   records = [
-    "${aws_instance.swarm_manager_a.private_ip}"
+    "${aws_instance.swarm_worker_a.private_ip}"
   ]
 }
 
@@ -461,7 +461,7 @@ resource "aws_route53_record" "swarm-worker-b" {
   type    = "A"
   ttl     = "60"
   records = [
-    "${aws_instance.swarm_manager_b.private_ip}"
+    "${aws_instance.swarm_worker_b.private_ip}"
   ]
 }
 
@@ -471,6 +471,6 @@ resource "aws_route53_record" "swarm-worker-c" {
   type    = "A"
   ttl     = "60"
   records = [
-    "${aws_instance.swarm_manager_c.private_ip}"
+    "${aws_instance.swarm_worker_c.private_ip}"
   ]
 }

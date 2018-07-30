@@ -35,7 +35,7 @@ export ENVIRONMENT_SECRETS_PATH=$(pwd)/../secrets/environments/${ENVIRONMENT}/${
 export SWARM_RESOURCES_PATH=$(pwd)
 
 export CONSUL_DATACENTER=$(cat $(pwd)/../config/main.json | jq -r ".consul_datacenter")
-export CONSUL_SECRET=$(cat $(pwd)/../config/consul.json | jq -r ".consul_secret")
+export CONSUL_SECRET=$(cat $(pwd)/../secrets/consul.json | jq -r ".consul_secret")
 
 export KEYSTORE_PASSWORD=$(cat $(pwd)/../config/main.json | jq -r ".keystore_password")
 

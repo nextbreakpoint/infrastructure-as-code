@@ -185,19 +185,13 @@ Or create the infrastructure in several steps:
     ./docker_run.sh create_lb
     ./docker_run.sh create_swarm
 
-## Create Bastion server
+## Create Bastion server (optional)
 
 Create the Bastion server with command:
 
     ./docker_run.sh create_bastion
 
-## Create OpenVPN server
-
-Create the OpenVPN server with command:
-
-    ./docker_run.sh create_openvpn
-
-## Access machines using Bastion
+### Access machines using Bastion
 
 Copy the deployer key to Bastion machine:
 
@@ -213,7 +207,13 @@ Connect to any other machines using the command:
 
 You can find the ip address of the machines on the AWS console.
 
-## Access machines using OpenVPN
+## Create OpenVPN server
+
+Create the OpenVPN server with command:
+
+    ./docker_run.sh create_openvpn
+
+### Access machines using OpenVPN
 
 A default client configuration is automatically generated at location:
 
@@ -271,15 +271,15 @@ Verify that the Swarm is working with command:
 
 It should print the list of the nodes, which should contain 6 nodes, 3 managers and 3 workers.
 
-## Create networks
+### Create networks
 
 Create the overlay networks with command:
 
-    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com create_network
+    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com create_networks
 
 The overlay networks are used to allow communication between containers running on different machines.
 
-## Create services
+### Create services
 
 The services are deployed on the Swarm using Docker Stacks.
 
@@ -320,7 +320,7 @@ This is the list of ports which are exposed on the host:
 
     TODO
 
-## Remove services
+### Remove services
 
 Remove a service with command:
 
@@ -330,7 +330,7 @@ The volumes associated with the service are not deleted when deleting a stack.
 
     The content of the volumes will still be available when recreating the stack
 
-## Remove networks
+### Remove networks
 
 Remove the overlay networks with command:
 

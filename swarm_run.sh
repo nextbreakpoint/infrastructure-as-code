@@ -35,7 +35,7 @@ export ENVIRONMENT_SECRETS_PATH=$(pwd)/secrets/environments/${ENVIRONMENT}/${COL
 export SWARM_RESOURCES_PATH=$(pwd)/swarm
 
 export CONSUL_DATACENTER=$(cat $(pwd)/config/main.json | jq -r ".consul_datacenter")
-export CONSUL_SECRET=$(cat $(pwd)/config/consul.json | jq -r ".consul_secret")
+export CONSUL_SECRET=$(cat $(pwd)/secrets/consul.json | jq -r ".consul_secret")
 
 export HOSTED_ZONE_NAME=$(cat $(pwd)/config/main.json | jq -r ".hosted_zone_name")
 
