@@ -40,22 +40,27 @@ write_files:
             "tlscert": "/etc/docker/server_cert.pem",
             "tlskey": "/etc/docker/server_key.pem",
             "experimental": true,
+            "log-driver": "gelf",
+            "log-opts": {
+                "gelf-address": "udp://localhost:12201",
+                "labels": "service"
+            },
             "default-ulimits":
             {
-                    "nproc": {
-                            "Name": "nproc",
-                            "Hard": 4096,
-                            "Soft": 4096
-                    },
-                    "nofile": {
-                            "Name": "nofile",
-                            "Hard": 65536,
-                            "Soft": 65536
-                    },
-                    "memlock": {
-                            "Name": "memlock",
-                            "Hard": -1,
-                            "Soft": -1
-                    }
+                "nproc": {
+                    "Name": "nproc",
+                    "Hard": 4096,
+                    "Soft": 4096
+                },
+                "nofile": {
+                    "Name": "nofile",
+                    "Hard": 65536,
+                    "Soft": 65536
+                },
+                "memlock": {
+                    "Name": "memlock",
+                    "Hard": -1,
+                    "Soft": -1
+                }
             }
         }
