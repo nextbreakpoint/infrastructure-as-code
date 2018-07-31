@@ -6,7 +6,7 @@ services:
     image: ${KIBANA_IMAGE}
     environment:
       SERVER_NAME: kibana
-      ELASTICSEARCH_URL: https://elasticsearch0:9200
+      ELASTICSEARCH_URL: https://elasticsearch03:9200
       NODE_TLS_REJECT_UNAUTHORIZED: 0
       NODE_EXTRA_CA_CERTS: /usr/share/kibana/config/ca_cert.pem
     volumes:
