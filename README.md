@@ -1,14 +1,12 @@
 # Infrastructure as code
 
-This repository contains scripts for creating a production-grade infrastructure for running micro-services on the Cloud. The scripts implement a quick and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com).
+This repository contains scripts for creating a production-grade infrastructure for running micro-services on the Cloud. The scripts implement a quick and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com). The infrastructure is created with the minimum resources required to run the essential services, but it can be scaled to manage a higher workload, adding more machines and upgrading the type of the machines.
 
 The infrastructure includes the following components:
 
 -   [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and analysing logs
 
 -   [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
-
--   [Docker Swarm](https://docs.docker.com/engine/swarm/) for orchestrating Docker containers
 
 -   [Consul](https://www.consul.io) for discovering machines or services
 
@@ -18,7 +16,9 @@ The infrastructure includes the following components:
 
 -   [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
 
-The infrastructure includes several EC2 machines which are created within a private network and they are accessible via SSH, using a bastion machine, or via VPN connection, using OpenVPN.
+-   [Docker Swarm](https://docs.docker.com/engine/swarm/) for orchestrating Docker containers
+
+The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. The machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. The machines can also be exposed using an internet-facing load balancer or a proxy server running in a public subnet.
 
 The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
@@ -318,7 +318,7 @@ Some services have ports exposed on the host machines, therefore are reachable f
 
 ### Services placement
 
-The mapping between machines and services depends on the labels assigned to Swarm's nodes. To change the mapping, modify the labels of the nodes and modify the placement constraints in the YAML file which defines the stack of the service.
+The mapping between machines and services depends on the labels assigned to Swarm's nodes. The services are deployed according to the placement constraints in the YAML file which defines the stack of the service. The constraints are based on labels and roles of the nodes.
 
 See documentation of [Docker Compose](https://docs.docker.com/compose/compose-file/) and [Docker Swarm](https://docs.docker.com/engine/reference/commandline/node_update/).
 
@@ -511,13 +511,15 @@ You can use Consul as DNS server and you can lookup for a service using a DNS qu
 
 ## Centralised logs
 
+All containers running on the Swarm are configured to send logs to Logstash, therefore the logs are available in Kibana.
+
 Use Kibana to analyse logs and monitor services:
 
     https://prod-green-swarm-manager-c.yourdomain.com:5601
 
     NOTE: Default user is "elastic" with password "changeme"
 
-All containers running on the Swarm are configured to send logs to Logstash, therefore the logs are available in Kibana.
+The Docker daemon of the managers and workers is configured to use the GELF logging driver. Update the configuration and restart the Docker daemons if you have problem with this configuration and you cannot see the logs. Alternatively you can override the logging configuration when running a container or a service.
 
 ## Metrics and monitoring
 
