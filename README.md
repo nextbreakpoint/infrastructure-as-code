@@ -1,6 +1,6 @@
 # Infrastructure as code
 
-This repository contains scripts for creating a production-grade infrastructure for running micro-services on the Cloud. The scripts implement a quick and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com). The infrastructure is created with the minimum resources required to run the essential services, but it can be scaled to manage a higher workload, adding more machines and upgrading the type of the machines.
+This repository contains scripts for creating a production-grade infrastructure for running micro-services on the Cloud. The scripts implement a simple and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com). The infrastructure consumes the minimum resources required to run the essential services, but it can be scaled in order to manage a higher workload, adding more machines and upgrading the type of the machines.
 
 The infrastructure includes the following components:
 
@@ -12,13 +12,11 @@ The infrastructure includes the following components:
 
 -   [Graphite](https://graphiteapp.org) and [Grafana](https://grafana.com) for collecting metrics and monitoring services
 
--   [Cassandra](http://cassandra.apache.org), [Kafka](https://kafka.apache.org), [Zookeeper](https://zookeeper.apache.org) for creating event-based scalable services
+-   [Cassandra](http://cassandra.apache.org), [Kafka](https://kafka.apache.org), [Zookeeper](https://zookeeper.apache.org) for creating scalable event-driven services
 
 -   [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
 
--   [Docker Swarm](https://docs.docker.com/engine/swarm/) for orchestrating Docker containers
-
-The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. The machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. The machines can also be exposed using an internet-facing load balancer or a proxy server running in a public subnet.
+The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. The machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. The machines can also be reached using an internet-facing load balancer or a proxy server running in a public subnet.
 
 The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
@@ -30,9 +28,9 @@ Follow the [instructions](https://docs.docker.com/engine/installation) on Docker
 
 ## Configure AWS credentials
 
-Create a new [AWS account](https://aws.amazon.com) or use an existing one if you have the right permissions. Your account must have full administration permissions in order to create the infrastructure (or you can start with minimal permissions and add what is required as you go, but at the moment we don't provide the complete policy).
+Create a new [AWS account](https://aws.amazon.com) or use an existing one if you can assign the required permissions to your user. In order to create the infrastructure, your must have full administration permissions (alternatively you can start with minimal permissions and add what is required as you go, but at the moment we don't provide the complete policy).
 
-Create a new Access Key and save your credentials on your workstation. AWS credentials are typically stored at location ~/.aws/credentials.
+Create a new Access Key for your user and save the credentials on your workstation. AWS credentials are typically stored at location ~/.aws/credentials.
 
 The content of ~/.aws/credentials should look like:
 
@@ -78,7 +76,7 @@ Create a S3 bucket for Terraform with command:
 
     ./docker_run.sh make_bucket your_terraform_bucket_name
 
-Once the Terraform bucket has been created, configure the Terraform's backend with command:
+Once the buckets has been created, configure the Terraform's backend with command:
 
     ./docker_run.sh configure_terraform your_terraform_bucket_name
 
@@ -116,7 +114,7 @@ Create a file main.json in the config directory. Copy the content from the file 
         "elasticsearch_password": "your_password"
     }
 
-Change the variables to the correct values for your infrastructure. The account id must be a valid AWS account id and your AWS credentials must have the correct permissions on that account. The domain yourdomain.com must be a valid domain hosted in a Route53 public zone.
+Change the variables to the correct values for your infrastructure. The account id must represent a valid AWS account and your AWS credentials must have the correct permissions on that account. The domain yourdomain.com must be a valid domain hosted in a Route53's public zone.
 
     Register a new domain with AWS if you don't have one already and create a new public zone
 
