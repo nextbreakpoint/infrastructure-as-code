@@ -365,7 +365,7 @@ You can use Consul as DNS server, and you can lookup for a service using a DNS q
 
 Use Kibana to analyse logs and monitor services:
 
-    https://prod-green-swarm-manager.yourdomain.com:5601
+    https://prod-green-swarm-manager-c.yourdomain.com:5601
 
     NOTE: Default user is "elastic" with password "changeme"
 
@@ -375,8 +375,8 @@ All containers running on the Swarm are configured to send the logs to Logstash,
 
 Use Graphite and Grafana to collect metrics and monitor services:
 
-    https://prod-green-swarm-manager.yourdomain.com:3000
-    https://prod-green-swarm-manager.yourdomain.com:2080
+    http://prod-green-swarm-manager-b.yourdomain.com:3000
+    http://prod-green-swarm-manager-b.yourdomain.com:2080
 
     NOTE: Default user is "admin" with password "admin"
 
@@ -386,19 +386,19 @@ Configure your applications to send metrics to Graphite and create your dashboar
 
 Create your delivery pipelines using Jenkins:
 
-    https://prod-green-swarm-manager.yourdomain.com:8080
+    https://prod-green-swarm-manager-a.yourdomain.com:8080
 
     NOTE: Security is disabled by default
 
 Integrate your build pipeline with SonarQube to analyse your code:
 
-    https://prod-green-swarm-manager.yourdomain.com:9000
+    http://prod-green-swarm-manager-a.yourdomain.com:9000
 
     NOTE: Default user is "admin" with password "admin"
 
 Integrate your build pipeline with Artifactory to manage your artifacts:
 
-    https://prod-green-swarm-manager.yourdomain.com:8081
+    http://prod-green-swarm-manager-a.yourdomain.com:8081
 
     NOTE: Default user is "admin" with password "password"
 
