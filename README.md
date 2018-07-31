@@ -244,14 +244,14 @@ Docker Swarm can be created when all the EC2 machines are ready.
 Verify that you can ping the manager nodes:
 
     ping prod-green-swarm-manager-a.yourdomain.com
-    ping prod-green-swarm-manager-a.yourdomain.com
-    ping prod-green-swarm-manager-a.yourdomain.com
+    ping prod-green-swarm-manager-b.yourdomain.com
+    ping prod-green-swarm-manager-c.yourdomain.com
 
 Verify that you can ping the worker nodes:
 
     ping prod-green-swarm-worker-a.yourdomain.com
-    ping prod-green-swarm-worker-a.yourdomain.com
-    ping prod-green-swarm-worker-a.yourdomain.com
+    ping prod-green-swarm-worker-b.yourdomain.com
+    ping prod-green-swarm-worker-c.yourdomain.com
 
 Verify that you can login into the machines:
 
@@ -314,11 +314,149 @@ Please note that before deploying SonarQube or Artifactory, you must configure M
 
     ./swarm_run.sh prod-green-swarm-manager.yourdomain.com setup_mysql
 
-Some services have ports exposed on the host machine, therefore are reachable from any other machine in the same VPC. Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
+Some services have ports exposed on the host machines, therefore are reachable from any other machine in the same VPC. Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
 
-This is the list of ports which are exposed on the host:
+### Services placement
 
-    TODO
+The mapping between machines and services depends on the labels assigned to Swarm's nodes. To change the mapping, modify the labels of the nodes and modify the placement constraints in the YAML file which defines the stack of the service.
+
+See documentation of [Docker Compose](https://docs.docker.com/compose/compose-file/) and [Docker Swarm](https://docs.docker.com/engine/reference/commandline/node_update/).
+
+#### Manager A
+
+Manager node in availability zone A
+
+##### DNS
+
+    prod-green-swarm-manager-a.yourdomain.com
+
+##### Services
+
+    Elasticsearch (routing only) | 9200 (tcp)
+    Elasticsearch (routing only) | 9300 (tcp)
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
+    Jenkins | 8080 (tcp)
+    SonarQube | 9000 (tcp)
+    Artifactory | 8081 (tcp)
+    MySQL | 3306 (tcp)
+
+#### Manager B
+
+Manager node in availability zone B
+
+##### DNS
+
+    prod-green-swarm-manager-b.yourdomain.com
+
+##### Services
+
+    Elasticsearch (routing only) | 9200 (tcp)
+    Elasticsearch (routing only) | 9300 (tcp)
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
+    Graphite | 2080 (tcp)
+    Grafana | 3000 (tcp)
+
+#### Manager C
+
+Manager node in availability zone C
+
+##### DNS
+
+    prod-green-swarm-manager-c.yourdomain.com
+
+##### Services
+
+    Elasticsearch (routing only) | 9200 (tcp)
+    Elasticsearch (routing only) | 9300 (tcp)
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
+    Kibana | 5601 (tcp)
+
+#### Worker A
+
+Worker node in availability zone A
+
+##### DNS
+
+prod-green-swarm-worker-a.yourdomain.com
+
+##### Services
+
+    Elasticsearch (routing only) | 9200 (tcp)
+    Elasticsearch (routing only) | 9300 (tcp)
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
+    Consul | 8500 (tcp)
+    Consul | 8600 (tcp/udp)
+    Consul | 8300 (tcp)
+    Consul | 8302  (tcp/udp)
+    Zookeeper | 2181 (tcp)
+    Zookeeper | 2888 (tcp)
+    Zookeeper | 3888 (tcp)
+    Kafka | 9092 (tcp)
+    Cassandra | 9042 (tcp)
+    Nginx | 80 (tcp)
+    Nginx | 443 (tcp)
+
+#### Worker B
+
+Worker node in availability zone B
+
+##### DNS
+
+prod-green-swarm-worker-b.yourdomain.com
+
+##### Services
+
+    Elasticsearch (routing only) | 9200 (tcp)
+    Elasticsearch (routing only) | 9300 (tcp)
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
+    Consul | 8500 (tcp)
+    Consul | 8600 (tcp/udp)
+    Consul | 8300 (tcp)
+    Consul | 8302  (tcp/udp)
+    Zookeeper | 2181 (tcp)
+    Zookeeper | 2888 (tcp)
+    Zookeeper | 3888 (tcp)
+    Kafka | 9092 (tcp)
+    Cassandra | 9042 (tcp)
+    Nginx | 80 (tcp)
+    Nginx | 443 (tcp)
+
+#### Worker C
+
+Worker node in availability zone C
+
+##### DNS
+
+prod-green-swarm-worker-c.yourdomain.com
+
+##### Services
+
+    Elasticsearch (routing only) | 9200 (tcp)
+    Elasticsearch (routing only) | 9300 (tcp)
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
+    Consul | 8500 (tcp)
+    Consul | 8600 (tcp/udp)
+    Consul | 8300 (tcp)
+    Consul | 8302  (tcp/udp)
+    Zookeeper | 2181 (tcp)
+    Zookeeper | 2888 (tcp)
+    Zookeeper | 3888 (tcp)
+    Kafka | 9092 (tcp)
+    Cassandra | 9042 (tcp)
+    Nginx | 80 (tcp)
+    Nginx | 443 (tcp)
 
 ### Remove services
 
@@ -351,15 +489,25 @@ Or destroy the infrastructure in several steps:
 
 ## Services discovery
 
-Use Consul UI to check the state of your services:
+You might want to use Consul for services discovery in your applications.
+
+Deploy the agents to publish on Consul the services running on managers and workers.
+
+    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com deploy_stack manager-agents
+    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com deploy_stack worker-agents
+
+Use Consul UI to check the status of your services:
 
     https://prod-green-swarm-worker.yourdomain.com:8500
 
-You might want to use Consul for services discovery in your applications as well.
-
-You can use Consul as DNS server, and you can lookup for a service using a DNS query:
+You can use Consul as DNS server and you can lookup for a service using a DNS query:
 
     dig @prod-green-swarm-worker.yourdomain.com -p 8600 consul.service.internal.consul
+    dig @prod-green-swarm-worker.yourdomain.com -p 8600 logstash.service.internal.consul
+    dig @prod-green-swarm-worker.yourdomain.com -p 8600 elasticsearch.service.internal.consul
+    dig @prod-green-swarm-worker.yourdomain.com -p 8600 kafka.service.internal.consul
+    dig @prod-green-swarm-worker.yourdomain.com -p 8600 zookeeper.service.internal.consul
+    dig @prod-green-swarm-worker.yourdomain.com -p 8600 cassandra.service.internal.consul
 
 ## Centralised logs
 
@@ -369,7 +517,7 @@ Use Kibana to analyse logs and monitor services:
 
     NOTE: Default user is "elastic" with password "changeme"
 
-All containers running on the Swarm are configured to send the logs to Logstash, therefore the logs are available in Kibana.
+All containers running on the Swarm are configured to send logs to Logstash, therefore the logs are available in Kibana.
 
 ## Metrics and monitoring
 
@@ -380,7 +528,7 @@ Use Graphite and Grafana to collect metrics and monitor services:
 
     NOTE: Default user is "admin" with password "admin"
 
-Configure your applications to send metrics to Graphite and create your dashboards with Grafana.
+Configure your applications to send metrics to Graphite and create your dashboards and alarms in Grafana.
 
 ## Delivery pipelines
 
