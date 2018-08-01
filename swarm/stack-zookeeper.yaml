@@ -10,6 +10,7 @@ services:
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"
+      JVMFLAGS: "-Xms512M -Xmx512M"
     volumes:
       - storage:/data
       - storagelog:/datalog
@@ -49,10 +50,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 256M
+          memory: 600M
         reservations:
           cpus: '0.1'
-          memory: 128m
+          memory: 600M
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf
@@ -69,6 +70,7 @@ services:
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"
+      JVMFLAGS: "-Xms512M -Xmx512M"
     volumes:
       - storage:/data
       - storagelog:/datalog
@@ -108,10 +110,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 256M
+          memory: 600M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 600M
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf
@@ -128,6 +130,7 @@ services:
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
       ZOO_ENABLE_QUORUM_SASL: "true"
       ZOO_ENABLE_CLIENT_SASL: "true"
+      JVMFLAGS: "-Xms512M -Xmx512M"
     volumes:
       - storage:/data
       - storagelog:/datalog
@@ -167,10 +170,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 256M
+          memory: 600M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 600M
     secrets:
       - source: jaas-config
         target: /secrets/zookeeper_server_jaas.conf

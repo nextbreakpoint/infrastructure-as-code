@@ -10,6 +10,7 @@ services:
       CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
       CASSANDRA_RACK: rack1
       CASSANDRA_DC: datacenter1
+      JVM_OPTS: -Xms4G -Xmx4G
     volumes:
       - storage:/var/lib/cassandra
     ports:
@@ -40,10 +41,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2524M
+          memory: 4400M
         reservations:
           cpus: '0.1'
-          memory: 512M
+          memory: 4400M
   cassandra2:
     labels:
         service: cassandra
@@ -55,6 +56,7 @@ services:
       CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
       CASSANDRA_RACK: rack2
       CASSANDRA_DC: datacenter1
+      JVM_OPTS: -Xms4G -Xmx4G
     volumes:
       - storage:/var/lib/cassandra
     ports:
@@ -85,10 +87,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2524M
+          memory: 4400M
         reservations:
           cpus: '0.1'
-          memory: 512M
+          memory: 4400M
   cassandra3:
     labels:
         service: cassandra
@@ -100,6 +102,7 @@ services:
       CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
       CASSANDRA_RACK: rack3
       CASSANDRA_DC: datacenter1
+      JVM_OPTS: -Xms4G -Xmx4G
     volumes:
       - storage:/var/lib/cassandra
     ports:
@@ -130,10 +133,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2524M
+          memory: 4400M
         reservations:
           cpus: '0.1'
-          memory: 512M
+          memory: 4400M
 networks:
   default:
     external:

@@ -1,11 +1,11 @@
 version: '3.4'
 services:
-  logstash0:
+  logstash01:
     labels:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
+      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://elasticsearch0:9200
     volumes:
       - storage:/usr/share/logstash/data
@@ -49,10 +49,180 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 1200M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 1200M
+    secrets:
+      - source: logstash_key
+        target: /usr/share/logstash/config/logstash_key.pkcs8
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_cert
+        target: /usr/share/logstash/config/logstash_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: ca_cert
+        target: /usr/share/logstash/config/ca_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: logstash_config
+        target: /usr/share/logstash/config/logstash.yml
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_pipeline
+        target: /usr/share/logstash/pipeline/logstash.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_template
+        target: /usr/share/logstash/config/logstash.template
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  logstash02:
+    labels:
+        service: logstash
+    image: ${LOGSTASH_IMAGE}
+    environment:
+      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
+      ELASTICSEARCH_URL: https://elasticsearch0:9200
+    volumes:
+      - storage:/usr/share/logstash/data
+    ports:
+      - target: 5044
+        published: 5044
+        protocol: tcp
+        mode: host
+      - target: 9600
+        published: 9600
+        protocol: tcp
+        mode: host
+      - target: 12201
+        published: 12201
+        protocol: tcp
+        mode: host
+      - target: 12201
+        published: 12201
+        protocol: udp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.logstash == true
+          - node.labels.zone == b
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1200M
+        reservations:
+          cpus: '0.1'
+          memory: 1200M
+    secrets:
+      - source: logstash_key
+        target: /usr/share/logstash/config/logstash_key.pkcs8
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_cert
+        target: /usr/share/logstash/config/logstash_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: ca_cert
+        target: /usr/share/logstash/config/ca_cert.pem
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: logstash_config
+        target: /usr/share/logstash/config/logstash.yml
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_pipeline
+        target: /usr/share/logstash/pipeline/logstash.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: logstash_template
+        target: /usr/share/logstash/config/logstash.template
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  logstash03:
+    labels:
+        service: logstash
+    image: ${LOGSTASH_IMAGE}
+    environment:
+      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
+      ELASTICSEARCH_URL: https://elasticsearch0:9200
+    volumes:
+      - storage:/usr/share/logstash/data
+    ports:
+      - target: 5044
+        published: 5044
+        protocol: tcp
+        mode: host
+      - target: 9600
+        published: 9600
+        protocol: tcp
+        mode: host
+      - target: 12201
+        published: 12201
+        protocol: tcp
+        mode: host
+      - target: 12201
+        published: 12201
+        protocol: udp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.logstash == true
+          - node.labels.zone == c
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1200M
+        reservations:
+          cpus: '0.1'
+          memory: 1200M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -90,7 +260,7 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
+      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://elasticsearch1:9200
     volumes:
       - storage:/usr/share/logstash/data
@@ -134,10 +304,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 1200M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 1200M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -175,7 +345,7 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
+      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://elasticsearch2:9200
     volumes:
       - storage:/usr/share/logstash/data
@@ -219,10 +389,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 1200M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 1200M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -260,7 +430,7 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Dnetworkaddress.cache.ttl=1
+      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://elasticsearch3:9200
     volumes:
       - storage:/usr/share/logstash/data
@@ -304,10 +474,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 1200M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 1200M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8

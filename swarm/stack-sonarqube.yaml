@@ -8,6 +8,7 @@ services:
       SONARQUBE_JDBC_USERNAME: sonarqube
       SONARQUBE_JDBC_PASSWORD: password
       SONARQUBE_JDBC_URL: jdbc:mysql://mysql:3306/sonar?useUnicode=true&characterEncoding=utf8&useSSL=false
+    command: -Dsonar.ce.javaOpts=-Xmx2048M -Dsonar.web.javaOpts=-Xmx2048M
     volumes:
       - storage:/var/lib/sonarqube
     ports:
@@ -36,10 +37,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1024M
+          memory: 2200M
         reservations:
           cpus: '0.1'
-          memory: 256M
+          memory: 2200M
 networks:
   default:
     external:

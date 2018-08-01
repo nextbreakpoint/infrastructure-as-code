@@ -59,7 +59,7 @@ services:
           memory: 128M
         reservations:
           cpus: '0.1'
-          memory: 64M
+          memory: 128M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
@@ -141,7 +141,7 @@ services:
           memory: 128M
         reservations:
           cpus: '0.1'
-          memory: 64M
+          memory: 128M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
@@ -223,7 +223,7 @@ services:
           memory: 128M
         reservations:
           cpus: '0.1'
-          memory: 64M
+          memory: 128M
     secrets:
       - source: ca_cert
         target: /consul/config/ca_cert.pem
