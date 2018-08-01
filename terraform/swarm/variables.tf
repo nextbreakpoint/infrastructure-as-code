@@ -77,9 +77,9 @@ variable "aws_network_private_subnet_cidr_c" {
 }
 
 variable "swarm_manager_instance_type" {
-  default = "m4.large"
+  default = "t2.xlarge"
 }
 
 variable "swarm_worker_instance_type" {
-  default = "m4.xlarge"
+  default = "t2.2xlarge"
 }
