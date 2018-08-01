@@ -10,11 +10,11 @@ services:
       - target: 80
         published: 2080
         protocol: tcp
-        mode: host
+        mode: ingress
       - target: 2003
         published: 2003
         protocol: tcp
-        mode: host
+        mode: ingress
     logging:
       options:
         labels: "service"
@@ -24,7 +24,6 @@ services:
         constraints:
           - node.role == manager
           - node.labels.graphite == true
-      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback

@@ -5,7 +5,7 @@ services:
         service: jenkins
     image: jenkins/jenkins:lts
     command:
-       - --httpPort=-1
+       - --httpPort=8080
        - --httpsPort=8443
        - --httpsKeyStore=/var/jenkins/keystore.jks
        - --httpsKeyStorePassword=${KEYSTORE_PASSWORD}
@@ -17,7 +17,11 @@ services:
       - target: 8443
         published: 8443
         protocol: tcp
-        mode: host
+        mode: ingress
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: ingress
     logging:
       options:
         labels: "service"
@@ -27,7 +31,6 @@ services:
         constraints:
           - node.role == manager
           - node.labels.jenkins == true
-      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback

@@ -16,7 +16,7 @@ services:
       - target: 8081
         published: 8081
         protocol: tcp
-        mode: host
+        mode: ingress
     logging:
       options:
         labels: "service"
@@ -26,7 +26,6 @@ services:
         constraints:
           - node.role == manager
           - node.labels.artifactory == true
-      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback

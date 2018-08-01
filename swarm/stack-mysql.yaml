@@ -12,7 +12,7 @@ services:
       - target: 3306
         published: 3306
         protocol: tcp
-        mode: host
+        mode: ingress
     logging:
       options:
         labels: "service"
@@ -22,7 +22,6 @@ services:
         constraints:
           - node.role == manager
           - node.labels.mysql == true
-      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback

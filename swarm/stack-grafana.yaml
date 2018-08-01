@@ -10,7 +10,7 @@ services:
       - target: 3000
         published: 3000
         protocol: tcp
-        mode: host
+        mode: ingress
     logging:
       options:
         labels: "service"
@@ -20,7 +20,6 @@ services:
         constraints:
           - node.role == manager
           - node.labels.grafana == true
-      endpoint_mode: dnsrr
       update_config:
         parallelism: 1
         failure_action: rollback
