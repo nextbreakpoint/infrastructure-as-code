@@ -5,8 +5,8 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
-      ELASTICSEARCH_URL: https://elasticsearch0:9200
+      LS_JAVA_OPTS: -Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1
+      ELASTICSEARCH_URL: https://elasticsearch01:9200
     volumes:
       - storage:/usr/share/logstash/data
     ports:
@@ -49,10 +49,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1200M
+          memory: 1400M
         reservations:
           cpus: '0.1'
-          memory: 1200M
+          memory: 1400M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -90,8 +90,8 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
-      ELASTICSEARCH_URL: https://elasticsearch0:9200
+      LS_JAVA_OPTS: -Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1
+      ELASTICSEARCH_URL: https://elasticsearch02:9200
     volumes:
       - storage:/usr/share/logstash/data
     ports:
@@ -134,10 +134,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1200M
+          memory: 1400M
         reservations:
           cpus: '0.1'
-          memory: 1200M
+          memory: 1400M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -175,8 +175,8 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
-      ELASTICSEARCH_URL: https://elasticsearch0:9200
+      LS_JAVA_OPTS: -Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1
+      ELASTICSEARCH_URL: https://elasticsearch03:9200
     volumes:
       - storage:/usr/share/logstash/data
     ports:
@@ -219,10 +219,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1200M
+          memory: 1400M
         reservations:
           cpus: '0.1'
-          memory: 1200M
+          memory: 1400M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -260,7 +260,7 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
+      LS_JAVA_OPTS: -Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://elasticsearch1:9200
     volumes:
       - storage:/usr/share/logstash/data
@@ -304,10 +304,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1200M
+          memory: 1400M
         reservations:
           cpus: '0.1'
-          memory: 1200M
+          memory: 1400M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -345,7 +345,7 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
+      LS_JAVA_OPTS: -Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://elasticsearch2:9200
     volumes:
       - storage:/usr/share/logstash/data
@@ -389,10 +389,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1200M
+          memory: 1400M
         reservations:
           cpus: '0.1'
-          memory: 1200M
+          memory: 1400M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -430,7 +430,7 @@ services:
         service: logstash
     image: ${LOGSTASH_IMAGE}
     environment:
-      LS_JAVA_OPTS: -Xmx1G -Xms1G -Dnetworkaddress.cache.ttl=1
+      LS_JAVA_OPTS: -Xms1G -Xmx1G -Dnetworkaddress.cache.ttl=1
       ELASTICSEARCH_URL: https://elasticsearch3:9200
     volumes:
       - storage:/usr/share/logstash/data
@@ -474,10 +474,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1200M
+          memory: 1400M
         reservations:
           cpus: '0.1'
-          memory: 1200M
+          memory: 1400M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8

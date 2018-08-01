@@ -5,7 +5,7 @@ services:
         service: elasticsearch
     image: ${ELASTICSEARCH_IMAGE}
     environment:
-      ES_JAVA_OPTS: "-Xms512M -Xms512M -Dnetworkaddress.cache.ttl=1"
+      ES_JAVA_OPTS: "-Xms740M -Xmx740M -Dnetworkaddress.cache.ttl=1"
       network.publish_host: elasticsearch01
       discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
       discovery.zen.minimum_master_nodes: 3
@@ -47,10 +47,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 600M
+          memory: 1200M
         reservations:
           cpus: '0.1'
-          memory: 600M
+          memory: 1200M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
@@ -78,7 +78,7 @@ services:
         service: elasticsearch
     image: ${ELASTICSEARCH_IMAGE}
     environment:
-      ES_JAVA_OPTS: "-Xms512M -Xms512M -Dnetworkaddress.cache.ttl=1"
+      ES_JAVA_OPTS: "-Xms740M -Xmx740M -Dnetworkaddress.cache.ttl=1"
       network.publish_host: elasticsearch02
       discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
       discovery.zen.minimum_master_nodes: 3
@@ -120,10 +120,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 600M
+          memory: 1200M
         reservations:
           cpus: '0.1'
-          memory: 600M
+          memory: 1200M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
@@ -151,7 +151,7 @@ services:
         service: elasticsearch
     image: ${ELASTICSEARCH_IMAGE}
     environment:
-      ES_JAVA_OPTS: "-Xms512M -Xms512M -Dnetworkaddress.cache.ttl=1"
+      ES_JAVA_OPTS: "-Xms740M -Xmx740M -Dnetworkaddress.cache.ttl=1"
       network.publish_host: elasticsearch03
       discovery.zen.ping.unicast.hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
       discovery.zen.minimum_master_nodes: 3
@@ -193,10 +193,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 600M
+          memory: 1200M
         reservations:
           cpus: '0.1'
-          memory: 600M
+          memory: 1200M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
@@ -262,10 +262,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2200M
+          memory: 2800M
         reservations:
           cpus: '0.1'
-          memory: 2200M
+          memory: 2800M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
@@ -331,10 +331,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2200M
+          memory: 2800M
         reservations:
           cpus: '0.1'
-          memory: 2200M
+          memory: 2800M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
@@ -400,10 +400,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2200M
+          memory: 2800M
         reservations:
           cpus: '0.1'
-          memory: 2200M
+          memory: 2800M
     secrets:
       - source: elasticsearch_key
         target: /usr/share/elasticsearch/config/elasticsearch_key.pem
