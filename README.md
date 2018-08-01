@@ -324,12 +324,6 @@ See documentation of [Docker Compose](https://docs.docker.com/compose/compose-fi
 
 Manager node in availability zone A
 
-##### DNS
-
-    prod-green-swarm-manager-a.yourdomain.com
-
-##### Services
-
     Elasticsearch (routing only) | 9200 (tcp)
     Elasticsearch (routing only) | 9300 (tcp)
     Logstash | 5044 (tcp)
@@ -344,12 +338,6 @@ Manager node in availability zone A
 
 Manager node in availability zone B
 
-##### DNS
-
-    prod-green-swarm-manager-b.yourdomain.com
-
-##### Services
-
     Elasticsearch (routing only) | 9200 (tcp)
     Elasticsearch (routing only) | 9300 (tcp)
     Logstash | 5044 (tcp)
@@ -362,12 +350,6 @@ Manager node in availability zone B
 
 Manager node in availability zone C
 
-##### DNS
-
-    prod-green-swarm-manager-c.yourdomain.com
-
-##### Services
-
     Elasticsearch (routing only) | 9200 (tcp)
     Elasticsearch (routing only) | 9300 (tcp)
     Logstash | 5044 (tcp)
@@ -378,12 +360,6 @@ Manager node in availability zone C
 #### Worker A
 
 Worker node in availability zone A
-
-##### DNS
-
-prod-green-swarm-worker-a.yourdomain.com
-
-##### Services
 
     Elasticsearch (routing only) | 9200 (tcp)
     Elasticsearch (routing only) | 9300 (tcp)
@@ -406,12 +382,6 @@ prod-green-swarm-worker-a.yourdomain.com
 
 Worker node in availability zone B
 
-##### DNS
-
-prod-green-swarm-worker-b.yourdomain.com
-
-##### Services
-
     Elasticsearch (routing only) | 9200 (tcp)
     Elasticsearch (routing only) | 9300 (tcp)
     Logstash | 5044 (tcp)
@@ -432,12 +402,6 @@ prod-green-swarm-worker-b.yourdomain.com
 #### Worker C
 
 Worker node in availability zone C
-
-##### DNS
-
-prod-green-swarm-worker-c.yourdomain.com
-
-##### Services
 
     Elasticsearch (routing only) | 9200 (tcp)
     Elasticsearch (routing only) | 9300 (tcp)
@@ -513,7 +477,7 @@ All containers running on the Swarm are configured to send logs to Logstash, the
 
 Use Kibana to analyse logs and monitor services:
 
-    https://prod-green-swarm-manager-c.yourdomain.com:5601
+    https://prod-green-swarm-manager.yourdomain.com:5601
 
     NOTE: Default user is "elastic" with password "changeme"
 
@@ -523,8 +487,8 @@ The Docker daemon of the managers and workers is configured to use the GELF logg
 
 Use Graphite and Grafana to collect metrics and monitor services:
 
-    http://prod-green-swarm-manager-b.yourdomain.com:3000
-    http://prod-green-swarm-manager-b.yourdomain.com:2080
+    http://prod-green-swarm-manager.yourdomain.com:3000
+    http://prod-green-swarm-manager.yourdomain.com:2080
 
     NOTE: Default user is "admin" with password "admin"
 
@@ -534,19 +498,19 @@ Configure your applications to send metrics to Graphite and create your dashboar
 
 Create your delivery pipelines using Jenkins:
 
-    https://prod-green-swarm-manager-a.yourdomain.com:8080
+    https://prod-green-swarm-manager.yourdomain.com:8443
 
     NOTE: Security is disabled by default
 
 Integrate your build pipeline with SonarQube to analyse your code:
 
-    http://prod-green-swarm-manager-a.yourdomain.com:9000
+    http://prod-green-swarm-manager.yourdomain.com:9000
 
     NOTE: Default user is "admin" with password "admin"
 
 Integrate your build pipeline with Artifactory to manage your artifacts:
 
-    http://prod-green-swarm-manager-a.yourdomain.com:8081
+    http://prod-green-swarm-manager.yourdomain.com:8081
 
     NOTE: Default user is "admin" with password "password"
 
