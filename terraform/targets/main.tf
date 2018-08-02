@@ -5,7 +5,7 @@
 provider "aws" {
   region  = "${var.aws_region}"
   profile = "${var.aws_profile}"
-  version = "~> 0.1"
+  version = "~> 1.0"
 }
 
 ##############################################################################
@@ -147,163 +147,163 @@ resource "aws_alb_target_group" "worker_8500" {
   }
 }
 
-resource aws_lb_target_group_attachment "manager_8080" {
+resource aws_lb_target_group_attachment "manager_a_8080" {
   target_group_arn = "${aws_alb_target_group.manager_8080.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-a-id}"
   port             = "8080"
 }
 
-resource aws_lb_target_group_attachment "manager_8080" {
+resource aws_lb_target_group_attachment "manager_b_8080" {
   target_group_arn = "${aws_alb_target_group.manager_8080.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-b-id}"
   port             = "8080"
 }
 
-resource aws_lb_target_group_attachment "manager_8080" {
+resource aws_lb_target_group_attachment "manager_c_8080" {
   target_group_arn = "${aws_alb_target_group.manager_8080.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-c-id}"
   port             = "8080"
 }
 
-resource aws_lb_target_group_attachment "manager_8081" {
+resource aws_lb_target_group_attachment "manager_a_8081" {
   target_group_arn = "${aws_alb_target_group.manager_8081.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-a-id}"
   port             = "8081"
 }
 
-resource aws_lb_target_group_attachment "manager_8081" {
+resource aws_lb_target_group_attachment "manager_b_8081" {
   target_group_arn = "${aws_alb_target_group.manager_8081.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-b-id}"
   port             = "8081"
 }
 
-resource aws_lb_target_group_attachment "manager_8081" {
+resource aws_lb_target_group_attachment "manager_c_8081" {
   target_group_arn = "${aws_alb_target_group.manager_8081.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-c-id}"
   port             = "8081"
 }
 
-resource aws_lb_target_group_attachment "manager_9000" {
+resource aws_lb_target_group_attachment "manager_a_9000" {
   target_group_arn = "${aws_alb_target_group.manager_9000.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-a-id}"
   port             = "9000"
 }
 
-resource aws_lb_target_group_attachment "manager_9000" {
+resource aws_lb_target_group_attachment "manager_b_9000" {
   target_group_arn = "${aws_alb_target_group.manager_9000.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-b-id}"
   port             = "9000"
 }
 
-resource aws_lb_target_group_attachment "manager_9000" {
+resource aws_lb_target_group_attachment "manager_c_9000" {
   target_group_arn = "${aws_alb_target_group.manager_9000.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-c-id}"
   port             = "9000"
 }
 
-resource aws_lb_target_group_attachment "manager_2080" {
+resource aws_lb_target_group_attachment "manager_a_2080" {
   target_group_arn = "${aws_alb_target_group.manager_2080.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-a-id}"
   port             = "2080"
 }
 
-resource aws_lb_target_group_attachment "manager_2080" {
+resource aws_lb_target_group_attachment "manager_b_2080" {
   target_group_arn = "${aws_alb_target_group.manager_2080.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-b-id}"
   port             = "2080"
 }
 
-resource aws_lb_target_group_attachment "manager_2080" {
+resource aws_lb_target_group_attachment "manager_c_2080" {
   target_group_arn = "${aws_alb_target_group.manager_2080.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-c-id}"
   port             = "2080"
 }
 
-resource aws_lb_target_group_attachment "manager_3000" {
+resource aws_lb_target_group_attachment "manager_a_3000" {
   target_group_arn = "${aws_alb_target_group.manager_3000.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-a-id}"
   port             = "3000"
 }
 
-resource aws_lb_target_group_attachment "manager_3000" {
+resource aws_lb_target_group_attachment "manager_b_3000" {
   target_group_arn = "${aws_alb_target_group.manager_3000.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-b-id}"
   port             = "3000"
 }
 
-resource aws_lb_target_group_attachment "manager_3000" {
+resource aws_lb_target_group_attachment "manager_c_3000" {
   target_group_arn = "${aws_alb_target_group.manager_3000.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-c-id}"
   port             = "3000"
 }
 
-resource aws_lb_target_group_attachment "manager_5601" {
+resource aws_lb_target_group_attachment "manager_a_5601" {
   target_group_arn = "${aws_alb_target_group.manager_5601.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-a-id}"
   port             = "5601"
 }
 
-resource aws_lb_target_group_attachment "manager_5601" {
+resource aws_lb_target_group_attachment "manager_b_5601" {
   target_group_arn = "${aws_alb_target_group.manager_5601.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-b-id}"
   port             = "5601"
 }
 
-resource aws_lb_target_group_attachment "manager_5601" {
+resource aws_lb_target_group_attachment "manager_c_5601" {
   target_group_arn = "${aws_alb_target_group.manager_5601.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-manager-c-id}"
   port             = "5601"
 }
 
-resource aws_lb_target_group_attachment "worker_80" {
+resource aws_lb_target_group_attachment "worker_a_80" {
   target_group_arn = "${aws_alb_target_group.worker_80.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-a-id}"
   port             = "80"
 }
 
-resource aws_lb_target_group_attachment "worker_80" {
+resource aws_lb_target_group_attachment "worker_b_80" {
   target_group_arn = "${aws_alb_target_group.worker_80.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-b-id}"
   port             = "80"
 }
 
-resource aws_lb_target_group_attachment "worker_80" {
+resource aws_lb_target_group_attachment "worker_c_80" {
   target_group_arn = "${aws_alb_target_group.worker_80.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-c-id}"
   port             = "80"
 }
 
-resource aws_lb_target_group_attachment "worker_443" {
+resource aws_lb_target_group_attachment "worker_a_443" {
   target_group_arn = "${aws_alb_target_group.worker_443.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-a-id}"
   port             = "443"
 }
 
-resource aws_lb_target_group_attachment "worker_443" {
+resource aws_lb_target_group_attachment "worker_b_443" {
   target_group_arn = "${aws_alb_target_group.worker_443.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-b-id}"
   port             = "443"
 }
 
-resource aws_lb_target_group_attachment "worker_443" {
+resource aws_lb_target_group_attachment "worker_c_443" {
   target_group_arn = "${aws_alb_target_group.worker_443.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-c-id}"
   port             = "443"
 }
 
-resource aws_lb_target_group_attachment "worker_8500" {
+resource aws_lb_target_group_attachment "worker_a_8500" {
   target_group_arn = "${aws_alb_target_group.worker_8500.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-a-id}"
   port             = "8500"
 }
 
-resource aws_lb_target_group_attachment "worker_8500" {
+resource aws_lb_target_group_attachment "worker_b_8500" {
   target_group_arn = "${aws_alb_target_group.worker_8500.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-b-id}"
   port             = "8500"
 }
 
-resource aws_lb_target_group_attachment "worker_8500" {
+resource aws_lb_target_group_attachment "worker_c_8500" {
   target_group_arn = "${aws_alb_target_group.worker_8500.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-c-id}"
   port             = "8500"
@@ -370,7 +370,7 @@ resource "aws_alb_listener_rule" "manager_2080" {
 
   condition {
     field  = "host-header"
-    values = ["${var.environment}-${var.colour}-grafana.${var.hosted_zone_name}"]
+    values = ["${var.environment}-${var.colour}-graphite.${var.hosted_zone_name}"]
   }
 }
 
@@ -385,7 +385,7 @@ resource "aws_alb_listener_rule" "manager_3000" {
 
   condition {
     field  = "host-header"
-    values = ["${var.environment}-${var.colour}-graphite.${var.hosted_zone_name}"]
+    values = ["${var.environment}-${var.colour}-grafana.${var.hosted_zone_name}"]
   }
 }
 

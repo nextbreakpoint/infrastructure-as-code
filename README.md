@@ -450,15 +450,15 @@ Target groups and DNS records can be used to route HTTP traffic to specific mach
 
 You can test the routing with your browser for the services with UI:
 
-    https://prod-green-jenkins.yourdomain.com
-    https://prod-green-sonarqube.yourdomain.com
-    https://prod-green-artifactory.yourdomain.com
-    https://prod-green-kibana.yourdomain.com
-    https://prod-green-consul.yourdomain.com
-    https://prod-green-graphite.yourdomain.com
-    https://prod-green-grafana.yourdomain.com
-    https://prod-green-nginx.yourdomain.com
-    http://prod-green-nginx.yourdomain.com
+    https://prod-green-jenkins.yourdomain.com/
+    https://prod-green-sonarqube.yourdomain.com/
+    https://prod-green-artifactory.yourdomain.com/artifactory/webapp/#/home
+    https://prod-green-kibana.yourdomain.com/
+    https://prod-green-consul.yourdomain.com/
+    https://prod-green-graphite.yourdomain.com/
+    https://prod-green-grafana.yourdomain.com/
+    https://prod-green-nginx.yourdomain.com/
+    http://prod-green-nginx.yourdomain.com/
 
 For other services you must use host and port for connecting as client:
 
@@ -502,7 +502,7 @@ Or destroy the infrastructure in several steps:
     ./docker_run.sh destroy_network
     ./docker_run.sh destroy_secrets
 
-## Services discovery
+## Discovering services
 
 You might want to use Consul for services discovery in your applications.
 
@@ -524,7 +524,7 @@ You can use Consul as DNS server and you can lookup for a service using a DNS qu
     dig @prod-green-swarm-worker.yourdomain.com -p 8600 zookeeper.service.internal.consul
     dig @prod-green-swarm-worker.yourdomain.com -p 8600 cassandra.service.internal.consul
 
-## Centralised logs
+## Collecting and analysing logs
 
 All containers running on the Swarm are configured to send logs to Logstash, therefore the logs are available in Kibana.
 
@@ -536,7 +536,7 @@ Use Kibana to analyse logs and monitor services:
 
 The Docker daemon of the managers and workers is configured to use the GELF logging driver. Update the configuration and restart the Docker daemons if you have problem with this configuration and you cannot see the logs. Alternatively you can override the logging configuration when running a container or a service.
 
-## Metrics and monitoring
+## Collecting metrics and monitoring
 
 Use Graphite and Grafana to collect metrics and monitor services:
 
@@ -550,6 +550,20 @@ Configure your applications to send metrics to Graphite:
     http://prod-green-swarm-manager.yourdomain.com:2003
 
 Define a Graphite source and create dashboards in Grafana.
+
+## Building reactive microservices
+
+Use Zookeeper, Kafka, Cassandra, and Elasticsearch to build reactive microservices.
+
+Zookeeper is configured to use SASL with MD5 passwords.
+
+Kafka is configured with SSL connections between brokers and clients.
+
+Cassandra doesn't enforce secure connections by default.
+
+Elasticsearch is configured with SSL connections between nodes (X-Pack enabled with trial licence).
+
+See the scripts test_kafka_consume.sh and test_kafka_produce.sh for a example of client configuration.
 
 ## Delivery pipelines
 
