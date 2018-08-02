@@ -436,6 +436,59 @@ Remove the overlay networks with command:
 
     ./swarm_run.sh remove_networks
 
+## Create target groups and Route53 records (optional)
+
+Create target groups and Route53 records with command:
+
+    ./docker_run.sh create_targets
+
+Destroy target groups and Route53 records with command:
+
+    ./docker_run.sh destroy_targets
+
+Target groups and DNS records can be used to route HTTP traffic to specific machines and ports.
+
+You can test the routing with your browser for the services with UI:
+
+    https://prod-green-jenkins.yourdomain.com
+    https://prod-green-sonarqube.yourdomain.com
+    https://prod-green-artifactory.yourdomain.com
+    https://prod-green-kibana.yourdomain.com
+    https://prod-green-consul.yourdomain.com
+    https://prod-green-graphite.yourdomain.com
+    https://prod-green-grafana.yourdomain.com
+    https://prod-green-nginx.yourdomain.com
+    http://prod-green-nginx.yourdomain.com
+
+For other services you must use host and port for connecting as client:
+
+    prod-green-cassandra-a.yourdomain.com:9042
+    prod-green-cassandra-b.yourdomain.com:9042
+    prod-green-cassandra-c.yourdomain.com:9042
+
+    prod-green-kafka-a.yourdomain.com:9092
+    prod-green-kafka-b.yourdomain.com:9092
+    prod-green-kafka-c.yourdomain.com:9092
+
+    prod-green-zookeeper-a.yourdomain.com:2181
+    prod-green-zookeeper-b.yourdomain.com:2181
+    prod-green-zookeeper-c.yourdomain.com:2181
+
+    prod-green-elasticsearch-a.yourdomain.com:9200
+    prod-green-elasticsearch-b.yourdomain.com:9200
+    prod-green-elasticsearch-c.yourdomain.com:9200
+
+    prod-green-logstash-a.yourdomain.com:5044
+    prod-green-logstash-b.yourdomain.com:5044
+    prod-green-logstash-c.yourdomain.com:5044
+    prod-green-logstash-a.yourdomain.com:12201
+    prod-green-logstash-b.yourdomain.com:12201
+    prod-green-logstash-c.yourdomain.com:12201
+
+    prod-green-consul-a.yourdomain.com:9600
+    prod-green-consul-b.yourdomain.com:9600
+    prod-green-consul-c.yourdomain.com:9600
+
 ## Destroy infrastructure
 
 Destroy the infrastructure with command:
@@ -492,7 +545,11 @@ Use Graphite and Grafana to collect metrics and monitor services:
 
     NOTE: Default user is "admin" with password "admin"
 
-Configure your applications to send metrics to Graphite and create your dashboards and alarms in Grafana.
+Configure your applications to send metrics to Graphite:
+
+    http://prod-green-swarm-manager.yourdomain.com:2003
+
+Define a Graphite source and create dashboards in Grafana.
 
 ## Delivery pipelines
 
