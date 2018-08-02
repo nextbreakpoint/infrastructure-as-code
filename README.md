@@ -265,7 +265,7 @@ Configure the Swarm with command:
 
 Verify that the Swarm is working with command:
 
-    ./swarm_cmd.sh prod-green-swarm-manager.yourdomain.com "docker node ls"
+    ./swarm_run.sh cli "docker node ls"
 
 It should print the list of the nodes, which should contain 6 nodes, 3 managers and 3 workers.
 
@@ -273,7 +273,7 @@ It should print the list of the nodes, which should contain 6 nodes, 3 managers 
 
 Create the overlay networks with command:
 
-    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com create_networks
+    ./swarm_run.sh create_networks
 
 The overlay networks are used to allow communication between containers running on different machines.
 
@@ -283,13 +283,13 @@ The services are deployed on the Swarm using Docker Stacks.
 
 Deploy a stack with command:
 
-    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com deploy_stack consul
+    ./swarm_run.sh deploy_stack consul
 
 It should create volumes and services on the worker nodes.
 
 Verify that the services are running with command:
 
-    ./swarm_cmd.sh prod-green-swarm-manager.yourdomain.com "docker service ls"
+    ./swarm_run.sh cli "docker service ls"
 
 In a similar way, you can deploy any stack from this list:
 
@@ -310,7 +310,7 @@ In a similar way, you can deploy any stack from this list:
 
 Please note that before deploying SonarQube or Artifactory, you must configure MySQL with command:
 
-    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com setup_mysql
+    ./swarm_run.sh setup_mysql
 
 Some services have ports exposed on the host machines, therefore are reachable from any other machine in the same VPC. Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
 
@@ -424,7 +424,7 @@ Worker node in availability zone C
 
 Remove a service with command:
 
-    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com remove_stack consul
+    ./swarm_run.sh remove_stack consul
 
 The volumes associated with the service are not deleted when deleting a stack.
 
@@ -434,7 +434,7 @@ The volumes associated with the service are not deleted when deleting a stack.
 
 Remove the overlay networks with command:
 
-    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com remove_networks
+    ./swarm_run.sh remove_networks
 
 ## Destroy infrastructure
 
@@ -455,8 +455,8 @@ You might want to use Consul for services discovery in your applications.
 
 Deploy the agents to publish on Consul the services running on managers and workers.
 
-    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com deploy_stack manager-agents
-    ./swarm_run.sh prod-green-swarm-manager.yourdomain.com deploy_stack worker-agents
+    ./swarm_run.sh deploy_stack manager-agents
+    ./swarm_run.sh deploy_stack worker-agents
 
 Use Consul UI to check the status of your services:
 
@@ -499,6 +499,7 @@ Configure your applications to send metrics to Graphite and create your dashboar
 Create your delivery pipelines using Jenkins:
 
     https://prod-green-swarm-manager.yourdomain.com:8443
+    http://prod-green-swarm-manager.yourdomain.com:8080
 
     NOTE: Security is disabled by default
 

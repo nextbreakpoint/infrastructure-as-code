@@ -27,6 +27,7 @@ export GRAFANA_IMAGE=grafana/grafana:${GRAFANA_VERSION}
 export NGINX_IMAGE=nginx:${NGINX_VERSION}
 export SONARQUBE_IMAGE=sonarqube:${SONARQUBE_VERSION}
 
+export HOSTED_ZONE_NAME=$(cat $(pwd)/config/main.json | jq -r ".hosted_zone_name")
 export ENVIRONMENT=$(cat $(pwd)/config/main.json | jq -r ".environment")
 export COLOUR=$(cat $(pwd)/config/main.json | jq -r ".colour")
 
@@ -59,8 +60,8 @@ export ADVERTISE_WORKER_AGENT_1=$WORKER_A
 export ADVERTISE_WORKER_AGENT_2=$WORKER_B
 export ADVERTISE_WORKER_AGENT_3=$WORKER_C
 
-export DOCKER_HOST=tcp://$1:2376
+export DOCKER_HOST=tcp://${ENVIRONMENT}-${COLOUR}-swarm-manager.${HOSTED_ZONE_NAME}:2376
 export DOCKER_TLS=1
 export DOCKER_CERT_PATH=${ENVIRONMENT_SECRETS_PATH}/swarm
 
-./swarm/$2.sh $3 $4 $5 $6
+./swarm/$1.sh $2 $3 $4 $5
