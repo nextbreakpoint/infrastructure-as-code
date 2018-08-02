@@ -414,3 +414,63 @@ resource "aws_route53_record" "swarm-worker" {
     "${aws_instance.swarm_worker_c.private_ip}"
   ]
 }
+
+resource "aws_route53_record" "swarm-manager-a" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-manager-a.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [
+    "${aws_instance.swarm_manager_a.private_ip}",
+  ]
+}
+
+resource "aws_route53_record" "swarm-manager-b" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-manager-b.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [
+    "${aws_instance.swarm_manager_b.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm-manager-c" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-manager-c.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [
+    "${aws_instance.swarm_manager_c.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm-worker-a" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-a.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [
+    "${aws_instance.swarm_worker_a.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm-worker-b" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-b.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [
+    "${aws_instance.swarm_worker_b.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm-worker-c" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-c.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [
+    "${aws_instance.swarm_worker_c.private_ip}"
+  ]
+}
