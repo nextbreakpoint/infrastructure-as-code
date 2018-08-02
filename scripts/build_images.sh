@@ -2,6 +2,8 @@
 
 . $ROOT/bash_aliases
 
+cd $ROOT/terraform/bastion
+
 # BASTION_SUBNET variable is required by pk_create alias
 BASTION_SUBNET=$(terraform output -json bastion-public-subnet-a-id | jq -r '.value')
 
