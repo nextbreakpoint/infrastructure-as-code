@@ -447,5 +447,5 @@ verb 3
 explicit-exit-notify 1
 EOF
 
-  filename = "../../secrets/openvpn/${var.environment}/${var.colour}/openvpn_base.conf"
+  filename = "../../secrets/generated/${var.environment}/${var.colour}/openvpn_base.conf"
 }

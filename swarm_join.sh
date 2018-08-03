@@ -1,38 +1,35 @@
 #!/bin/sh
 
+export HOSTED_ZONE_NAME=$(cat $(pwd)/config/main.json | jq -r ".hosted_zone_name")
 export ENVIRONMENT=$(cat $(pwd)/config/main.json | jq -r ".environment")
 export COLOUR=$(cat $(pwd)/config/main.json | jq -r ".colour")
 
 export ENVIRONMENT_SECRETS_PATH=$(pwd)/secrets/environments/${ENVIRONMENT}/${COLOUR}
 
-export SUBNET_A=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_a")
-export SUBNET_B=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_b")
-export SUBNET_C=$(cat $(pwd)/config/network.json | jq -r ".aws_network_private_subnet_cidr_c")
-
-export MANAGER_A=$(echo ${SUBNET_A} | sed -e "s/\.0\/24/.150/g")
+export MANAGER_A=${ENVIRONMENT}-${COLOUR}-swarm-manager-a.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${MANAGER_A}:2376
 export DOCKER_TLS=1
 export DOCKER_CERT_PATH=${ENVIRONMENT_SECRETS_PATH}/swarm
-docker swarm init --advertise-addr ${MANAGER_A}
+docker swarm init --advertise-addr $(host ${ENVIRONMENT}-${COLOUR}-swarm-manager-a.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
 export MANAGER_TOKEN=$(docker swarm join-token manager | grep "docker swarm join" | awk '{ print $5 }')
 export WORKER_TOKEN=$(docker swarm join-token worker | grep "docker swarm join" | awk '{ print $5 }')
 
-export MANAGER_B=$(echo ${SUBNET_B} | sed -e "s/\.0\/24/.150/g")
+export MANAGER_B=${ENVIRONMENT}-${COLOUR}-swarm-manager-b.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${MANAGER_B}:2376
 docker swarm join --token $MANAGER_TOKEN ${MANAGER_A}:2377
 
-export MANAGER_C=$(echo ${SUBNET_C} | sed -e "s/\.0\/24/.150/g")
+export MANAGER_C=${ENVIRONMENT}-${COLOUR}-swarm-manager-c.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${MANAGER_C}:2376
 docker swarm join --token $MANAGER_TOKEN ${MANAGER_A}:2377
 
-export WORKER_A=$(echo ${SUBNET_A} | sed -e "s/\.0\/24/.151/g")
+export WORKER_A=${ENVIRONMENT}-${COLOUR}-swarm-worker-a.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${WORKER_A}:2376
 docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377
 
-export WORKER_B=$(echo ${SUBNET_B} | sed -e "s/\.0\/24/.151/g")
+export WORKER_B=${ENVIRONMENT}-${COLOUR}-swarm-worker-b.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${WORKER_B}:2376
 docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377
 
-export WORKER_C=$(echo ${SUBNET_C} | sed -e "s/\.0\/24/.151/g")
+export WORKER_C=${ENVIRONMENT}-${COLOUR}-swarm-worker-c.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${WORKER_C}:2376
 docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377

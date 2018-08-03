@@ -1,11 +1,11 @@
 ##############################################################################
-# Remote state
+# Outputs
 ##############################################################################
 
-terraform {
-  backend "s3" {
-    bucket = "nextbreakpoint-terraform"
-    region = "eu-west-1"
-    key    = "vpc.tfstate"
-  }
+output "openvpn-a-id" {
+  value = "${aws_instance.openvpn_a.id}"
+}
+
+output "openvpn-a-private-ip" {
+  value = "${aws_instance.openvpn_a.private_ip}"
 }

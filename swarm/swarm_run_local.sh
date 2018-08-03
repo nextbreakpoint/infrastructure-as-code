@@ -39,9 +39,6 @@ export CONSUL_SECRET=$(cat $(pwd)/../secrets/consul.json | jq -r ".consul_secret
 
 export KEYSTORE_PASSWORD=$(cat $(pwd)/../config/main.json | jq -r ".keystore_password")
 
-export ADVERTISE_MANAGER_AGENT_1=$(docker-machine ip docker-master)
-export ADVERTISE_MANAGER_AGENT_2=$(docker-machine ip docker-master)
-export ADVERTISE_MANAGER_AGENT_3=$(docker-machine ip docker-master)
 export ADVERTISE_WORKER_AGENT_1=$(docker-machine ip docker-worker1)
 export ADVERTISE_WORKER_AGENT_2=$(docker-machine ip docker-worker2)
 export ADVERTISE_WORKER_AGENT_3=$(docker-machine ip docker-worker3)

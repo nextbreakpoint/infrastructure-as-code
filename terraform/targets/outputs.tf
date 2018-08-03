@@ -1,11 +1,7 @@
 ##############################################################################
-# Remote state
+# Outputs
 ##############################################################################
 
-terraform {
-  backend "s3" {
-    bucket = "nextbreakpoint-terraform"
-    region = "eu-west-1"
-    key    = "vpc.tfstate"
-  }
+output "targets-created" {
+  value = "true"
 }

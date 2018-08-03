@@ -144,19 +144,19 @@ Create a configuration for Consul with command:
 
 Create the VPCs with command:
 
-    ./docker_run.sh create_vpc
+    ./docker_run.sh module_create vpc
 
 ## Create SSH keys
 
 Create the SSH keys with command:
 
-    ./docker_run.sh create_keys
+    ./docker_run.sh module_create keys
 
 ## Create Bastion network
 
 Create the Bastion network with command:
 
-    ./docker_run.sh create_bastion_network
+    ./docker_run.sh module_create bastion
 
 ## Build images with Packer
 
@@ -172,22 +172,34 @@ The script might take quite a while. Once the images have been created, you don'
 
 ## Create the infrastructure
 
-Create the infrastructure with command:
+Create secrets with command:
 
-    ./docker_run.sh create_all
+    ./docker_run.sh module_create secrets
 
-Or create the infrastructure in several steps:
+Create subnets and NAT machines with command:
 
-    ./docker_run.sh create_secrets
-    ./docker_run.sh create_network
-    ./docker_run.sh create_lb
-    ./docker_run.sh create_swarm
+    ./docker_run.sh module_create network
+
+Create Swarm nodes with command:
+
+    ./docker_run.sh module_create swarm
+
+The Swarm cluster includes 3 manager nodes and 3 worker nodes:
+
+    prod-green-swarm-manager-a.yourdomain.com
+    prod-green-swarm-manager-b.yourdomain.com
+    prod-green-swarm-manager-c.yourdomain.com
+    prod-green-swarm-worker-a.yourdomain.com
+    prod-green-swarm-worker-b.yourdomain.com
+    prod-green-swarm-worker-c.yourdomain.com
+
+The single letter at the end of the name represents the availability zone.    
 
 ## Create Bastion server (optional)
 
 Create the Bastion server with command:
 
-    ./docker_run.sh create_bastion
+    ./docker_run.sh module_create bastion -var bastion=true
 
 ### Access machines using Bastion
 
@@ -209,23 +221,23 @@ You can find the ip address of the machines on the AWS console.
 
 Create the OpenVPN server with command:
 
-    ./docker_run.sh create_openvpn
+    ./docker_run.sh module_create openvpn
 
 ### Access machines using OpenVPN
 
 A default client configuration is automatically generated at location:
 
-    secrets/openvpn/production/green/openvpn_client.ovpn
+    secrets/openvpn/prod/green/openvpn_client.ovpn
 
 Install the configuration in your OpenVPN client and connect your client. OpenVPN server is configured to allow connections to any internal servers.
 
 You should create a different configuration for each client using the command:
 
-    ./run_script new_client_ovpn name
+    ./docker_run.sh create_ovpn name
 
 The client configuration is generated at location:
 
-    secrets/openvpn/production/green/openvpn_name.ovpn
+    secrets/openvpn/prod/green/openvpn_name.ovpn
 
 If you need to modify the server configuration, login into OpenVPN server:
 
@@ -250,6 +262,8 @@ Verify that you can ping the worker nodes:
     ping prod-green-swarm-worker-a.yourdomain.com
     ping prod-green-swarm-worker-b.yourdomain.com
     ping prod-green-swarm-worker-c.yourdomain.com
+
+If you can't ping the machines, check your VPN connection. You must be connected to access machines in private subnets.
 
 Verify that you can login into the machines:
 
@@ -305,20 +319,24 @@ In a similar way, you can deploy any stack from this list:
     grafana
     jenkins
     mysql
-    sonarqube
-    artifactory
+    sonarqube (MySQL setup required)
+    artifactory (MySQL setup required)
 
 Please note that before deploying SonarQube or Artifactory, you must configure MySQL with command:
 
     ./swarm_run.sh setup_mysql
 
-Some services have ports exposed on the host machines, therefore are reachable from any other machine in the same VPC. Some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
+The connection to MySQL might fail if the database is not ready to accept connections. If the connection fails, retry the command after a minute.
 
 ### Services placement
 
 The mapping between machines and services depends on the labels assigned to Swarm's nodes. The services are deployed according to the placement constraints in the YAML file which defines the stack of the service. The constraints are based on labels and roles of the nodes.
 
 See documentation of [Docker Compose](https://docs.docker.com/compose/compose-file/) and [Docker Swarm](https://docs.docker.com/engine/reference/commandline/node_update/).
+
+Please note that some services have ports exposed on the host machines, therefore are reachable from any other machine in the same VPC.
+
+Please note that some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
 
 #### Manager A
 
@@ -436,19 +454,19 @@ Remove the overlay networks with command:
 
     ./swarm_run.sh remove_networks
 
-## Create target groups and Route53 records (optional)
+## Create Load-Balancers, Target Groups and Route53 records (optional)
+
+Create the load balancers with command:
+
+    ./docker_run.sh module_create lb
 
 Create target groups and Route53 records with command:
 
-    ./docker_run.sh create_targets
-
-Destroy target groups and Route53 records with command:
-
-    ./docker_run.sh destroy_targets
+    ./docker_run.sh module_create targets
 
 Target groups and DNS records can be used to route HTTP traffic to specific machines and ports.
 
-You can test the routing with your browser for the services with UI:
+You can test the routing with your browser for services with UI:
 
     https://prod-green-jenkins.yourdomain.com/
     https://prod-green-sonarqube.yourdomain.com/
@@ -460,7 +478,7 @@ You can test the routing with your browser for the services with UI:
     https://prod-green-nginx.yourdomain.com/
     http://prod-green-nginx.yourdomain.com/
 
-For other services you must use host and port for connecting as client:
+Use host and port in your client for connecting to backend services:
 
     prod-green-cassandra-a.yourdomain.com:9042
     prod-green-cassandra-b.yourdomain.com:9042
@@ -489,27 +507,13 @@ For other services you must use host and port for connecting as client:
     prod-green-consul-b.yourdomain.com:9600
     prod-green-consul-c.yourdomain.com:9600
 
-## Destroy infrastructure
-
-Destroy the infrastructure with command:
-
-    ./docker_run.sh destroy_all
-
-Or destroy the infrastructure in several steps:
-
-    ./docker_run.sh destroy_swarm
-    ./docker_run.sh destroy_lb
-    ./docker_run.sh destroy_network
-    ./docker_run.sh destroy_secrets
-
-## Discovering services
+## Service discovery
 
 You might want to use Consul for services discovery in your applications.
 
-Deploy the agents to publish on Consul the services running on managers and workers.
+Deploy the agents to publish on Consul the services running on worker nodes:
 
-    ./swarm_run.sh deploy_stack manager-agents
-    ./swarm_run.sh deploy_stack worker-agents
+    ./swarm_run.sh deploy_stack consul-workers
 
 Use Consul UI to check the status of your services:
 
@@ -592,14 +596,82 @@ Deploy your applications to Docker Swarm or EC2, manually or using Jenkins CI.
 
 Bastion server can be stopped or destroyed if required. The server can be recreated when needed.
 
-Stop the Bastion server from AWS console or destroy it with command:
-
-    ./docker_run.sh destroy_bastion
+    Stop Bastion server from AWS console
 
 ## Disable access via OpenVPN
 
 OpenVPN server can be stopped or destroyed if required. The server can be recreated when needed.
 
-Stop the OpenVPN server from AWS console or destroy it with command:
+    Stop OpenVPN server from AWS console
 
-    ./docker_run.sh destroy_openvpn
+## Destroy Load-Balancers, Target Groups and Route53 records
+
+Destroy Target Groups and Route53 records with command:
+
+    ./docker_run.sh module_destroy targets
+
+Destroy Load-Balancers with command:
+
+    ./docker_run.sh module_destroy lb
+
+## Destroy the infrastructure
+
+Destroy Swarm nodes with commands:
+
+    ./docker_run.sh module_destroy swarm
+
+Destroy subnets and NAT machines with commands:
+
+    ./docker_run.sh module_destroy network
+
+Destroy secrets with commands:
+
+    ./docker_run.sh module_destroy secrets
+
+## Destroy Bastion server
+
+Destroy Bastion with command:
+
+    ./docker_run.sh module_destroy bastion
+
+## Destroy OpenVPN server
+
+Destroy OpenVPN with command:
+
+    ./docker_run.sh module_destroy openvpn
+
+## Destroy network
+
+Destroy the network with command:
+
+    ./docker_run.sh module_destroy network
+
+Please note that network can be destroyed only after destroying infrastructure, Bastion and OpenVPN.
+
+## Destroy VPC
+
+Destroy the VPC with command:
+
+    ./docker_run.sh module_destroy vpc
+
+Please note that network can be destroyed only after destroying all, including network.
+
+## Destroy SSH keys
+
+Destroy the SSH keys with command:
+
+    ./docker_run.sh module_destroy keys
+
+## Delete images
+
+Delete the AMIs with command:
+
+    ./docker_run.sh delete_images
+
+## Reset Terraform state
+
+Reset Terraform state with command:
+
+    ./docker_run.sh reset_terraform
+
+Be careful to don't reset the state before destroying all managed infrastructure.

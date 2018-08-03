@@ -56,6 +56,6 @@ variable "bastion_instance_type" {
   default     = "t2.micro"
 }
 
-variable "bastion_count" {
-  default     = 0
+variable "bastion" {
+  default     = false
 }

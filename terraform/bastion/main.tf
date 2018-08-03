@@ -238,7 +238,7 @@ data "template_file" "bastion" {
 module "bastion_a" {
   source = "./bastion"
 
-  count                 = "${var.bastion_count}"
+  count                 = "${var.bastion == true ? 1 : 0}"
   environment           = "${var.environment}"
   colour                = "${var.colour}"
   name                  = "${var.environment}-${var.colour}-bastion-a"
@@ -287,7 +287,7 @@ module "bastion_a" {
 # }
 
 resource "aws_route53_record" "bastion" {
-  count   = "${var.bastion_count}"
+  count   = "${var.bastion == true ? 1 : 0}"
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-bastion.${var.hosted_zone_name}"
   type    = "A"

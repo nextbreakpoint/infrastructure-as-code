@@ -1,5 +1,6 @@
 #!/bin/sh
 
+HOSTED_ZONE_NAME=$(cat $ROOT/config/main.json | jq -r ".hosted_zone_name")
 ENVIRONMENT=$(cat $ROOT/config/main.json | jq -r ".environment")
 COLOUR=$(cat $ROOT/config/main.json | jq -r ".colour")
 
@@ -24,28 +25,28 @@ mkdir -p $OUTPUT_GEN
 echo '[extended]\nextendedKeyUsage=serverAuth,clientAuth\nkeyUsage=digitalSignature,keyAgreement' > $OUTPUT_GEN/openssl.cnf
 
 ## Create certificate authority (CA)
-openssl req -new -x509 -keyout $OUTPUT_GEN/ca_key.pem -out $OUTPUT_GEN/ca_cert.pem -days 365 -passin pass:$KEY_PASSWORD -passout pass:$KEY_PASSWORD -subj "/CN=myself"
+openssl req -new -x509 -keyout $OUTPUT_GEN/ca_key.pem -out $OUTPUT_GEN/ca_cert.pem -days 365 -passin pass:$KEY_PASSWORD -passout pass:$KEY_PASSWORD -subj "/CN=${HOSTED_ZONE_NAME}"
 
 ## Create client keystore
-keytool -noprompt -keystore $OUTPUT_GEN/keystore-client.jks -genkey -alias selfsigned -dname "CN=myself" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
+keytool -noprompt -keystore $OUTPUT_GEN/keystore-client.jks -genkey -alias selfsigned -dname "CN=${HOSTED_ZONE_NAME}" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
 
 ## Create server keystore
-keytool -noprompt -keystore $OUTPUT_GEN/keystore-server.jks -genkey -alias selfsigned -dname "CN=myself" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
+keytool -noprompt -keystore $OUTPUT_GEN/keystore-server.jks -genkey -alias selfsigned -dname "CN=${HOSTED_ZONE_NAME}" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
 
 ## Create filebeat keystore
-keytool -noprompt -keystore $OUTPUT_GEN/keystore-filebeat.jks -genkey -alias selfsigned -dname "CN=filebeat.service.${CONSUL_DATACENTER}.consul" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
+keytool -noprompt -keystore $OUTPUT_GEN/keystore-filebeat.jks -genkey -alias selfsigned -dname "CN=filebeat" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
 
 ## Create logstash keystore
-keytool -noprompt -keystore $OUTPUT_GEN/keystore-kibana.jks -genkey -alias selfsigned -dname "CN=kibana.service.${CONSUL_DATACENTER}.consul" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
+keytool -noprompt -keystore $OUTPUT_GEN/keystore-kibana.jks -genkey -alias selfsigned -dname "CN=kibana" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
 
 ## Create logstash keystore
-keytool -noprompt -keystore $OUTPUT_GEN/keystore-logstash.jks -genkey -alias selfsigned -dname "CN=logstash.service.${CONSUL_DATACENTER}.consul" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
+keytool -noprompt -keystore $OUTPUT_GEN/keystore-logstash.jks -genkey -alias selfsigned -dname "CN=logstash" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
 
 ## Create elasticsearch keystore
-keytool -noprompt -keystore $OUTPUT_GEN/keystore-elasticsearch.jks -genkey -alias selfsigned -dname "CN=elasticsearch.service.${CONSUL_DATACENTER}.consul" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
+keytool -noprompt -keystore $OUTPUT_GEN/keystore-elasticsearch.jks -genkey -alias selfsigned -dname "CN=elasticsearch" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
 
 ## Create jenkins keystore
-keytool -noprompt -keystore $OUTPUT_GEN/keystore-jenkins.jks -genkey -alias selfsigned -dname "CN=jenkins.service.${CONSUL_DATACENTER}.consul" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
+keytool -noprompt -keystore $OUTPUT_GEN/keystore-jenkins.jks -genkey -alias selfsigned -dname "CN=jenkins" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
 
 ## Create consul keystore
 keytool -noprompt -keystore $OUTPUT_GEN/keystore-consul.jks -genkey -alias selfsigned -dname "CN=server.${CONSUL_DATACENTER}.consul" -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 365 -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD
