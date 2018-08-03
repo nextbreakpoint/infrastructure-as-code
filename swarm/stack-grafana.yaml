@@ -1,0 +1,44 @@
+version: '3.4'
+services:
+  grafana:
+    labels:
+        service: grafana
+    image: ${GRAFANA_IMAGE}
+    volumes:
+      - storage:/var/lib/grafana
+    ports:
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: ingress
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.grafana == true
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2200M
+        reservations:
+          cpus: '0.1'
+          memory: 2200M
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    storage:

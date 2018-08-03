@@ -1,0 +1,192 @@
+version: '3.4'
+services:
+  zookeeper1:
+    labels:
+        service: zookeeper
+    image: ${ZOOKEEPER_IMAGE}
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zookeeper2:2888:3888 server.3=zookeeper3:2888:3888
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
+      ZOO_ENABLE_QUORUM_SASL: "true"
+      ZOO_ENABLE_CLIENT_SASL: "true"
+      JVMFLAGS: "-Xms512M -Xmx512M"
+    volumes:
+      - storage:/data
+      - storagelog:/datalog
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.zookeeper == true
+          - node.labels.zone == a
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 600M
+        reservations:
+          cpus: '0.1'
+          memory: 600M
+    secrets:
+      - source: jaas-config
+        target: /secrets/zookeeper_server_jaas.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  zookeeper2:
+    labels:
+        service: zookeeper
+    image: ${ZOOKEEPER_IMAGE}
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zookeeper1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zookeeper3:2888:3888
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
+      ZOO_ENABLE_QUORUM_SASL: "true"
+      ZOO_ENABLE_CLIENT_SASL: "true"
+      JVMFLAGS: "-Xms512M -Xmx512M"
+    volumes:
+      - storage:/data
+      - storagelog:/datalog
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.zookeeper == true
+          - node.labels.zone == b
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 600M
+        reservations:
+          cpus: '0.1'
+          memory: 600M
+    secrets:
+      - source: jaas-config
+        target: /secrets/zookeeper_server_jaas.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  zookeeper3:
+    labels:
+        service: zookeeper
+    image: ${ZOOKEEPER_IMAGE}
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zookeeper1:2888:3888 server.2=zookeeper2:2888:3888 server.3=0.0.0.0:2888:3888
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_server_jaas.conf
+      ZOO_ENABLE_QUORUM_SASL: "true"
+      ZOO_ENABLE_CLIENT_SASL: "true"
+      JVMFLAGS: "-Xms512M -Xmx512M"
+    volumes:
+      - storage:/data
+      - storagelog:/datalog
+    ports:
+      - target: 2181
+        published: 2181
+        protocol: tcp
+        mode: host
+      - target: 2888
+        published: 2888
+        protocol: tcp
+        mode: host
+      - target: 3888
+        published: 3888
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.zookeeper == true
+          - node.labels.zone == c
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 600M
+        reservations:
+          cpus: '0.1'
+          memory: 600M
+    secrets:
+      - source: jaas-config
+        target: /secrets/zookeeper_server_jaas.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    storage:
+    storagelog:
+secrets:
+  jaas-config:
+    file: ${ENVIRONMENT_SECRETS_PATH}/zookeeper/server_jaas.conf

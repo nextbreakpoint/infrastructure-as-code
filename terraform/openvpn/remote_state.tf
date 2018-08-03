@@ -16,7 +16,7 @@ data "terraform_remote_state" "vpc" {
   config {
     bucket = "terraform"
     region = "eu-west-1"
-    key    = "vpc.tfstate"
+    key    = "env:/${terraform.workspace}/vpc.tfstate"
   }
 }
 
@@ -26,7 +26,7 @@ data "terraform_remote_state" "network" {
   config {
     bucket = "terraform"
     region = "eu-west-1"
-    key    = "network.tfstate"
+    key    = "env:/${terraform.workspace}/network.tfstate"
   }
 }
 
@@ -36,6 +36,6 @@ data "terraform_remote_state" "lb" {
   config {
     bucket = "terraform"
     region = "eu-west-1"
-    key    = "lb.tfstate"
+    key    = "env:/${terraform.workspace}/lb.tfstate"
   }
 }

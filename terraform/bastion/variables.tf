@@ -15,18 +15,10 @@ variable "aws_profile" {
 ###################################################################
 
 ### MANDATORY ###
-variable "key_name" {
-  description = "Name of the SSH keypair to use in AWS."
-}
+variable "environment" {}
 
 ### MANDATORY ###
-variable "key_path" {
-  description = "Path to the private portion of the SSH key specified."
-}
-
-variable "stream_tag" {
-  default = "terraform"
-}
+variable "colour" {}
 
 ### MANDATORY ###
 variable "hosted_zone_id" {}
@@ -34,14 +26,9 @@ variable "hosted_zone_id" {}
 ### MANDATORY ###
 variable "hosted_zone_name" {}
 
-variable "bastion_instance_type" {
-  default     = "t2.micro"
-}
-
-variable "amazon_nat_ami" {
-  default = {
-    eu-west-1 = "ami-47ecb121"
-  }
+### MANDATORY ###
+variable "key_name" {
+  description = "Name of the SSH keypair to use in AWS."
 }
 
 ### MANDATORY ###
@@ -52,4 +39,23 @@ variable "aws_bastion_subnet_cidr_a" {
 ### MANDATORY ###
 variable "aws_bastion_subnet_cidr_b" {
   description = "Bastion subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_bastion_subnet_cidr_c" {
+  description = "Bastion subnet C cidr block"
+}
+
+variable "amazon_nat_ami" {
+  default = {
+    eu-west-1 = "ami-47ecb121"
+  }
+}
+
+variable "bastion_instance_type" {
+  default     = "t2.micro"
+}
+
+variable "bastion" {
+  default     = false
 }

@@ -1,0 +1,172 @@
+version: '3.4'
+services:
+  worker-agent1:
+      labels:
+          service: agent
+      image: consul:latest
+      command: "consul agent -node=worker1 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='${ADVERTISE_WORKER_AGENT_1}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3 -encrypt=${CONSUL_SECRET}"
+      logging:
+        options:
+          labels: "service"
+      ports:
+        - target: 8301
+          published: 8301
+          protocol: tcp
+          mode: host
+        - target: 8301
+          published: 8301
+          protocol: udp
+          mode: host
+      deploy:
+        mode: global
+        placement:
+          constraints:
+            - node.role == worker
+            - node.labels.agent == true
+            - node.labels.zone == a
+        endpoint_mode: dnsrr
+        update_config:
+          parallelism: 1
+          failure_action: rollback
+          delay: 30s
+        restart_policy:
+          condition: any
+          delay: 5s
+          window: 120s
+        resources:
+          limits:
+            cpus: '1'
+            memory: 128M
+          reservations:
+            cpus: '0.1'
+            memory: 128M
+      secrets:
+        - source: server_cert
+          target: /consul/config/server_cert.pem
+          uid: '100'
+          gid: '1000'
+          mode: 0440
+      configs:
+        - source: consul1_config
+          target: /consul/config/consul.json
+          uid: '100'
+          gid: '1000'
+          mode: 0440
+  worker-agent2:
+    labels:
+        service: agent
+    image: consul:latest
+    command: "consul agent -node=worker2 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='${ADVERTISE_WORKER_AGENT_2}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3 -encrypt=${CONSUL_SECRET}"
+    logging:
+      options:
+        labels: "service"
+    ports:
+      - target: 8301
+        published: 8301
+        protocol: tcp
+        mode: host
+      - target: 8301
+        published: 8301
+        protocol: udp
+        mode: host
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.agent == true
+          - node.labels.zone == b
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    secrets:
+      - source: server_cert
+        target: /consul/config/server_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: consul2_config
+        target: /consul/config/consul.json
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+  worker-agent3:
+    labels:
+        service: agent
+    image: consul:latest
+    command: "consul agent -node=worker3 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='${ADVERTISE_WORKER_AGENT_3}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3 -encrypt=${CONSUL_SECRET}"
+    logging:
+      options:
+        labels: "service"
+    ports:
+      - target: 8301
+        published: 8301
+        protocol: tcp
+        mode: host
+      - target: 8301
+        published: 8301
+        protocol: udp
+        mode: host
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.agent == true
+          - node.labels.zone == c
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    secrets:
+      - source: server_cert
+        target: /consul/config/server_cert.pem
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+    configs:
+      - source: consul3_config
+        target: /consul/config/consul.json
+        uid: '100'
+        gid: '1000'
+        mode: 0440
+networks:
+  default:
+    external:
+      name: services
+secrets:
+  server_cert:
+    file: ${ENVIRONMENT_SECRETS_PATH}/consul/server_cert.pem
+configs:
+  consul1_config:
+    file: ${SWARM_RESOURCES_PATH}/consul-worker1.json
+  consul2_config:
+    file: ${SWARM_RESOURCES_PATH}/consul-worker2.json
+  consul3_config:
+    file: ${SWARM_RESOURCES_PATH}/consul-worker3.json

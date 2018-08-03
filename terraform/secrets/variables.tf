@@ -14,9 +14,11 @@ variable "aws_profile" {
 # Resources configuration below
 ###################################################################
 
-variable "stream_tag" {
-  default = "terraform"
-}
+### MANDATORY ###
+variable "environment" {}
+
+### MANDATORY ###
+variable "colour" {}
 
 ### MANDATORY ###
 variable "secrets_bucket_name" {}

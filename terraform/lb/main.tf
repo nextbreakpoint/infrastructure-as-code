@@ -13,7 +13,7 @@ provider "aws" {
 ##############################################################################
 
 resource "aws_security_group" "lb_internal" {
-  name        = "lb-internal"
+  name        = "${var.environment}-${var.colour}-lb-int"
   description = "Internal ALB security group"
   vpc_id      = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -39,7 +39,8 @@ resource "aws_security_group" "lb_internal" {
   }
 
   tags {
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
   }
 }
 
@@ -49,7 +50,7 @@ data "aws_acm_certificate" "lb_internal" {
 }
 
 resource "aws_alb" "lb_internal" {
-  name = "lb-internal"
+  name = "${var.environment}-${var.colour}-lb-int"
 
   security_groups = ["${aws_security_group.lb_internal.id}"]
 
@@ -62,12 +63,13 @@ resource "aws_alb" "lb_internal" {
   internal = true
 
   tags {
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
   }
 }
 
 resource "aws_alb_target_group" "lb_internal_http" {
-  name     = "lb-internal-http"
+  name     = "${var.environment}-${var.colour}-lb-int-http"
   port     = 80
   protocol = "HTTP"
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
@@ -82,7 +84,7 @@ resource "aws_alb_target_group" "lb_internal_http" {
 }
 
 resource "aws_alb_target_group" "lb_internal_https" {
-  name     = "lb-internal-https"
+  name     = "${var.environment}-${var.colour}-lb-int-https"
   port     = 443
   protocol = "HTTPS"
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
@@ -121,7 +123,7 @@ resource "aws_alb_listener" "lb_internal_https" {
 }
 
 resource "aws_security_group" "lb_public" {
-  name        = "lb-public"
+  name        = "${var.environment}-${var.colour}-lb-pub"
   description = "Public ALB security group"
   vpc_id      = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
@@ -147,7 +149,8 @@ resource "aws_security_group" "lb_public" {
   }
 
   tags {
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
   }
 }
 
@@ -157,7 +160,7 @@ data "aws_acm_certificate" "lb_public" {
 }
 
 resource "aws_alb" "lb_public" {
-  name = "lb-public"
+  name = "${var.environment}-${var.colour}-lb-pub"
 
   security_groups = ["${aws_security_group.lb_public.id}"]
 
@@ -170,12 +173,13 @@ resource "aws_alb" "lb_public" {
   internal = false
 
   tags {
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
   }
 }
 
 resource "aws_alb_target_group" "lb_public_http" {
-  name     = "lb-public-http"
+  name     = "${var.environment}-${var.colour}-lb-pub-http"
   port     = 80
   protocol = "HTTP"
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
@@ -190,7 +194,7 @@ resource "aws_alb_target_group" "lb_public_http" {
 }
 
 resource "aws_alb_target_group" "lb_public_https" {
-  name     = "lb-public-https"
+  name     = "${var.environment}-${var.colour}-lb-pub-https"
   port     = 443
   protocol = "HTTPS"
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"

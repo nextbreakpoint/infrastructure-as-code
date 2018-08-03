@@ -19,8 +19,9 @@ resource "aws_vpc" "network" {
   enable_dns_hostnames = "true"
 
   tags {
-    Name   = "network"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network"
   }
 }
 
@@ -31,8 +32,9 @@ resource "aws_vpc" "bastion" {
   enable_dns_hostnames = "true"
 
   tags {
-    Name   = "bastion"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-bastion"
   }
 }
 
@@ -43,8 +45,9 @@ resource "aws_vpc" "openvpn" {
   enable_dns_hostnames = "true"
 
   tags {
-    Name   = "openvpn"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-openvpn"
   }
 }
 
@@ -52,8 +55,9 @@ resource "aws_internet_gateway" "network" {
   vpc_id = "${aws_vpc.network.id}"
 
   tags {
-    Name   = "network"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network"
   }
 }
 
@@ -61,8 +65,9 @@ resource "aws_internet_gateway" "bastion" {
   vpc_id = "${aws_vpc.bastion.id}"
 
   tags {
-    Name   = "bastion"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-bastion"
   }
 }
 
@@ -70,19 +75,21 @@ resource "aws_internet_gateway" "openvpn" {
   vpc_id = "${aws_vpc.openvpn.id}"
 
   tags {
-    Name   = "openvpn"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-openvpn"
   }
 }
 
 resource "aws_vpc_dhcp_options" "network" {
-  domain_name_servers = ["127.0.0.1", "AmazonProvidedDNS"]
+  domain_name_servers = ["AmazonProvidedDNS"]
 
   ntp_servers = ["127.0.0.1"]
 
   tags {
-    Name   = "network"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network"
   }
 }
 
@@ -92,8 +99,9 @@ resource "aws_vpc_dhcp_options" "bastion" {
   ntp_servers = ["127.0.0.1"]
 
   tags {
-    Name   = "bastion"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-bastion"
   }
 }
 
@@ -103,8 +111,9 @@ resource "aws_vpc_dhcp_options" "openvpn" {
   ntp_servers = ["127.0.0.1"]
 
   tags {
-    Name   = "openvpn"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-openvpn"
   }
 }
 
@@ -129,8 +138,9 @@ resource "aws_vpc_peering_connection" "network_to_bastion" {
   auto_accept = true
 
   tags {
-    Name   = "network-to-bastion"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network-to-bastion"
   }
 }
 
@@ -140,7 +150,20 @@ resource "aws_vpc_peering_connection" "network_to_openvpn" {
   auto_accept = true
 
   tags {
-    Name   = "network-to-openvpn"
-    Stream = "${var.stream_tag}"
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-network-to-openvpn"
+  }
+}
+
+resource "aws_vpc_peering_connection" "bastion_to_openvpn" {
+  peer_vpc_id = "${aws_vpc.openvpn.id}"
+  vpc_id      = "${aws_vpc.bastion.id}"
+  auto_accept = true
+
+  tags {
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-bastion-to-openvpn"
   }
 }

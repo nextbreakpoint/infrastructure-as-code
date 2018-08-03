@@ -45,3 +45,7 @@ output "network-to-bastion-peering-connection-id" {
 output "network-to-openvpn-peering-connection-id" {
   value = "${aws_vpc_peering_connection.network_to_openvpn.id}"
 }
+
+output "bastion-to-openvpn-peering-connection-id" {
+  value = "${aws_vpc_peering_connection.bastion_to_openvpn.id}"
+}

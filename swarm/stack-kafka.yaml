@@ -1,0 +1,274 @@
+version: '3.4'
+services:
+  kafka1:
+    labels:
+        service: kafka
+    image: ${KAFKA_IMAGE}
+    environment:
+      BROKER_ID: 1
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      ZK_CONNECT: zookeeper1:2181
+      ADVERTISED_HOST: kafka1
+      ADVERTISED_PORT: 9092
+      LISTENERS: SSL://0.0.0.0:9092
+      ADVERTISED_LISTENERS: SSL://kafka1:9092
+      NUM_PARTITIONS: 1
+      DELETE_TOPICS: "true"
+      AUTO_CREATE_TOPICS: "false"
+      LOG_RETENTION_HOURS: 24
+      TRANSACTION_MAX_TIMEOUT_MS: 3600000
+      LOG_PATH: "\\/data\\/kafka-logs"
+      ZOOKEEPER_SET_ACL: "true"
+      SECURITY_INTER_BROKER_PROTOCOL: SSL
+      KEYSTORE_LOCATION: /secrets/keystore.jks
+      TRUSTSTORE_LOCATION: /secrets/truststore.jks
+      KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
+      TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
+    volumes:
+      - storage:/data
+    ports:
+      - target: 9092
+        published: 9092
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.kafka == true
+          - node.labels.zone == a
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2200M
+        reservations:
+          cpus: '0.1'
+          memory: 2200M
+    secrets:
+      - source: keystore
+        target: /secrets/keystore.jks
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: keystore_password
+        target: /secrets/keystore_password.txt
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: truststore
+        target: /secrets/truststore.jks
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: truststore_password
+        target: /secrets/truststore_password.txt
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: jaas_config
+        target: /secrets/zookeeper_kafka_jaas.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  kafka2:
+    labels:
+        service: kafka
+    image: ${KAFKA_IMAGE}
+    environment:
+      BROKER_ID: 2
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      ZK_CONNECT: zookeeper2:2181
+      ADVERTISED_HOST: kafka2
+      ADVERTISED_PORT: 9092
+      LISTENERS: SSL://0.0.0.0:9092
+      ADVERTISED_LISTENERS: SSL://kafka2:9092
+      NUM_PARTITIONS: 1
+      DELETE_TOPICS: "true"
+      AUTO_CREATE_TOPICS: "false"
+      LOG_RETENTION_HOURS: 24
+      TRANSACTION_MAX_TIMEOUT_MS: 3600000
+      LOG_PATH: "\\/data\\/kafka-logs"
+      ZOOKEEPER_SET_ACL: "true"
+      SECURITY_INTER_BROKER_PROTOCOL: SSL
+      KEYSTORE_LOCATION: /secrets/keystore.jks
+      TRUSTSTORE_LOCATION: /secrets/truststore.jks
+      KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
+      TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
+    volumes:
+      - storage:/data
+    ports:
+      - target: 9092
+        published: 9092
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.kafka == true
+          - node.labels.zone == b
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2200M
+        reservations:
+          cpus: '0.1'
+          memory: 2200M
+    secrets:
+      - source: keystore
+        target: /secrets/keystore.jks
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: keystore_password
+        target: /secrets/keystore_password.txt
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: truststore
+        target: /secrets/truststore.jks
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: truststore_password
+        target: /secrets/truststore_password.txt
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: jaas_config
+        target: /secrets/zookeeper_kafka_jaas.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+  kafka3:
+    labels:
+        service: kafka
+    image: ${KAFKA_IMAGE}
+    environment:
+      BROKER_ID: 3
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      ZK_CONNECT: zookeeper3:2181
+      ADVERTISED_HOST: kafka3
+      ADVERTISED_PORT: 9092
+      LISTENERS: SSL://0.0.0.0:9092
+      ADVERTISED_LISTENERS: SSL://kafka3:9092
+      NUM_PARTITIONS: 1
+      DELETE_TOPICS: "true"
+      AUTO_CREATE_TOPICS: "false"
+      LOG_RETENTION_HOURS: 24
+      TRANSACTION_MAX_TIMEOUT_MS: 3600000
+      LOG_PATH: "\\/data\\/kafka-logs"
+      ZOOKEEPER_SET_ACL: "true"
+      SECURITY_INTER_BROKER_PROTOCOL: SSL
+      KEYSTORE_LOCATION: /secrets/keystore.jks
+      TRUSTSTORE_LOCATION: /secrets/truststore.jks
+      KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
+      TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
+      ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
+    volumes:
+      - storage:/data
+    ports:
+      - target: 9092
+        published: 9092
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.kafka == true
+          - node.labels.zone == c
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2200M
+        reservations:
+          cpus: '0.1'
+          memory: 2200M
+    secrets:
+      - source: keystore
+        target: /secrets/keystore.jks
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: keystore_password
+        target: /secrets/keystore_password.txt
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: truststore
+        target: /secrets/truststore.jks
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: truststore_password
+        target: /secrets/truststore_password.txt
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+      - source: jaas_config
+        target: /secrets/zookeeper_kafka_jaas.conf
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    storage:
+secrets:
+  keystore:
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/keystore-server.jks
+  keystore_password:
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/password_keystore.txt
+  truststore:
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/truststore-server.jks
+  truststore_password:
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/password_truststore.txt
+  jaas_config:
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/client_jaas.conf

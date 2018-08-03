@@ -1,0 +1,145 @@
+version: '3.4'
+services:
+  cassandra1:
+    labels:
+        service: cassandra
+    image: ${CASSANDRA_IMAGE}
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra1
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
+      CASSANDRA_RACK: rack1
+      CASSANDRA_DC: datacenter1
+      JVM_OPTS: "-Xms2G -Xmx2G"
+    volumes:
+      - storage:/var/lib/cassandra
+    ports:
+      - target: 9042
+        published: 9042
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.cassandra == true
+          - node.labels.zone == a
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 3000M
+        reservations:
+          cpus: '0.1'
+          memory: 3000M
+  cassandra2:
+    labels:
+        service: cassandra
+    image: ${CASSANDRA_IMAGE}
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra2
+      CASSANDRA_SEEDS: cassandra1
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
+      CASSANDRA_RACK: rack2
+      CASSANDRA_DC: datacenter1
+      JVM_OPTS: "-Xms2G -Xmx2G"
+    volumes:
+      - storage:/var/lib/cassandra
+    ports:
+      - target: 9042
+        published: 9042
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.cassandra == true
+          - node.labels.zone == b
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 3000M
+        reservations:
+          cpus: '0.1'
+          memory: 3000M
+  cassandra3:
+    labels:
+        service: cassandra
+    image: ${CASSANDRA_IMAGE}
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra3
+      CASSANDRA_SEEDS: cassandra1
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      CASSANDRA_CLUSTER_NAME: "Cassandra Cluster"
+      CASSANDRA_RACK: rack3
+      CASSANDRA_DC: datacenter1
+      JVM_OPTS: "-Xms2G -Xmx2G"
+    volumes:
+      - storage:/var/lib/cassandra
+    ports:
+      - target: 9042
+        published: 9042
+        protocol: tcp
+        mode: host
+    logging:
+      options:
+        labels: "service"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.cassandra == true
+          - node.labels.zone == c
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 30s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 3000M
+        reservations:
+          cpus: '0.1'
+          memory: 3000M
+networks:
+  default:
+    external:
+      name: services
+volumes:
+    storage:

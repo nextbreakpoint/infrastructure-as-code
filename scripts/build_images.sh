@@ -4,25 +4,30 @@
 
 cd $ROOT/terraform/bastion
 
-SUBNET=$(terraform output -json bastion-public-subnet-b-id | jq -r '.value')
+# BASTION_SUBNET variable is required by pk_create alias
+BASTION_SUBNET=$(terraform output -json bastion-public-subnet-a-id | jq -r '.value')
 
-echo "Network variables:"
-echo "{\"aws_subnet_id\":\"$SUBNET\"}" > $ROOT/config/network_vars.json
-cat $ROOT/config/network_vars.json
+ENVIRONMENT=$(cat $ROOT/config/main.json | jq -r ".environment")
+COLOUR=$(cat $ROOT/config/main.json | jq -r ".colour")
 
-echo "Creating Base AMI..."
-cd $ROOT/packer/base && pk_create
-echo "done."
+echo "Using subnet $BASTION_SUBNET"
 
-echo "Creating ECS AMI..."
-cd $ROOT/packer/ecs && pk_create
+echo "Creating Docker AMI..."
+
+cd $ROOT/packer/docker && pk_create
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
 echo "done."
 
 echo "Creating OpenVPN AMI..."
+
 cd $ROOT/packer/openvpn && pk_create
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
 echo "done."
-
-aws ec2 describe-images --filters Name=tag:stream,Values=terraform,Name=is-public,Values=false --query 'Images[*].{ID:ImageId}' > $ROOT/images.json
-
-echo "Created images:"
-cat $ROOT/images.json

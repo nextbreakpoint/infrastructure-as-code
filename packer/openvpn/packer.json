@@ -7,7 +7,7 @@
     "aws_secret_key": "",
     "aws_security_token": "",
     "aws_region": "eu-west-1",
-    "aws_build_regions" : "",
+    "aws_build_regions": "",
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
@@ -15,7 +15,8 @@
     "bastion_host": "",
     "bastion_username": "ec2-user",
     "base_version": "",
-    "stream_tag": ""
+    "environment": "",
+    "colour": ""
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -34,20 +35,20 @@
     },
     "instance_type": "{{user `aws_instance_type`}}",
     "subnet_id": "{{user `aws_subnet_id`}}",
-    "ami_name": "{{user `ami_name_prefix`}}-{{user `base_version`}}-{{timestamp}}",
+    "ami_name": "{{user `ami_name_prefix`}}-{{user `environment`}}-{{user `colour`}}-{{user `base_version`}}-{{timestamp}}",
     "ami_regions": "{{user `aws_build_regions`}}",
     "communicator": "ssh",
     "ssh_pty": "true",
     "ssh_timeout": "10m",
     "ssh_username": "ubuntu",
-    "ssh_keypair_name": "{{user `key_name`}}",
-    "ssh_private_key_file": "{{user `key_path`}}",
+    "ssh_keypair_name": "{{user `environment`}}-{{user `colour`}}-{{user `key_name`}}",
+    "ssh_private_key_file": "{{user `key_path`}}/{{user `environment`}}-{{user `colour`}}-{{user `key_name`}}.pem",
     "tags": {
-      "Stream": "{{user `stream_tag`}}"
+      "Environment": "{{user `environment`}}",
+      "Colour": "{{user `colour`}}"
     }
   }],
-  "provisioners": [
-    {
+  "provisioners": [{
       "type": "shell",
       "script": "../scripts/tools.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
