@@ -4,7 +4,7 @@
 
 terraform {
   backend "s3" {
-    bucket = "nextbreakpoint-terraform"
+    bucket = "terraform"
     region = "eu-west-1"
     key    = "network.tfstate"
   }
@@ -14,7 +14,7 @@ data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config {
-    bucket = "nextbreakpoint-terraform"
+    bucket = "terraform"
     region = "eu-west-1"
     key    = "env:/${terraform.workspace}/vpc.tfstate"
   }

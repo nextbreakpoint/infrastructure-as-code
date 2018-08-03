@@ -4,7 +4,7 @@
 
 terraform {
   backend "s3" {
-    bucket = "nextbreakpoint-terraform"
+    bucket = "terraform"
     region = "eu-west-1"
     key    = "keys.tfstate"
   }
