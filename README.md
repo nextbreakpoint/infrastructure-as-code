@@ -52,7 +52,7 @@ Second certificate must be issued for domain:
 
 The certificates will be used to provision two ALBs, one internet facing and the other internal.
 
-    You can use self-signed certificates as well, just remember that your browser will warn you when accessing resources on those domains
+    You can use self-signed certificates, just remember that your browser will warn you when accessing resources on those domains
 
 ## Build Docker image
 
