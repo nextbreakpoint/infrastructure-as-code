@@ -24,7 +24,7 @@ The infrastructure is managed by using [Docker](https://www.docker.com), [Terraf
 
 ## Prepare workstation
 
-Follow the [instructions](https://docs.docker.com/engine/installation) on Docker.com to install Docker CE version 17.09 or later. Docker is the only tool that you need to install on your workstation.
+Follow the [instructions](https://docs.docker.com/engine/installation) on Docker.com to install Docker CE version 18.03 or later. Docker is the only tool that you need to install on your workstation.
 
 ## Configure AWS credentials
 
