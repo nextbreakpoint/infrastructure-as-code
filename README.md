@@ -555,9 +555,9 @@ Configure your applications to send metrics to Graphite:
 
 Define a Graphite source and create dashboards in Grafana.
 
-## Building reactive microservices
+## Building reactive services
 
-Use Zookeeper, Kafka, Cassandra, and Elasticsearch to build reactive microservices.
+Use Zookeeper, Kafka, Cassandra, and Elasticsearch to build reactive services.
 
 Zookeeper is configured to use SASL with MD5 passwords.
 
@@ -569,7 +569,7 @@ Elasticsearch is configured with SSL connections between nodes (X-Pack enabled w
 
 See the scripts test_kafka_consume.sh and test_kafka_produce.sh for a example of client configuration.
 
-## Delivery pipelines
+## Creating delivery pipelines
 
 Create your delivery pipelines using Jenkins:
 
