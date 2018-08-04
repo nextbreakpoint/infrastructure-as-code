@@ -379,8 +379,8 @@ Manager node in availability zone C
 
 Worker node in availability zone A
 
-    Elasticsearch (routing only) | 9200 (tcp)
-    Elasticsearch (routing only) | 9300 (tcp)
+    Elasticsearch | 9200 (tcp)
+    Elasticsearch | 9300 (tcp)
     Logstash | 5044 (tcp)
     Logstash | 9600 (tcp)
     Logstash | 12201 (tcp/udp)
@@ -400,8 +400,8 @@ Worker node in availability zone A
 
 Worker node in availability zone B
 
-    Elasticsearch (routing only) | 9200 (tcp)
-    Elasticsearch (routing only) | 9300 (tcp)
+    Elasticsearch | 9200 (tcp)
+    Elasticsearch | 9300 (tcp)
     Logstash | 5044 (tcp)
     Logstash | 9600 (tcp)
     Logstash | 12201 (tcp/udp)
@@ -421,8 +421,8 @@ Worker node in availability zone B
 
 Worker node in availability zone C
 
-    Elasticsearch (routing only) | 9200 (tcp)
-    Elasticsearch (routing only) | 9300 (tcp)
+    Elasticsearch | 9200 (tcp)
+    Elasticsearch | 9300 (tcp)
     Logstash | 5044 (tcp)
     Logstash | 9600 (tcp)
     Logstash | 12201 (tcp/udp)
