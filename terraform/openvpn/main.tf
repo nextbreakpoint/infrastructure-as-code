@@ -345,6 +345,7 @@ resource "aws_route53_record" "openvpn" {
   name    = "${var.environment}-${var.colour}-openvpn.${var.hosted_zone_name}"
   type    = "A"
   ttl     = 60
+  
   records = ["${aws_instance.openvpn_a.public_ip}"]
   # records = [
   #   "${aws_instance.openvpn_a.public_ip}",

@@ -1,5 +1,5 @@
 alias pk_create='packer build --var-file=../../config/main.json --var-file=../../config/misc.json --var aws_subnet_id=${BASTION_SUBNET} packer.json'
-alias tf_init='terraform init -input=false -var-file=../../config/main.json -var-file=../../config/misc.json -var-file=../../config/network.json -var-file=../../secrets/consul.json'
+alias tf_init='terraform init -input=true -var-file=../../config/main.json -var-file=../../config/misc.json -var-file=../../config/network.json -var-file=../../secrets/consul.json'
 alias tf_plan='terraform plan -input=true -out=tfplan -var-file=../../config/main.json -var-file=../../config/misc.json -var-file=../../config/network.json -var-file=../../secrets/consul.json'
 alias tf_apply='terraform apply -input=false tfplan'
 alias tf_destroy='terraform destroy -var-file=../../config/main.json -var-file=../../config/misc.json -var-file=../../config/network.json -var-file=../../secrets/consul.json'
