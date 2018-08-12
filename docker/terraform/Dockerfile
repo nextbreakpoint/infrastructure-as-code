@@ -18,13 +18,13 @@ RUN curl -o terraform.zip https://releases.hashicorp.com/terraform/0.11.7/terraf
     rm terraform.zip && \
     terraform --version
 
-RUN curl -o packer.zip https://releases.hashicorp.com/packer/1.1.3/packer_1.1.3_linux_amd64.zip && \
+RUN curl -o packer.zip https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip && \
     unzip packer.zip && \
     mv packer /usr/bin && \
     rm packer.zip && \
     packer --version
 
-RUN curl -o consul.zip https://releases.hashicorp.com/consul/1.0.1/consul_1.0.1_linux_amd64.zip && \
+RUN curl -o consul.zip https://releases.hashicorp.com/consul/1.2.2/consul_1.2.2_linux_amd64.zip && \
     unzip consul.zip && \
     mv consul /usr/bin && \
     rm consul.zip && \
