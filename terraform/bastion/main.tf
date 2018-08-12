@@ -149,6 +149,14 @@ resource "aws_iam_role" "bastion" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "route53.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -182,12 +190,12 @@ resource "aws_iam_role_policy" "bastion" {
     {
         "Action": [
             "route53:ChangeResourceRecordSets",
-            "route53:GetHostedZone",
-            "route53:ListResourceRecordSets"
+            "route53:ListResourceRecordSets",
+            "route53:GetHostedZone"
         ],
         "Effect": "Allow",
         "Resource": [
-            "arn:aws:route53:::${var.hosted_zone_name}/<ZoneID>"
+            "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
         ]
     },
     {
@@ -212,6 +220,14 @@ resource "aws_iam_instance_profile" "bastion" {
 
 data "template_file" "bastion" {
   template = "${file("provision/bastion.tpl")}"
+
+  vars {
+    environment                = "${var.environment}"
+    colour                     = "${var.colour}"
+    bastion_dns                = "${var.environment}-${var.colour}-bastion.${var.hosted_zone_name}"
+    hosted_zone_name           = "${var.hosted_zone_name}"
+    hosted_zone_id             = "${var.hosted_zone_id}"
+  }
 }
 
 # data "aws_ami" "bastion" {

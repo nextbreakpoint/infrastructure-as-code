@@ -102,6 +102,14 @@ resource "aws_iam_role" "openvpn" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "route53.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -129,6 +137,13 @@ resource "aws_iam_role_policy" "openvpn" {
         ],
         "Effect": "Allow",
         "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
+    },
+    {
+        "Action": [
+            "route53:ChangeResourceRecordSets"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
     }
   ]
 }
@@ -272,13 +287,14 @@ data "template_file" "openvpn" {
   template = "${file("provision/openvpn.tpl")}"
 
   vars {
-    aws_region                 = "${var.aws_region}"
     environment                = "${var.environment}"
     colour                     = "${var.colour}"
     bucket_name                = "${var.secrets_bucket_name}"
+    openvpn_dns                = "${var.environment}-${var.colour}-openvpn.${var.hosted_zone_name}"
     openvpn_cidr               = "${var.openvpn_cidr}"
     openvpn_subnet             = "${replace(var.openvpn_cidr, "0/16", "0")}"
     hosted_zone_name           = "${var.hosted_zone_name}"
+    hosted_zone_id             = "${var.hosted_zone_id}"
     aws_openvpn_subnet         = "${replace(var.aws_openvpn_vpc_cidr, "0/16", "0")}"
     aws_network_subnet         = "${replace(var.aws_network_vpc_cidr, "0/16", "0")}"
     aws_bastion_subnet         = "${replace(var.aws_bastion_vpc_cidr, "0/16", "0")}"
@@ -345,7 +361,7 @@ resource "aws_route53_record" "openvpn" {
   name    = "${var.environment}-${var.colour}-openvpn.${var.hosted_zone_name}"
   type    = "A"
   ttl     = 60
-  
+
   records = ["${aws_instance.openvpn_a.public_ip}"]
   # records = [
   #   "${aws_instance.openvpn_a.public_ip}",
