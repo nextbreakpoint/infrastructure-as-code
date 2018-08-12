@@ -23,5 +23,8 @@
   "mysql_artifactory_password": "your_password",
   "kibana_password": "your_password",
   "logstash_password": "your_password",
-  "elasticsearch_password": "your_password"
+  "elasticsearch_password": "your_password",
+
+  "cassandra_username": "cassandra",
+  "cassandra_password": "cassandra"
 }

@@ -111,7 +111,10 @@ Create a file main.json in the config directory. Copy the content from the file 
         "mysql_artifactory_password": "your_password",
         "kibana_password": "your_password",
         "logstash_password": "your_password",
-        "elasticsearch_password": "your_password"
+        "elasticsearch_password": "your_password",
+
+        "cassandra_username": "cassandra",
+        "cassandra_password": "cassandra"
     }
 
 Change the variables to the correct values for your infrastructure. The account id must represent a valid AWS account and your AWS credentials must have the correct permissions on that account. The domain yourdomain.com must be a valid domain hosted in a Route53's public zone.

@@ -18,6 +18,10 @@ services:
         published: 9042
         protocol: tcp
         mode: host
+      - target: 7199
+        published: 7199
+        protocol: tcp
+        mode: host
     logging:
       options:
         labels: "service"
@@ -64,6 +68,10 @@ services:
         published: 9042
         protocol: tcp
         mode: host
+      - target: 7199
+        published: 7199
+        protocol: tcp
+        mode: host
     logging:
       options:
         labels: "service"
@@ -108,6 +116,10 @@ services:
     ports:
       - target: 9042
         published: 9042
+        protocol: tcp
+        mode: host
+      - target: 7199
+        published: 7199
         protocol: tcp
         mode: host
     logging:
