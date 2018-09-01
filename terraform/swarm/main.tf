@@ -215,7 +215,8 @@ resource "aws_instance" "swarm_manager_a" {
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   root_block_device {
-    volume_size = 20
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.manager_volume_size}"
   }
 
   tags {
@@ -237,7 +238,8 @@ resource "aws_instance" "swarm_manager_b" {
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   root_block_device {
-    volume_size = 20
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.manager_volume_size}"
   }
 
   tags {
@@ -259,7 +261,8 @@ resource "aws_instance" "swarm_manager_c" {
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   root_block_device {
-    volume_size = 20
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.manager_volume_size}"
   }
 
   tags {
@@ -281,7 +284,8 @@ resource "aws_instance" "swarm_worker_a" {
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   root_block_device {
-    volume_size = 40
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.worker_volume_size}"
   }
 
   tags {
@@ -303,7 +307,8 @@ resource "aws_instance" "swarm_worker_b" {
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   root_block_device {
-    volume_size = 40
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.worker_volume_size}"
   }
 
   tags {
@@ -325,7 +330,8 @@ resource "aws_instance" "swarm_worker_c" {
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
   root_block_device {
-    volume_size = 40
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.worker_volume_size}"
   }
 
   tags {
@@ -396,7 +402,7 @@ resource "aws_route53_record" "swarm-manager" {
   name    = "${var.environment}-${var.colour}-swarm-manager.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "60"
-  
+
   records = [
     "${aws_instance.swarm_manager_a.private_ip}",
     "${aws_instance.swarm_manager_b.private_ip}",

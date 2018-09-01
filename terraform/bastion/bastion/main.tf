@@ -3,6 +3,8 @@ variable "environment" {}
 variable "colour" {}
 variable "name" {}
 variable "ami" {}
+variable "volume_type" {}
+variable "volume_size" {}
 variable "instance_profile" {}
 variable "instance_type" {}
 variable "security_groups" {}
@@ -20,6 +22,11 @@ resource "aws_instance" "bastion" {
   user_data                   = "${var.user_data}"
   key_name                    = "${var.key_name}"
   associate_public_ip_address = true
+
+  root_block_device {
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.volume_size}"
+  }
 
   tags = {
     Environment = "${var.environment}"

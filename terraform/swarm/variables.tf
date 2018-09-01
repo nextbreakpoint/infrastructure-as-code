@@ -25,16 +25,16 @@ variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
 }
 
-variable "volume_name" {
-  default = "/dev/xvdh"
+variable "volume_type" {
+  default = "standard"
 }
 
-variable "volume_size" {
-  default = "4"
+variable "worker_volume_size" {
+  default = "20"
 }
 
-variable "volume_encrypted" {
-  default = "false"
+variable "manager_volume_size" {
+  default = "10"
 }
 
 ### MANDATORY ###
