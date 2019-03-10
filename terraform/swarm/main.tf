@@ -272,9 +272,9 @@ resource "aws_instance" "swarm_manager_c" {
   }
 }
 
-resource "aws_instance" "swarm_worker_a" {
+resource "aws_instance" "swarm_worker_int_a" {
   ami                         = "${data.aws_ami.swarm.id}"
-  instance_type               = "${var.swarm_worker_instance_type}"
+  instance_type               = "${var.swarm_worker_int_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-a-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "151")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
@@ -291,13 +291,13 @@ resource "aws_instance" "swarm_worker_a" {
   tags {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-swarm-worker-a"
+    Name        = "${var.environment}-${var.colour}-swarm-worker-int-a"
   }
 }
 
-resource "aws_instance" "swarm_worker_b" {
+resource "aws_instance" "swarm_worker_int_b" {
   ami                         = "${data.aws_ami.swarm.id}"
-  instance_type               = "${var.swarm_worker_instance_type}"
+  instance_type               = "${var.swarm_worker_int_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-b-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "151")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
@@ -314,13 +314,13 @@ resource "aws_instance" "swarm_worker_b" {
   tags {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-swarm-worker-b"
+    Name        = "${var.environment}-${var.colour}-swarm-worker-int-b"
   }
 }
 
-resource "aws_instance" "swarm_worker_c" {
+resource "aws_instance" "swarm_worker_int_c" {
   ami                         = "${data.aws_ami.swarm.id}"
-  instance_type               = "${var.swarm_worker_instance_type}"
+  instance_type               = "${var.swarm_worker_int_instance_type}"
   subnet_id                   = "${data.terraform_remote_state.network.network-private-subnet-c-id}"
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "151")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
@@ -337,11 +337,80 @@ resource "aws_instance" "swarm_worker_c" {
   tags {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-swarm-worker-c"
+    Name        = "${var.environment}-${var.colour}-swarm-worker-int-c"
   }
 }
 
-# resource "aws_launch_configuration" "swarm-worker" {
+resource "aws_instance" "swarm_worker_ext_a" {
+  ami                         = "${data.aws_ami.swarm.id}"
+  instance_type               = "${var.swarm_worker_ext_instance_type}"
+  subnet_id                   = "${data.terraform_remote_state.network.network-public-subnet-a-id}"
+  private_ip                  = "${replace(var.aws_network_public_subnet_cidr_a, "0/24", "152")}"
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
+  iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
+  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  associate_public_ip_address = "true"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
+
+  root_block_device {
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.worker_volume_size}"
+  }
+
+  tags {
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-swarm-worker-ext-a"
+  }
+}
+
+resource "aws_instance" "swarm_worker_ext_b" {
+  ami                         = "${data.aws_ami.swarm.id}"
+  instance_type               = "${var.swarm_worker_ext_instance_type}"
+  subnet_id                   = "${data.terraform_remote_state.network.network-public-subnet-b-id}"
+  private_ip                  = "${replace(var.aws_network_public_subnet_cidr_b, "0/24", "152")}"
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
+  iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
+  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  associate_public_ip_address = "true"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
+
+  root_block_device {
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.worker_volume_size}"
+  }
+
+  tags {
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-swarm-worker-ext-b"
+  }
+}
+
+resource "aws_instance" "swarm_worker_ext_c" {
+  ami                         = "${data.aws_ami.swarm.id}"
+  instance_type               = "${var.swarm_worker_ext_instance_type}"
+  subnet_id                   = "${data.terraform_remote_state.network.network-public-subnet-c-id}"
+  private_ip                  = "${replace(var.aws_network_public_subnet_cidr_c, "0/24", "152")}"
+  vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
+  iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
+  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  associate_public_ip_address = "true"
+  key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
+
+  root_block_device {
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.worker_volume_size}"
+  }
+
+  tags {
+    Environment = "${var.environment}"
+    Colour      = "${var.colour}"
+    Name        = "${var.environment}-${var.colour}-swarm-worker-ext-c"
+  }
+}
+
+# resource "aws_launch_configuration" "swarm_worker_launch_configuration" {
 #   name_prefix                 = "${var.environment}-${var.colour}-swarm-worker-"
 #   image_id                    = "${data.aws_ami.swarm.id}"
 #   instance_type               = "${var.swarm_worker_instance_type}"
@@ -355,7 +424,7 @@ resource "aws_instance" "swarm_worker_c" {
 #   }
 # }
 #
-# resource "aws_autoscaling_group" "swarm-worker" {
+# resource "aws_autoscaling_group" "swarm_worker_asg" {
 #   name                      = "${var.environment}-${var.colour}-swarm-worker"
 #   max_size                  = 12
 #   min_size                  = 0
@@ -363,7 +432,7 @@ resource "aws_instance" "swarm_worker_c" {
 #   health_check_type         = "EC2"
 #   desired_capacity          = 0
 #   force_delete              = true
-#   launch_configuration      = "${aws_launch_configuration.swarm-worker.name}"
+#   launch_configuration      = "${aws_launch_configuration.swarm_worker_launch_configuration.name}"
 #   vpc_zone_identifier       = [
 #     "${data.terraform_remote_state.network.network-private-subnet-a-id}",
 #     "${data.terraform_remote_state.network.network-private-subnet-b-id}",
@@ -388,7 +457,7 @@ resource "aws_instance" "swarm_worker_c" {
 #
 #   tag {
 #     key                     = "Name"
-#     value                   = "${var.environment}-${var.colour}-swarm-worker"
+#     value                   = "${var.environment}-${var.colour}-swarm-worker-int"
 #     propagate_at_launch     = true
 #   }
 #
@@ -397,7 +466,7 @@ resource "aws_instance" "swarm_worker_c" {
 #   }
 # }
 
-resource "aws_route53_record" "swarm-manager" {
+resource "aws_route53_record" "swarm_manager" {
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-swarm-manager.${var.hosted_zone_name}"
   type    = "A"
@@ -410,20 +479,33 @@ resource "aws_route53_record" "swarm-manager" {
   ]
 }
 
-resource "aws_route53_record" "swarm-worker" {
+resource "aws_route53_record" "swarm_worker_int" {
   zone_id = "${var.hosted_zone_id}"
-  name    = "${var.environment}-${var.colour}-swarm-worker.${var.hosted_zone_name}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-int.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "60"
 
   records = [
-    "${aws_instance.swarm_worker_a.private_ip}",
-    "${aws_instance.swarm_worker_b.private_ip}",
-    "${aws_instance.swarm_worker_c.private_ip}"
+    "${aws_instance.swarm_worker_int_a.private_ip}",
+    "${aws_instance.swarm_worker_int_b.private_ip}",
+    "${aws_instance.swarm_worker_int_c.private_ip}"
   ]
 }
 
-resource "aws_route53_record" "swarm-manager-a" {
+resource "aws_route53_record" "swarm_worker_pub" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-ext.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+
+  records = [
+    "${aws_instance.swarm_worker_ext_a.private_ip}",
+    "${aws_instance.swarm_worker_ext_b.private_ip}",
+    "${aws_instance.swarm_worker_ext_c.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm_manager_a" {
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-swarm-manager-a.${var.hosted_zone_name}"
   type    = "A"
@@ -434,7 +516,7 @@ resource "aws_route53_record" "swarm-manager-a" {
   ]
 }
 
-resource "aws_route53_record" "swarm-manager-b" {
+resource "aws_route53_record" "swarm_manager_b" {
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-swarm-manager-b.${var.hosted_zone_name}"
   type    = "A"
@@ -445,7 +527,7 @@ resource "aws_route53_record" "swarm-manager-b" {
   ]
 }
 
-resource "aws_route53_record" "swarm-manager-c" {
+resource "aws_route53_record" "swarm_manager_c" {
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-swarm-manager-c.${var.hosted_zone_name}"
   type    = "A"
@@ -456,35 +538,68 @@ resource "aws_route53_record" "swarm-manager-c" {
   ]
 }
 
-resource "aws_route53_record" "swarm-worker-a" {
+resource "aws_route53_record" "swarm_worker_int_a" {
   zone_id = "${var.hosted_zone_id}"
-  name    = "${var.environment}-${var.colour}-swarm-worker-a.${var.hosted_zone_name}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-int-a.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "60"
 
   records = [
-    "${aws_instance.swarm_worker_a.private_ip}"
+    "${aws_instance.swarm_worker_int_a.private_ip}"
   ]
 }
 
-resource "aws_route53_record" "swarm-worker-b" {
+resource "aws_route53_record" "swarm_worker_int_b" {
   zone_id = "${var.hosted_zone_id}"
-  name    = "${var.environment}-${var.colour}-swarm-worker-b.${var.hosted_zone_name}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-int-b.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "60"
 
   records = [
-    "${aws_instance.swarm_worker_b.private_ip}"
+    "${aws_instance.swarm_worker_int_b.private_ip}"
   ]
 }
 
-resource "aws_route53_record" "swarm-worker-c" {
+resource "aws_route53_record" "swarm_worker_int_c" {
   zone_id = "${var.hosted_zone_id}"
-  name    = "${var.environment}-${var.colour}-swarm-worker-c.${var.hosted_zone_name}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-int-c.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "60"
 
   records = [
-    "${aws_instance.swarm_worker_c.private_ip}"
+    "${aws_instance.swarm_worker_int_c.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm_worker_ext_a" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-ext-a.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+
+  records = [
+    "${aws_instance.swarm_worker_ext_a.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm_worker_ext_b" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-ext-b.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+
+  records = [
+    "${aws_instance.swarm_worker_ext_b.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm_worker_ext_c" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-ext-c.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+
+  records = [
+    "${aws_instance.swarm_worker_ext_c.private_ip}"
   ]
 }

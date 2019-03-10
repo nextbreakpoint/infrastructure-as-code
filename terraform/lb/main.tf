@@ -75,6 +75,7 @@ resource "aws_alb_target_group" "lb_internal_http" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
@@ -90,6 +91,7 @@ resource "aws_alb_target_group" "lb_internal_https" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTPS"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
@@ -185,11 +187,12 @@ resource "aws_alb_target_group" "lb_public_http" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200,301,400,404"
+    matcher             = "200,301,302,400,404"
   }
 }
 
@@ -200,11 +203,12 @@ resource "aws_alb_target_group" "lb_public_https" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTPS"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200,301,400,404"
+    matcher             = "200,301,302,400,404"
   }
 }
 

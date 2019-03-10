@@ -30,7 +30,7 @@ variable "volume_type" {
 }
 
 variable "volume_size" {
-  default = "4"
+  default = "8"
 }
 
 ### MANDATORY ###

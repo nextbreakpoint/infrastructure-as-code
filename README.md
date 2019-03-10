@@ -4,19 +4,19 @@ This repository contains scripts for creating a production-grade infrastructure 
 
 The infrastructure includes the following components:
 
--   [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and analysing logs
+- [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and analysing logs
 
--   [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
+- [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
 
--   [Consul](https://www.consul.io) for discovering machines or services
+- [Consul](https://www.consul.io) for discovering machines or services
 
--   [Graphite](https://graphiteapp.org) and [Grafana](https://grafana.com) for collecting metrics and monitoring services
+- [Graphite](https://graphiteapp.org) and [Grafana](https://grafana.com) for collecting metrics and monitoring services
 
--   [Cassandra](http://cassandra.apache.org), [Kafka](https://kafka.apache.org), [Zookeeper](https://zookeeper.apache.org) for creating scalable event-driven services
+- [Cassandra](http://cassandra.apache.org), [Kafka](https://kafka.apache.org), [Zookeeper](https://zookeeper.apache.org) for creating scalable event-driven services
 
--   [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
+- [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
 
-The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. The machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. The machines can also be reached using an internet-facing load balancer or a proxy server running in a public subnet.
+The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. Most of the machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. Some machines are created within a public network and they are reachable via ip address. The private machines can be reached using an internet-facing load balancer or a proxy server running in a public subnet.
 
 The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
@@ -187,14 +187,17 @@ Create Swarm nodes with command:
 
     ./docker_run.sh module_create swarm
 
-The Swarm cluster includes 3 manager nodes and 3 worker nodes:
+The Swarm cluster includes 3 manager nodes and 6 worker nodes:
 
     prod-green-swarm-manager-a.yourdomain.com
     prod-green-swarm-manager-b.yourdomain.com
     prod-green-swarm-manager-c.yourdomain.com
-    prod-green-swarm-worker-a.yourdomain.com
-    prod-green-swarm-worker-b.yourdomain.com
-    prod-green-swarm-worker-c.yourdomain.com
+    prod-green-swarm-worker-int-a.yourdomain.com
+    prod-green-swarm-worker-int-b.yourdomain.com
+    prod-green-swarm-worker-int-c.yourdomain.com
+    prod-green-swarm-worker-ext-a.yourdomain.com
+    prod-green-swarm-worker-ext-b.yourdomain.com
+    prod-green-swarm-worker-ext-c.yourdomain.com
 
 The single letter at the end of the name represents the availability zone.    
 
@@ -260,11 +263,17 @@ Verify that you can ping the manager nodes:
     ping prod-green-swarm-manager-b.yourdomain.com
     ping prod-green-swarm-manager-c.yourdomain.com
 
-Verify that you can ping the worker nodes:
+Verify that you can ping the private worker nodes:
 
-    ping prod-green-swarm-worker-a.yourdomain.com
-    ping prod-green-swarm-worker-b.yourdomain.com
-    ping prod-green-swarm-worker-c.yourdomain.com
+    ping prod-green-swarm-worker-int-a.yourdomain.com
+    ping prod-green-swarm-worker-int-b.yourdomain.com
+    ping prod-green-swarm-worker-int-c.yourdomain.com
+
+Verify that you can ping the public worker nodes:
+
+    ping prod-green-swarm-worker-ext-a.yourdomain.com
+    ping prod-green-swarm-worker-ext-b.yourdomain.com
+    ping prod-green-swarm-worker-ext-c.yourdomain.com
 
 If you can't ping the machines, check your VPN connection. You must be connected to access machines in private subnets.
 
@@ -284,7 +293,7 @@ Verify that the Swarm is working with command:
 
     ./swarm_run.sh cli "docker node ls"
 
-It should print the list of the nodes, which should contain 6 nodes, 3 managers and 3 workers.
+It should print the list of the nodes, which should contain 6 nodes, 3 managers and 6 workers.
 
 ### Create networks
 
@@ -378,9 +387,9 @@ Manager node in availability zone C
     Logstash | 12201 (tcp/udp)
     Kibana | 5601 (tcp)
 
-#### Worker A
+#### Worker Int A
 
-Worker node in availability zone A
+Internal worker node in availability zone A
 
     Elasticsearch | 9200 (tcp)
     Elasticsearch | 9300 (tcp)
@@ -396,48 +405,63 @@ Worker node in availability zone A
     Zookeeper | 3888 (tcp)
     Kafka | 9092 (tcp)
     Cassandra | 9042 (tcp)
+
+#### Worker Int B
+
+Internal worker node in availability zone B
+
+    Elasticsearch | 9200 (tcp)
+    Elasticsearch | 9300 (tcp)
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
+    Consul | 8500 (tcp)
+    Consul | 8600 (tcp/udp)
+    Consul | 8300 (tcp)
+    Consul | 8302  (tcp/udp)
+    Zookeeper | 2181 (tcp)
+    Zookeeper | 2888 (tcp)
+    Zookeeper | 3888 (tcp)
+    Kafka | 9092 (tcp)
+    Cassandra | 9042 (tcp)
+
+#### Worker Int C
+
+Internal worker node in availability zone C
+
+    Elasticsearch | 9200 (tcp)
+    Elasticsearch | 9300 (tcp)
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
+    Consul | 8500 (tcp)
+    Consul | 8600 (tcp/udp)
+    Consul | 8300 (tcp)
+    Consul | 8302  (tcp/udp)
+    Zookeeper | 2181 (tcp)
+    Zookeeper | 2888 (tcp)
+    Zookeeper | 3888 (tcp)
+    Kafka | 9092 (tcp)
+    Cassandra | 9042 (tcp)
+
+#### Worker Ext A
+
+External worker node in availability zone A
+
     Nginx | 80 (tcp)
     Nginx | 443 (tcp)
 
-#### Worker B
+#### Worker Ext B
 
-Worker node in availability zone B
+External worker node in availability zone B
 
-    Elasticsearch | 9200 (tcp)
-    Elasticsearch | 9300 (tcp)
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Consul | 8500 (tcp)
-    Consul | 8600 (tcp/udp)
-    Consul | 8300 (tcp)
-    Consul | 8302  (tcp/udp)
-    Zookeeper | 2181 (tcp)
-    Zookeeper | 2888 (tcp)
-    Zookeeper | 3888 (tcp)
-    Kafka | 9092 (tcp)
-    Cassandra | 9042 (tcp)
     Nginx | 80 (tcp)
     Nginx | 443 (tcp)
 
-#### Worker C
+#### Worker Ext C
 
-Worker node in availability zone C
+External worker node in availability zone C
 
-    Elasticsearch | 9200 (tcp)
-    Elasticsearch | 9300 (tcp)
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Consul | 8500 (tcp)
-    Consul | 8600 (tcp/udp)
-    Consul | 8300 (tcp)
-    Consul | 8302  (tcp/udp)
-    Zookeeper | 2181 (tcp)
-    Zookeeper | 2888 (tcp)
-    Zookeeper | 3888 (tcp)
-    Kafka | 9092 (tcp)
-    Cassandra | 9042 (tcp)
     Nginx | 80 (tcp)
     Nginx | 443 (tcp)
 
@@ -520,16 +544,16 @@ Deploy the agents to publish on Consul the services running on worker nodes:
 
 Use Consul UI to check the status of your services:
 
-    https://prod-green-swarm-worker.yourdomain.com:8500
+    https://prod-green-swarm-worker-int.yourdomain.com:8500
 
 You can use Consul as DNS server and you can lookup for a service using a DNS query:
 
-    dig @prod-green-swarm-worker.yourdomain.com -p 8600 consul.service.internal.consul
-    dig @prod-green-swarm-worker.yourdomain.com -p 8600 logstash.service.internal.consul
-    dig @prod-green-swarm-worker.yourdomain.com -p 8600 elasticsearch.service.internal.consul
-    dig @prod-green-swarm-worker.yourdomain.com -p 8600 kafka.service.internal.consul
-    dig @prod-green-swarm-worker.yourdomain.com -p 8600 zookeeper.service.internal.consul
-    dig @prod-green-swarm-worker.yourdomain.com -p 8600 cassandra.service.internal.consul
+    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 consul.service.internal.consul
+    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 logstash.service.internal.consul
+    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 elasticsearch.service.internal.consul
+    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 kafka.service.internal.consul
+    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 zookeeper.service.internal.consul
+    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 cassandra.service.internal.consul
 
 ## Collecting and analysing logs
 

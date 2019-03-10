@@ -22,14 +22,26 @@ export MANAGER_C=${ENVIRONMENT}-${COLOUR}-swarm-manager-c.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${MANAGER_C}:2376
 docker swarm join --token $MANAGER_TOKEN ${MANAGER_A}:2377
 
-export WORKER_A=${ENVIRONMENT}-${COLOUR}-swarm-worker-a.${HOSTED_ZONE_NAME}
+export WORKER_A=${ENVIRONMENT}-${COLOUR}-swarm-worker-int-a.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${WORKER_A}:2376
 docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377
 
-export WORKER_B=${ENVIRONMENT}-${COLOUR}-swarm-worker-b.${HOSTED_ZONE_NAME}
+export WORKER_B=${ENVIRONMENT}-${COLOUR}-swarm-worker-int-b.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${WORKER_B}:2376
 docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377
 
-export WORKER_C=${ENVIRONMENT}-${COLOUR}-swarm-worker-c.${HOSTED_ZONE_NAME}
+export WORKER_C=${ENVIRONMENT}-${COLOUR}-swarm-worker-int-c.${HOSTED_ZONE_NAME}
+export DOCKER_HOST=tcp://${WORKER_C}:2376
+docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377
+
+export WORKER_A=${ENVIRONMENT}-${COLOUR}-swarm-worker-ext-a.${HOSTED_ZONE_NAME}
+export DOCKER_HOST=tcp://${WORKER_A}:2376
+docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377
+
+export WORKER_B=${ENVIRONMENT}-${COLOUR}-swarm-worker-ext-b.${HOSTED_ZONE_NAME}
+export DOCKER_HOST=tcp://${WORKER_B}:2376
+docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377
+
+export WORKER_C=${ENVIRONMENT}-${COLOUR}-swarm-worker-ext-c.${HOSTED_ZONE_NAME}
 export DOCKER_HOST=tcp://${WORKER_C}:2376
 docker swarm join --token $WORKER_TOKEN ${MANAGER_A}:2377
