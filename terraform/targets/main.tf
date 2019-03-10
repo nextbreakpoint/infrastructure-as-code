@@ -19,11 +19,12 @@ resource "aws_alb_target_group" "manager_8080" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
@@ -34,11 +35,12 @@ resource "aws_alb_target_group" "manager_8081" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
@@ -49,11 +51,12 @@ resource "aws_alb_target_group" "manager_9000" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
@@ -64,11 +67,12 @@ resource "aws_alb_target_group" "manager_2080" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
@@ -79,11 +83,12 @@ resource "aws_alb_target_group" "manager_3000" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
@@ -94,41 +99,44 @@ resource "aws_alb_target_group" "manager_5601" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTPS"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
-resource "aws_alb_target_group" "worker_80" {
-  name     = "${var.environment}-${var.colour}-worker-80"
+resource "aws_alb_target_group" "worker_public_80" {
+  name     = "${var.environment}-${var.colour}-worker-public-80"
   port     = 80
   protocol = "HTTP"
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
-resource "aws_alb_target_group" "worker_443" {
-  name     = "${var.environment}-${var.colour}-worker-443"
+resource "aws_alb_target_group" "worker_public_443" {
+  name     = "${var.environment}-${var.colour}-worker-public-443"
   port     = 443
-  protocol = "HTTP"
+  protocol = "HTTPS"
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTPS"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
@@ -139,11 +147,12 @@ resource "aws_alb_target_group" "worker_8500" {
   vpc_id   = "${data.terraform_remote_state.vpc.network-vpc-id}"
 
   health_check {
+    protocol            = "HTTPS"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
     interval            = 30
-    matcher             = "200"
+    matcher             = "200,301,302"
   }
 }
 
@@ -255,38 +264,38 @@ resource aws_lb_target_group_attachment "manager_c_5601" {
   port             = "5601"
 }
 
-resource aws_lb_target_group_attachment "worker_a_80" {
-  target_group_arn = "${aws_alb_target_group.worker_80.arn}"
+resource aws_lb_target_group_attachment "worker_public_a_80" {
+  target_group_arn = "${aws_alb_target_group.worker_public_80.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-a-id}"
   port             = "80"
 }
 
-resource aws_lb_target_group_attachment "worker_b_80" {
-  target_group_arn = "${aws_alb_target_group.worker_80.arn}"
+resource aws_lb_target_group_attachment "worker_public_b_80" {
+  target_group_arn = "${aws_alb_target_group.worker_public_80.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-b-id}"
   port             = "80"
 }
 
-resource aws_lb_target_group_attachment "worker_c_80" {
-  target_group_arn = "${aws_alb_target_group.worker_80.arn}"
+resource aws_lb_target_group_attachment "worker_public_c_80" {
+  target_group_arn = "${aws_alb_target_group.worker_public_80.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-c-id}"
   port             = "80"
 }
 
-resource aws_lb_target_group_attachment "worker_a_443" {
-  target_group_arn = "${aws_alb_target_group.worker_443.arn}"
+resource aws_lb_target_group_attachment "worker_public_a_443" {
+  target_group_arn = "${aws_alb_target_group.worker_public_443.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-a-id}"
   port             = "443"
 }
 
-resource aws_lb_target_group_attachment "worker_b_443" {
-  target_group_arn = "${aws_alb_target_group.worker_443.arn}"
+resource aws_lb_target_group_attachment "worker_public_b_443" {
+  target_group_arn = "${aws_alb_target_group.worker_public_443.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-b-id}"
   port             = "443"
 }
 
-resource aws_lb_target_group_attachment "worker_c_443" {
-  target_group_arn = "${aws_alb_target_group.worker_443.arn}"
+resource aws_lb_target_group_attachment "worker_public_c_443" {
+  target_group_arn = "${aws_alb_target_group.worker_public_443.arn}"
   target_id        = "${data.terraform_remote_state.swarm.swarm-worker-c-id}"
   port             = "443"
 }
@@ -404,13 +413,13 @@ resource "aws_alb_listener_rule" "manager_5601" {
   }
 }
 
-resource "aws_alb_listener_rule" "worker_80" {
+resource "aws_alb_listener_rule" "worker_public_80" {
   listener_arn = "${data.terraform_remote_state.lb.lb-public-listener-http-arn}"
   priority     = 200
 
   action {
     type             = "forward"
-    target_group_arn = "${aws_alb_target_group.worker_80.arn}"
+    target_group_arn = "${aws_alb_target_group.worker_public_80.arn}"
   }
 
   condition {
@@ -419,13 +428,13 @@ resource "aws_alb_listener_rule" "worker_80" {
   }
 }
 
-resource "aws_alb_listener_rule" "worker_443" {
+resource "aws_alb_listener_rule" "worker_public_443" {
   listener_arn = "${data.terraform_remote_state.lb.lb-public-listener-https-arn}"
   priority     = 200
 
   action {
     type             = "forward"
-    target_group_arn = "${aws_alb_target_group.worker_443.arn}"
+    target_group_arn = "${aws_alb_target_group.worker_public_443.arn}"
   }
 
   condition {

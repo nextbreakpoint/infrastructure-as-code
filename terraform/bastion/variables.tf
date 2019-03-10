@@ -20,6 +20,14 @@ variable "environment" {}
 ### MANDATORY ###
 variable "colour" {}
 
+variable "volume_type" {
+  default = "standard"
+}
+
+variable "volume_size" {
+  default = "4"
+}
+
 ### MANDATORY ###
 variable "hosted_zone_id" {}
 

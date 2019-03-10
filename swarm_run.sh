@@ -46,9 +46,9 @@ export KEYSTORE_PASSWORD=$(cat $(pwd)/config/main.json | jq -r ".keystore_passwo
 export MANAGER_A=$(host ${ENVIRONMENT}-${COLOUR}-swarm-manager-a.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
 export MANAGER_B=$(host ${ENVIRONMENT}-${COLOUR}-swarm-manager-b.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
 export MANAGER_C=$(host ${ENVIRONMENT}-${COLOUR}-swarm-manager-c.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
-export WORKER_A=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-a.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
-export WORKER_B=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-b.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
-export WORKER_C=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-c.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export WORKER_A=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-int-a.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export WORKER_B=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-int-b.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export WORKER_C=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-int-c.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
 
 export ADVERTISE_WORKER_AGENT_1=$WORKER_A
 export ADVERTISE_WORKER_AGENT_2=$WORKER_B

@@ -25,6 +25,14 @@ variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
 }
 
+variable "volume_type" {
+  default = "standard"
+}
+
+variable "volume_size" {
+  default = "8"
+}
+
 ### MANDATORY ###
 variable "base_version" {}
 

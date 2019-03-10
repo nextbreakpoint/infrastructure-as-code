@@ -45,7 +45,7 @@ docker node update --label-add consul=true $NODE
 docker node update --label-add agent=true $NODE
 docker node update --label-add kibana=true $NODE
 
-export WORKER_A=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-a.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export WORKER_A=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-int-a.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
 export NODE=$(docker node ls -q --filter "name=$(echo ${WORKER_A} | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ip-\1-\2-\3-\4/g")")
 
 docker node update --label-add zone=a $NODE
@@ -55,10 +55,9 @@ docker node update --label-add zookeeper=true $NODE
 docker node update --label-add elasticsearch=true $NODE
 docker node update --label-add logstash=true $NODE
 docker node update --label-add cassandra=true $NODE
-docker node update --label-add nginx=true $NODE
 docker node update --label-add agent=true $NODE
 
-export WORKER_B=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-b.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export WORKER_B=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-int-b.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
 export NODE=$(docker node ls -q --filter "name=$(echo ${WORKER_B} | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ip-\1-\2-\3-\4/g")")
 
 docker node update --label-add zone=b $NODE
@@ -68,10 +67,9 @@ docker node update --label-add zookeeper=true $NODE
 docker node update --label-add elasticsearch=true $NODE
 docker node update --label-add logstash=true $NODE
 docker node update --label-add cassandra=true $NODE
-docker node update --label-add nginx=true $NODE
 docker node update --label-add agent=true $NODE
 
-export WORKER_C=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-c.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export WORKER_C=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-int-c.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
 export NODE=$(docker node ls -q --filter "name=$(echo ${WORKER_C} | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ip-\1-\2-\3-\4/g")")
 
 docker node update --label-add zone=c $NODE
@@ -81,5 +79,25 @@ docker node update --label-add zookeeper=true $NODE
 docker node update --label-add elasticsearch=true $NODE
 docker node update --label-add logstash=true $NODE
 docker node update --label-add cassandra=true $NODE
-docker node update --label-add nginx=true $NODE
 docker node update --label-add agent=true $NODE
+
+export WORKER_A=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-ext-a.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export NODE=$(docker node ls -q --filter "name=$(echo ${WORKER_A} | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ip-\1-\2-\3-\4/g")")
+
+docker node update --label-add zone=a $NODE
+docker node update --label-add public=true $NODE
+docker node update --label-add nginx=true $NODE
+
+export WORKER_B=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-ext-b.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export NODE=$(docker node ls -q --filter "name=$(echo ${WORKER_B} | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ip-\1-\2-\3-\4/g")")
+
+docker node update --label-add zone=b $NODE
+docker node update --label-add public=true $NODE
+docker node update --label-add nginx=true $NODE
+
+export WORKER_C=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-ext-c.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
+export NODE=$(docker node ls -q --filter "name=$(echo ${WORKER_C} | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/ip-\1-\2-\3-\4/g")")
+
+docker node update --label-add zone=c $NODE
+docker node update --label-add public=true $NODE
+docker node update --label-add nginx=true $NODE

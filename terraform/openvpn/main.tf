@@ -313,6 +313,11 @@ resource "aws_instance" "openvpn_a" {
   source_dest_check           = false
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
+  root_block_device {
+    volume_type = "${var.volume_type}"
+    volume_size = "${var.volume_size}"
+  }
+
   tags {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"

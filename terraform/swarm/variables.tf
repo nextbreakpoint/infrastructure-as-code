@@ -25,16 +25,16 @@ variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
 }
 
-variable "volume_name" {
-  default = "/dev/xvdh"
+variable "volume_type" {
+  default = "standard"
 }
 
-variable "volume_size" {
-  default = "4"
+variable "worker_volume_size" {
+  default = "20"
 }
 
-variable "volume_encrypted" {
-  default = "false"
+variable "manager_volume_size" {
+  default = "10"
 }
 
 ### MANDATORY ###
@@ -76,10 +76,29 @@ variable "aws_network_private_subnet_cidr_c" {
   description = "Private subnet C cidr block"
 }
 
+### MANDATORY ###
+variable "aws_network_public_subnet_cidr_a" {
+  description = "Public subnet A cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_public_subnet_cidr_b" {
+  description = "Public subnet B cidr block"
+}
+
+### MANDATORY ###
+variable "aws_network_public_subnet_cidr_c" {
+  description = "Public subnet C cidr block"
+}
+
 variable "swarm_manager_instance_type" {
   default = "t2.xlarge"
 }
 
-variable "swarm_worker_instance_type" {
+variable "swarm_worker_int_instance_type" {
   default = "t2.2xlarge"
+}
+
+variable "swarm_worker_ext_instance_type" {
+  default = "t2.xlarge"
 }
