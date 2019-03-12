@@ -1,6 +1,6 @@
 # Infrastructure as code
 
-This repository contains scripts for creating a production-grade infrastructure for running micro-services on the Cloud. The scripts implement a simple and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com). The infrastructure consumes the minimum resources required to run the essential services, but it can be scaled in order to manage a higher workload, adding more machines and upgrading the type of the machines.
+This repository contains scripts for creating a production-grade infrastructure for running micro-services using Docker containers. The scripts implement a simple and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com). The infrastructure consumes the minimum resources required to run the essential services, but it can be scaled in order to manage a higher workload, adding more machines and upgrading the type of the machines.
 
 The infrastructure includes the following components:
 
@@ -16,7 +16,7 @@ The infrastructure includes the following components:
 
 - [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
 
-The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. Most of the machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. Some machines are created within a public network and they are reachable via ip address. The private machines can be reached using an internet-facing load balancer or a proxy server running in a public subnet.
+The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. Most of the machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. Some machines are created within a public network and they are reachable via the same VPN/SSH method, however they can serve web traffic on port 80 or 443 using their public ip address. The private machines can also be reached using an internet-facing load balancer or a proxy server running in a public subnet.
 
 The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
 
@@ -697,8 +697,8 @@ Delete the AMIs with command:
 
 ## Reset Terraform state
 
-Reset Terraform state with command:
+Reset Terraform's state with command:
 
     ./docker_run.sh reset_terraform
 
-Be careful to don't reset the state before destroying all managed infrastructure.
+Be careful to don't reset the state before destroying the infrastructure.
