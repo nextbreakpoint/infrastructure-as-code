@@ -92,13 +92,13 @@ variable "aws_network_public_subnet_cidr_c" {
 }
 
 variable "swarm_manager_instance_type" {
-  default = "t2.xlarge"
+  default = "t2.large"
 }
 
 variable "swarm_worker_int_instance_type" {
-  default = "t2.2xlarge"
+  default = "t2.xlarge"
 }
 
 variable "swarm_worker_ext_instance_type" {
-  default = "t2.large"
+  default = "t2.small"
 }
