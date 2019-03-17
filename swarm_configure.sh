@@ -20,7 +20,6 @@ docker node update --label-add consul=true $NODE
 docker node update --label-add agent=true $NODE
 docker node update --label-add postgres=true $NODE
 docker node update --label-add mysql=true $NODE
-docker node update --label-add jenkins=true $NODE
 docker node update --label-add sonarqube=true $NODE
 docker node update --label-add artifactory=true $NODE
 docker node update --label-add public=false $NODE
@@ -46,6 +45,7 @@ docker node update --label-add logstash=true $NODE
 docker node update --label-add consul=true $NODE
 docker node update --label-add agent=true $NODE
 docker node update --label-add kibana=true $NODE
+docker node update --label-add jenkins=true $NODE
 docker node update --label-add public=false $NODE
 
 export WORKER_A=$(host ${ENVIRONMENT}-${COLOUR}-swarm-worker-int-a.${HOSTED_ZONE_NAME} | grep -m1 " has address " | awk '{ print $4 }')
