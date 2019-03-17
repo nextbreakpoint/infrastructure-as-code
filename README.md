@@ -187,7 +187,7 @@ Create Swarm nodes with command:
 
     ./docker_run.sh module_create swarm
 
-The Swarm cluster includes 3 manager nodes and 6 worker nodes:
+The Swarm cluster includes 3 manager nodes and 6 worker nodes with DNS records:
 
     prod-green-swarm-manager-a.yourdomain.com
     prod-green-swarm-manager-b.yourdomain.com
@@ -199,7 +199,13 @@ The Swarm cluster includes 3 manager nodes and 6 worker nodes:
     prod-green-swarm-worker-ext-b.yourdomain.com
     prod-green-swarm-worker-ext-c.yourdomain.com
 
-The single letter at the end of the name represents the availability zone.    
+The worker nodes marked as external have an additional DNS record for the public address:
+
+    prod-green-swarm-worker-ext-pub-a.yourdomain.com
+    prod-green-swarm-worker-ext-pub-b.yourdomain.com
+    prod-green-swarm-worker-ext-pub-c.yourdomain.com
+
+Please note that the single letter at the end of the name represents the availability zone.    
 
 ## Create Bastion server (optional)
 
@@ -357,7 +363,6 @@ Manager node in availability zone A
     Logstash | 5044 (tcp)
     Logstash | 9600 (tcp)
     Logstash | 12201 (tcp/udp)
-    Jenkins | 8080 (tcp)
     SonarQube | 9000 (tcp)
     Artifactory | 8081 (tcp)
     MySQL | 3306 (tcp)
@@ -381,6 +386,7 @@ Manager node in availability zone C
     Logstash | 12201 (tcp/udp)
     Elasticsearch Kibana | 9200 (tcp)
     Elasticsearch Kibana | 9300 (tcp)
+    Jenkins | 8080 (tcp)
     Kibana | 5601 (tcp)
 
 #### Worker Int A
