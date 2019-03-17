@@ -16,6 +16,8 @@ runcmd:
   - sudo systemctl daemon-reload
   - sudo service docker restart
   - sudo sh /update-route53-A.sh
+bootcmd:
+  - sudo bash -c "if [ -f '/update-route53-A.sh' ]; then sudo sh /update-route53-A.sh; fi"
 write_files:
   - path: /etc/profile.d/variables
     permissions: '0644'
