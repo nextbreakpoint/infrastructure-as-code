@@ -354,8 +354,6 @@ Please note that some ports are only accessible from the overlay network, and ar
 
 Manager node in availability zone A
 
-    Elasticsearch (routing only) | 9200 (tcp)
-    Elasticsearch (routing only) | 9300 (tcp)
     Logstash | 5044 (tcp)
     Logstash | 9600 (tcp)
     Logstash | 12201 (tcp/udp)
@@ -368,8 +366,6 @@ Manager node in availability zone A
 
 Manager node in availability zone B
 
-    Elasticsearch (routing only) | 9200 (tcp)
-    Elasticsearch (routing only) | 9300 (tcp)
     Logstash | 5044 (tcp)
     Logstash | 9600 (tcp)
     Logstash | 12201 (tcp/udp)
@@ -380,11 +376,11 @@ Manager node in availability zone B
 
 Manager node in availability zone C
 
-    Elasticsearch (routing only) | 9200 (tcp)
-    Elasticsearch (routing only) | 9300 (tcp)
     Logstash | 5044 (tcp)
     Logstash | 9600 (tcp)
     Logstash | 12201 (tcp/udp)
+    Elasticsearch Kibana | 9200 (tcp)
+    Elasticsearch Kibana | 9300 (tcp)
     Kibana | 5601 (tcp)
 
 #### Worker Int A
@@ -448,6 +444,9 @@ Internal worker node in availability zone C
 
 External worker node in availability zone A
 
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
     Nginx | 80 (tcp)
     Nginx | 443 (tcp)
 
@@ -455,6 +454,9 @@ External worker node in availability zone A
 
 External worker node in availability zone B
 
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
     Nginx | 80 (tcp)
     Nginx | 443 (tcp)
 
@@ -462,6 +464,9 @@ External worker node in availability zone B
 
 External worker node in availability zone C
 
+    Logstash | 5044 (tcp)
+    Logstash | 9600 (tcp)
+    Logstash | 12201 (tcp/udp)
     Nginx | 80 (tcp)
     Nginx | 443 (tcp)
 
