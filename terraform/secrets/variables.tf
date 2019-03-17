@@ -22,3 +22,15 @@ variable "colour" {}
 
 ### MANDATORY ###
 variable "secrets_bucket_name" {}
+
+### MANDATORY ###
+variable "keystore_password" {}
+
+### MANDATORY ###
+variable "truststore_password" {}
+
+### MANDATORY ###
+variable "consul_secret" {}
+
+### MANDATORY ###
+variable "consul_master_token" {}
