@@ -47,11 +47,11 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '1'
-          memory: 1400M
+          cpus: '0.2'
+          memory: 512M
         reservations:
           cpus: '0.1'
-          memory: 1400M
+          memory: 512M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -131,11 +131,11 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '1'
-          memory: 1400M
+          cpus: '0.2'
+          memory: 512M
         reservations:
           cpus: '0.1'
-          memory: 1400M
+          memory: 512M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
@@ -215,11 +215,11 @@ services:
         window: 120s
       resources:
         limits:
-          cpus: '1'
-          memory: 1400M
+          cpus: '0.2'
+          memory: 512M
         reservations:
           cpus: '0.1'
-          memory: 1400M
+          memory: 512M
     secrets:
       - source: logstash_key
         target: /usr/share/logstash/config/logstash_key.pkcs8
