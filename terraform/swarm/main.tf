@@ -229,7 +229,7 @@ data "template_file" "swarm-worker-ext-a" {
     hosted_zone_name  = "${var.hosted_zone_name}"
     hosted_zone_id    = "${var.hosted_zone_id}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
-    swarm_ext_dns     = "${var.environment}-${var.colour}-worker-ext-pub-a.${var.hosted_zone_name}"
+    swarm_ext_dns     = "${var.environment}-${var.colour}-swarm-worker-ext-pub-a.${var.hosted_zone_name}"
   }
 }
 
@@ -244,7 +244,7 @@ data "template_file" "swarm-worker-ext-b" {
     hosted_zone_name  = "${var.hosted_zone_name}"
     hosted_zone_id    = "${var.hosted_zone_id}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
-    swarm_ext_dns     = "${var.environment}-${var.colour}-worker-ext-pub-b.${var.hosted_zone_name}"
+    swarm_ext_dns     = "${var.environment}-${var.colour}-swarm-worker-ext-pub-b.${var.hosted_zone_name}"
   }
 }
 
@@ -259,7 +259,7 @@ data "template_file" "swarm-worker-ext-c" {
     hosted_zone_name  = "${var.hosted_zone_name}"
     hosted_zone_id    = "${var.hosted_zone_id}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
-    swarm_ext_dns     = "${var.environment}-${var.colour}-worker-ext-pub-c.${var.hosted_zone_name}"
+    swarm_ext_dns     = "${var.environment}-${var.colour}-swarm-worker-ext-pub-c.${var.hosted_zone_name}"
   }
 }
 
