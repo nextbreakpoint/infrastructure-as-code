@@ -4,7 +4,7 @@ services:
       labels:
           service: consul-agent
       image: ${CONSUL_IMAGE}
-      command: "consul agent -node=worker-int1 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='${ADVERTISE_WORKER_AGENT_1}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3"
+      command: "consul agent -node=worker-int1 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='{{ GetInterfaceIP \"eth0\" }}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3"
       logging:
         options:
           labels: "service"
@@ -56,7 +56,7 @@ services:
     labels:
         service: consul-agent
     image: ${CONSUL_IMAGE}
-    command: "consul agent -node=worker-int2 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='${ADVERTISE_WORKER_AGENT_2}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3"
+    command: "consul agent -node=worker-int2 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='{{ GetInterfaceIP \"eth0\" }}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3"
     logging:
       options:
         labels: "service"
@@ -108,7 +108,7 @@ services:
     labels:
         service: consul-agent
     image: ${CONSUL_IMAGE}
-    command: "consul agent -node=worker-int3 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='${ADVERTISE_WORKER_AGENT_3}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3"
+    command: "consul agent -node=worker-int3 -datacenter=${CONSUL_DATACENTER} -data-dir=/consul/data -config-dir=/consul/config -client='0.0.0.0' -bind='0.0.0.0' -advertise='{{ GetInterfaceIP \"eth0\" }}' --retry-join=consul1 --retry-join=consul2 --retry-join=consul3"
     logging:
       options:
         labels: "service"
