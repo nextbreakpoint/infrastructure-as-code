@@ -100,5 +100,5 @@ variable "swarm_worker_int_instance_type" {
 }
 
 variable "swarm_worker_ext_instance_type" {
-  default = "t2.xlarge"
+  default = "t2.large"
 }
