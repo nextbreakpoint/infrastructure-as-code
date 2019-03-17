@@ -112,6 +112,14 @@ resource "aws_iam_role" "swarm" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "route53.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -140,6 +148,13 @@ resource "aws_iam_role_policy" "swarm" {
         ],
         "Effect": "Allow",
         "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
+    },
+    {
+        "Action": [
+            "route53:ChangeResourceRecordSets"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
     }
   ]
 }
