@@ -9,7 +9,7 @@
   "disable_update_check": true,
   "enable_script_checks": true,
   "skip_leave_on_interrupt": true,
-  "ports": { "https": 8500, "http": -1 },
+  "ports": { "https": 8500, "http": 8400 },
   "dns_config": {
     "allow_stale": true,
     "max_stale": "1s",

@@ -67,7 +67,7 @@ resource "aws_security_group" "swarm" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.aws_network_vpc_cidr}"]
+    cidr_blocks = ["${var.aws_network_vpc_cidr}","${var.aws_openvpn_vpc_cidr}"]
   }
 
   egress {
@@ -190,8 +190,8 @@ data "template_file" "swarm-manager" {
   }
 }
 
-data "template_file" "swarm-worker" {
-  template = "${file("provision/swarm-worker.tpl")}"
+data "template_file" "swarm-worker-int" {
+  template = "${file("provision/swarm-worker-int.tpl")}"
 
   vars {
     aws_region        = "${var.aws_region}"
@@ -200,6 +200,51 @@ data "template_file" "swarm-worker" {
     bucket_name       = "${var.secrets_bucket_name}"
     hosted_zone_name  = "${var.hosted_zone_name}"
     hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+  }
+}
+
+data "template_file" "swarm-worker-ext-a" {
+  template = "${file("provision/swarm-worker-ext.tpl")}"
+
+  vars {
+    aws_region        = "${var.aws_region}"
+    environment       = "${var.environment}"
+    colour            = "${var.colour}"
+    bucket_name       = "${var.secrets_bucket_name}"
+    hosted_zone_name  = "${var.hosted_zone_name}"
+    hosted_zone_id    = "${var.hosted_zone_id}"
+    hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+    swarm_ext_dns     = "${var.environment}-${var.colour}-worker-ext-pub-a.${var.hosted_zone_name}"
+  }
+}
+
+data "template_file" "swarm-worker-ext-b" {
+  template = "${file("provision/swarm-worker-ext.tpl")}"
+
+  vars {
+    aws_region        = "${var.aws_region}"
+    environment       = "${var.environment}"
+    colour            = "${var.colour}"
+    bucket_name       = "${var.secrets_bucket_name}"
+    hosted_zone_name  = "${var.hosted_zone_name}"
+    hosted_zone_id    = "${var.hosted_zone_id}"
+    hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+    swarm_ext_dns     = "${var.environment}-${var.colour}-worker-ext-pub-b.${var.hosted_zone_name}"
+  }
+}
+
+data "template_file" "swarm-worker-ext-c" {
+  template = "${file("provision/swarm-worker-ext.tpl")}"
+
+  vars {
+    aws_region        = "${var.aws_region}"
+    environment       = "${var.environment}"
+    colour            = "${var.colour}"
+    bucket_name       = "${var.secrets_bucket_name}"
+    hosted_zone_name  = "${var.hosted_zone_name}"
+    hosted_zone_id    = "${var.hosted_zone_id}"
+    hosted_zone_dns   = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+    swarm_ext_dns     = "${var.environment}-${var.colour}-worker-ext-pub-c.${var.hosted_zone_name}"
   }
 }
 
@@ -279,7 +324,7 @@ resource "aws_instance" "swarm_worker_int_a" {
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_a, "0/24", "151")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  user_data                   = "${data.template_file.swarm-worker-int.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
@@ -302,7 +347,7 @@ resource "aws_instance" "swarm_worker_int_b" {
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_b, "0/24", "151")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  user_data                   = "${data.template_file.swarm-worker-int.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
@@ -325,7 +370,7 @@ resource "aws_instance" "swarm_worker_int_c" {
   private_ip                  = "${replace(var.aws_network_private_subnet_cidr_c, "0/24", "151")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  user_data                   = "${data.template_file.swarm-worker-int.rendered}"
   associate_public_ip_address = "false"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
@@ -348,7 +393,7 @@ resource "aws_instance" "swarm_worker_ext_a" {
   private_ip                  = "${replace(var.aws_network_public_subnet_cidr_a, "0/24", "152")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  user_data                   = "${data.template_file.swarm-worker-ext-a.rendered}"
   associate_public_ip_address = "true"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
@@ -371,7 +416,7 @@ resource "aws_instance" "swarm_worker_ext_b" {
   private_ip                  = "${replace(var.aws_network_public_subnet_cidr_b, "0/24", "152")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  user_data                   = "${data.template_file.swarm-worker-ext-b.rendered}"
   associate_public_ip_address = "true"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
@@ -394,7 +439,7 @@ resource "aws_instance" "swarm_worker_ext_c" {
   private_ip                  = "${replace(var.aws_network_public_subnet_cidr_c, "0/24", "152")}"
   vpc_security_group_ids      = ["${aws_security_group.swarm.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.swarm.id}"
-  user_data                   = "${data.template_file.swarm-worker.rendered}"
+  user_data                   = "${data.template_file.swarm-worker-ext-c.rendered}"
   associate_public_ip_address = "true"
   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 
@@ -601,5 +646,38 @@ resource "aws_route53_record" "swarm_worker_ext_c" {
 
   records = [
     "${aws_instance.swarm_worker_ext_c.private_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm_worker_ext_pub_a" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-ext-pub-a.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+
+  records = [
+    "${aws_instance.swarm_worker_ext_a.public_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm_worker_ext_pub_b" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-ext-pub-b.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+
+  records = [
+    "${aws_instance.swarm_worker_ext_b.public_ip}"
+  ]
+}
+
+resource "aws_route53_record" "swarm_worker_ext_pub_c" {
+  zone_id = "${var.hosted_zone_id}"
+  name    = "${var.environment}-${var.colour}-swarm-worker-ext-pub-c.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "60"
+
+  records = [
+    "${aws_instance.swarm_worker_ext_c.public_ip}"
   ]
 }
