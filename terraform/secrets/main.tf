@@ -8,6 +8,10 @@ provider "aws" {
   version = "~> 0.1"
 }
 
+provider "local" {
+  version = "~> 0.1"
+}
+
 ##############################################################################
 # Resources
 ##############################################################################
@@ -330,6 +334,13 @@ resource "aws_s3_bucket_object" "zookeeper-server-jaas" {
   key    = "environments/${var.environment}/${var.colour}/zookeeper/server_jaas.conf"
   source = "../../secrets/environments/${var.environment}/${var.colour}/zookeeper/server_jaas.conf"
   etag   = "${md5(file("../../secrets/environments/${var.environment}/${var.colour}/zookeeper/server_jaas.conf"))}"
+}
+
+resource "aws_s3_bucket_object" "deployer-key" {
+  bucket = "${var.secrets_bucket_name}"
+  key    = "${var.environment}-${var.colour}-deployer.pem"
+  source = "../../${var.environment}-${var.colour}-deployer.pem"
+  etag   = "${md5(file("../../${var.environment}-${var.colour}-deployer.pem"))}"
 }
 
 resource "local_file" "consul_config" {

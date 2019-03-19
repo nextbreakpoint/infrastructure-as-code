@@ -15,6 +15,9 @@ variable "aws_profile" {
 ###################################################################
 
 ### MANDATORY ###
+variable "account_id" {}
+
+### MANDATORY ###
 variable "environment" {}
 
 ### MANDATORY ###
@@ -34,3 +37,15 @@ variable "consul_secret" {}
 
 ### MANDATORY ###
 variable "consul_master_token" {}
+
+### MANDATORY ###
+variable "consul_datacenter" {}
+
+### MANDATORY ###
+variable "hosted_zone_name" {}
+
+### MANDATORY ###
+variable "hosted_zone_id" {}
+
+### MANDATORY ###
+variable "bastion_host" {}
