@@ -46,4 +46,4 @@ export ADVERTISE_WORKER_AGENT_3=$(docker-machine ip docker-worker3)
 
 eval $(docker-machine env $1)
 
-./swarm/$2.sh $3 $4 $5 $6
+./$2.sh $3 $4 $5 $6
