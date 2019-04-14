@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export KAFKA_VERSION=1.1.0
+export KAFKA_VERSION=2.2.0
 export KAFKA_REVISION=1
 export ZOOKEEPER_VERSION=3.4.12
 export ZOOKEEPER_REVISION=1
@@ -46,4 +46,4 @@ export ADVERTISE_WORKER_AGENT_3=$(docker-machine ip docker-worker3)
 
 eval $(docker-machine env $1)
 
-./swarm/$2.sh $3 $4 $5 $6
+./$2.sh $3 $4 $5 $6

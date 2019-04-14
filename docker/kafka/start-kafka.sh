@@ -27,6 +27,8 @@
 # * ZOOKEEPER_SET_ACL: Configure Zookeeper set acl
 # * ZOO_JAAS_CONFIG_LOCATION: Configure Zookeeper JAAS config location
 # * SASL_JAAS_CONFIG_LOCATION: Configure SASL JAAS config location
+# * SSL_ENDPOINT_IDENTIFICATION_ALGORITH: Configure SSL endpoint identification algorithm
+
 
 # Set internal port
 if [ -n "$PORT" ]; then
@@ -262,6 +264,23 @@ fi
 if [ -n "$ZOO_JAAS_CONFIG_LOCATION" ]; then
     echo "zookeeper jaas config location: $ZOO_JAAS_CONFIG_LOCATION"
     export KAFKA_OPTS="-Djava.security.auth.login.config=$ZOO_JAAS_CONFIG_LOCATION"
+fi
+
+# Configure SSL endpoint identification algorithm
+if [ -n "$SSL_ENDPOINT_IDENTIFICATION_ALGORITH" ]; then
+    echo "ssl endpoint identification algorithm: $SSL_ENDPOINT_IDENTIFICATION_ALGORITH"
+    if grep -q "^ssl.endpoint.identification.algorithm" $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s/(ssl.endpoint.identification.algorithm)=(.*)/\1=$SSL_ENDPOINT_IDENTIFICATION_ALGORITH/g" $KAFKA_HOME/config/server.properties
+    else
+        echo "\nssl.endpoint.identification.algorithm=$SSL_ENDPOINT_IDENTIFICATION_ALGORITH" >> $KAFKA_HOME/config/server.properties
+    fi
+else
+    echo "ssl endpoint identification algorithm: "
+    if grep -q "^ssl.endpoint.identification.algorithm" $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s/(ssl.endpoint.identification.algorithm)=(.*)/\1=/g" $KAFKA_HOME/config/server.properties
+    else
+        echo "\nssl.endpoint.identification.algorithm=" >> $KAFKA_HOME/config/server.properties
+    fi
 fi
 
 # Run Kafka

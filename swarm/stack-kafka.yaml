@@ -25,6 +25,7 @@ services:
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
+      SSL_ENDPOINT_IDENTIFICATION_ALGORITH: ""
     volumes:
       - storage:/data
     ports:
@@ -85,6 +86,11 @@ services:
         uid: '1000'
         gid: '1000'
         mode: 0440
+      - source: ssl_client_properties
+        target: /secrets/client-ssl.properties
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
   kafka2:
     labels:
         service: kafka
@@ -110,6 +116,7 @@ services:
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
+      SSL_ENDPOINT_IDENTIFICATION_ALGORITH: ""
     volumes:
       - storage:/data
     ports:
@@ -170,6 +177,11 @@ services:
         uid: '1000'
         gid: '1000'
         mode: 0440
+      - source: ssl_client_properties
+        target: /secrets/client-ssl.properties
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
   kafka3:
     labels:
         service: kafka
@@ -195,6 +207,7 @@ services:
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
+      SSL_ENDPOINT_IDENTIFICATION_ALGORITH: ""
     volumes:
       - storage:/data
     ports:
@@ -255,6 +268,11 @@ services:
         uid: '1000'
         gid: '1000'
         mode: 0440
+      - source: ssl_client_properties
+        target: /secrets/client-ssl.properties
+        uid: '1000'
+        gid: '1000'
+        mode: 0440
 networks:
   default:
     external:
@@ -272,3 +290,5 @@ secrets:
     file: ${ENVIRONMENT_SECRETS_PATH}/kafka/password_truststore.txt
   jaas_config:
     file: ${ENVIRONMENT_SECRETS_PATH}/kafka/client_jaas.conf
+  ssl_client_properties:
+    file: ${ENVIRONMENT_SECRETS_PATH}/kafka/client-ssl.properties

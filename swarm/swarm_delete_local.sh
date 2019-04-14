@@ -1,6 +1,6 @@
 #!/bin/sh
 
-eval $(docker-machine env docker-master)
+eval $(docker-machine env docker-manager)
 docker swarm leave -f
 
 eval $(docker-machine env docker-worker1)

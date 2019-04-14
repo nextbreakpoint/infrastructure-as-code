@@ -257,6 +257,7 @@ ssl.truststore.location=/secrets/truststore.jks
 ssl.truststore.password=${TRUSTSTORE_PASSWORD}
 ssl.keystore.location=/secrets/keystore.jks
 ssl.keystore.password=${KEYSTORE_PASSWORD}
+ssl.endpoint.identification.algorithm=
 EOF
 
 cat <<EOF > $OUTPUT_GEN/password_keystore.txt

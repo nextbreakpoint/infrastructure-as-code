@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export KAFKA_VERSION=1.1.0
+export KAFKA_VERSION=2.2.0
 export KAFKA_REVISION=1
 export ZOOKEEPER_VERSION=3.4.12
 export ZOOKEEPER_REVISION=1

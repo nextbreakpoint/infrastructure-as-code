@@ -10,6 +10,6 @@ export DOCKER_HOST=tcp://${ENVIRONMENT}-${COLOUR}-swarm-worker-int.${HOSTED_ZONE
 export DOCKER_TLS=1
 export DOCKER_CERT_PATH=${ENVIRONMENT_SECRETS_PATH}/swarm
 
-export KAFKA_VERSION=1.1.0
+export KAFKA_VERSION=2.2.0
 
 ./swarm/$1.sh $2 $3 $4 $5
