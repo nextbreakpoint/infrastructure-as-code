@@ -25,7 +25,7 @@ services:
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
-      SSL_ENDPOINT_IDENTIFICATION_ALGORITH: ""
+      DISABLE_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: true
     volumes:
       - storage:/data
     ports:
@@ -116,7 +116,7 @@ services:
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
-      SSL_ENDPOINT_IDENTIFICATION_ALGORITH: ""
+      DISABLE_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: true
     volumes:
       - storage:/data
     ports:
@@ -207,7 +207,7 @@ services:
       KEYSTORE_PASSWORD_LOCATION: /secrets/keystore_password.txt
       TRUSTSTORE_PASSWORD_LOCATION: /secrets/truststore_password.txt
       ZOO_JAAS_CONFIG_LOCATION: /secrets/zookeeper_kafka_jaas.conf
-      SSL_ENDPOINT_IDENTIFICATION_ALGORITH: ""
+      DISABLE_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: true
     volumes:
       - storage:/data
     ports:
