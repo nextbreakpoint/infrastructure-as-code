@@ -63,3 +63,5 @@ USER root
 RUN chmod a+rx /custom_entrypoint.sh
 
 USER flink
+
+ENTRYPOINT ["sh", "/custom_entrypoint.sh"]
