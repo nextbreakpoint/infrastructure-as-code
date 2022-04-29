@@ -16,3 +16,4 @@ terraform.tfstate*
 tfplan
 /config/main.json
 /secrets
+.terraform.lock.hcl

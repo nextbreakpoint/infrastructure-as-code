@@ -1,0 +1,6 @@
+{
+    "environment": "prod",
+    "colour": "green",
+    "base_version": "1.0",
+    "key_path": "../../keys"
+}

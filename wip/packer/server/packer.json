@@ -1,0 +1,73 @@
+{
+  "variables": {
+    "account_id": "",
+    "key_name": "packer",
+    "key_path": "",
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_security_token": "",
+    "aws_region": "eu-west-2",
+    "aws_build_regions": "",
+    "aws_instance_type": "t2.small",
+    "aws_vpc_id": "",
+    "aws_subnet_id": "",
+    "aws_security_group_id": "",
+    "ami_name_prefix": "server",
+    "bastion_host": "",
+    "bastion_username": "ec2-user",
+    "base_version": "",
+    "environment": "",
+    "colour": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "token": "{{user `aws_security_token`}}",
+    "region": "{{user `aws_region`}}",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "*ubuntu-jammy-22.04-amd64-server-*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["099720109477"],
+      "most_recent": true
+    },
+    "instance_type": "{{user `aws_instance_type`}}",
+    "subnet_id": "{{user `aws_subnet_id`}}",
+    "ami_name": "{{user `ami_name_prefix`}}-{{user `environment`}}-{{user `colour`}}-{{user `base_version`}}-{{timestamp}}",
+    "ami_regions": "{{user `aws_build_regions`}}",
+    "communicator": "ssh",
+    "ssh_pty": "true",
+    "ssh_timeout": "10m",
+    "ssh_username": "ubuntu",
+    "ssh_keypair_name": "{{user `environment`}}-{{user `colour`}}-{{user `key_name`}}",
+    "ssh_private_key_file": "{{user `key_path`}}/{{user `environment`}}-{{user `colour`}}-{{user `key_name`}}.pem",
+    "tags": {
+      "Environment": "{{user `environment`}}",
+      "Colour": "{{user `colour`}}"
+    }
+  }],
+  "provisioners": [{
+      "type": "shell",
+      "script": "../scripts/tools.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "../scripts/awscli.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "../scripts/java.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "../scripts/docker.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    }
+  ]
+}

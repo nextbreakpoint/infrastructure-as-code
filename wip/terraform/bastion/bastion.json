@@ -1,0 +1,8 @@
+{
+    "environment": "prod",
+    "colour": "green",
+    "workspace": "integration-green",
+    "hosted_zone_id": "Z1XAF7NWT4WCJG",
+    "hosted_zone_name": "nextbreakpoint.com",
+    "bastion": true
+}
