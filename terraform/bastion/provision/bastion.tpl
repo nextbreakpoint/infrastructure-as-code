@@ -2,15 +2,13 @@
 manage_etc_hosts: true
 manage_resolv_conf: false
 runcmd:
-  - sudo yum install -y mysql
-  - sudo curl -o terraform.zip https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
-  - sudo unzip terraform.zip
-  - sudo mv terraform /usr/bin
-  - sudo rm terraform.zip
-  - sudo terraform --version
-  - sudo sh /update-route53-A.sh
+  - sudo apt install unzip
+  - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  - unzip awscliv2.zip
+  - sudo ./aws/install
+  - sh /update-route53-A.sh
 bootcmd:
-  - sudo bash -c "if [ -f '/update-route53-A.sh' ]; then sudo sh /update-route53-A.sh; fi"
+  - bash -c "if [ -f '/update-route53-A.sh' ]; then sh /update-route53-A.sh; fi"
 write_files:
   - path: /update-route53-A.sh
     permissions: '0644'

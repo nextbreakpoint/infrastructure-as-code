@@ -4,18 +4,28 @@
 
 terraform {
   backend "s3" {
-    bucket = "terraform"
-    region = "eu-west-1"
+    bucket = "nextbreakpoint-terraform-wip"
+    region = "eu-west-2"
     key    = "bastion.tfstate"
   }
 }
 
 data "terraform_remote_state" "vpc" {
   backend = "s3"
+  workspace = var.workspace
+  config = {
+    bucket = "nextbreakpoint-terraform-wip"
+    region = "eu-west-2"
+    key    = "vpcs.tfstate"
+  }
+}
 
-  config {
-    bucket = "terraform"
-    region = "eu-west-1"
-    key    = "env:/${terraform.workspace}/vpc.tfstate"
+data "terraform_remote_state" "subnets" {
+  backend = "s3"
+  workspace = var.workspace
+  config = {
+    bucket = "nextbreakpoint-terraform-wip"
+    region = "eu-west-2"
+    key    = "subnets.tfstate"
   }
 }

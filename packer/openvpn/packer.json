@@ -1,16 +1,17 @@
 {
   "variables": {
     "account_id": "",
-    "key_name": "",
+    "key_name": "packer",
     "key_path": "",
     "aws_access_key": "",
     "aws_secret_key": "",
     "aws_security_token": "",
-    "aws_region": "eu-west-1",
+    "aws_region": "eu-west-2",
     "aws_build_regions": "",
     "aws_instance_type": "t2.small",
     "aws_vpc_id": "",
     "aws_subnet_id": "",
+    "aws_security_group_id": "",
     "ami_name_prefix": "openvpn",
     "bastion_host": "",
     "bastion_username": "ec2-user",
@@ -27,7 +28,7 @@
     "source_ami_filter": {
       "filters": {
         "virtualization-type": "hvm",
-        "name": "*ubuntu-xenial-16.04-amd64-server-*",
+        "name": "*ubuntu-jammy-22.04-amd64-server-*",
         "root-device-type": "ebs"
       },
       "owners": ["099720109477"],
@@ -55,7 +56,12 @@
     },
     {
       "type": "shell",
-      "script": "../scripts/aws-cli.sh",
+      "script": "../scripts/awscli.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
+    },
+    {
+      "type": "shell",
+      "script": "../scripts/java.sh",
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'"
     },
     {

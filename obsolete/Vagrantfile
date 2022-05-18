@@ -1,0 +1,23 @@
+Vagrant.configure(2) do |config|
+  unless Vagrant.has_plugin?("vagrant-disksize")
+    raise Vagrant::Errors::VagrantError.new, "vagrant-disksize plugin is missing. Please install it using 'vagrant plugin install vagrant-disksize' and rerun 'vagrant up'"
+  end
+
+  if Vagrant.has_plugin?("vagrant-disksize")
+    config.disksize.size = '40GB'
+  end
+
+  config.vm.define "openvpn" do |s|
+    s.ssh.forward_agent = true
+    s.vm.box = "ubuntu/jammy64"
+    s.vm.hostname = "openvpn"
+    s.vm.provider "virtualbox" do |v|
+      v.name = "openvpn"
+      v.cpus = 2
+      v.memory = 7168
+      v.gui = false
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    end
+  end
+
+end

@@ -3,11 +3,7 @@
 ###################################################################
 
 variable "aws_region" {
-  default = "eu-west-1"
-}
-
-variable "aws_profile" {
-  default = "default"
+  default = "eu-west-2"
 }
 
 ###################################################################
@@ -20,12 +16,15 @@ variable "environment" {}
 ### MANDATORY ###
 variable "colour" {}
 
+### MANDATORY ###
+variable "workspace" {}
+
 variable "volume_type" {
   default = "standard"
 }
 
 variable "volume_size" {
-  default = "4"
+  default = "8"
 }
 
 ### MANDATORY ###
@@ -37,21 +36,7 @@ variable "hosted_zone_name" {}
 ### MANDATORY ###
 variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."
-}
-
-### MANDATORY ###
-variable "aws_bastion_subnet_cidr_a" {
-  description = "Bastion subnet A cidr block"
-}
-
-### MANDATORY ###
-variable "aws_bastion_subnet_cidr_b" {
-  description = "Bastion subnet B cidr block"
-}
-
-### MANDATORY ###
-variable "aws_bastion_subnet_cidr_c" {
-  description = "Bastion subnet C cidr block"
+  default     = "bastion"
 }
 
 variable "amazon_nat_ami" {
@@ -60,7 +45,7 @@ variable "amazon_nat_ami" {
   }
 }
 
-variable "bastion_instance_type" {
+variable "instance_type" {
   default     = "t2.micro"
 }
 

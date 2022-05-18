@@ -2,18 +2,25 @@
 # Providers
 ##############################################################################
 
-provider "aws" {
-  region  = "${var.aws_region}"
-  profile = "${var.aws_profile}"
-  version = "~> 0.1"
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.2"
+    }
+  }
 }
 
-provider "template" {
-  version = "~> 0.1"
+provider "aws" {
+  region  = "${var.aws_region}"
 }
 
 provider "local" {
-  version = "~> 0.1"
 }
 
 ##############################################################################
@@ -23,13 +30,13 @@ provider "local" {
 resource "aws_security_group" "openvpn" {
   name        = "${var.environment}-${var.colour}-openvpn"
   description = "OpenVPN security group"
-  vpc_id      = "${data.terraform_remote_state.vpc.openvpn-vpc-id}"
+  vpc_id      = "${data.terraform_remote_state.vpc.outputs.openvpn-vpc-id}"
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.aws_bastion_vpc_cidr}"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.outputs.bastion-vpc-cidr}"]
   }
 
   ingress {
@@ -43,7 +50,7 @@ resource "aws_security_group" "openvpn" {
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_blocks = ["${data.terraform_remote_state.vpc.network-vpc-cidr}","${data.terraform_remote_state.vpc.bastion-vpc-cidr}"]
+    cidr_blocks = ["${data.terraform_remote_state.vpc.outputs.platform-vpc-cidr}","${data.terraform_remote_state.vpc.outputs.bastion-vpc-cidr}"]
   }
 
   egress {
@@ -74,7 +81,7 @@ resource "aws_security_group" "openvpn" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
   }
@@ -125,15 +132,17 @@ resource "aws_iam_role_policy" "openvpn" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": [
-        "ec2:DescribeInstances"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
+        "Action": [
+          "ec2:DescribeInstances"
+        ],
+        "Effect": "Allow",
+        "Resource": "*"
     },
     {
         "Action": [
-            "s3:GetObject"
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject"
         ],
         "Effect": "Allow",
         "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
@@ -188,85 +197,6 @@ resource "aws_iam_instance_profile" "openvpn" {
   role = "${aws_iam_role.openvpn.name}"
 }
 
-resource "aws_route_table" "openvpn" {
-  vpc_id = "${data.terraform_remote_state.vpc.openvpn-vpc-id}"
-
-  route {
-    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.network-to-openvpn-peering-connection-id}"
-    cidr_block                = "${data.terraform_remote_state.vpc.network-vpc-cidr}"
-  }
-
-  route {
-    vpc_peering_connection_id = "${data.terraform_remote_state.vpc.bastion-to-openvpn-peering-connection-id}"
-    cidr_block                = "${data.terraform_remote_state.vpc.bastion-vpc-cidr}"
-  }
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${data.terraform_remote_state.vpc.openvpn-internet-gateway-id}"
-  }
-
-  tags {
-    Environment = "${var.environment}"
-    Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-openvpn"
-  }
-}
-
-resource "aws_subnet" "openvpn_a" {
-  vpc_id                  = "${data.terraform_remote_state.vpc.openvpn-vpc-id}"
-  availability_zone       = "${format("%s%s", var.aws_region, "a")}"
-  cidr_block              = "${var.aws_openvpn_subnet_cidr_a}"
-  map_public_ip_on_launch = true
-
-  tags {
-    Environment = "${var.environment}"
-    Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-openvpn-a"
-  }
-}
-
-resource "aws_subnet" "openvpn_b" {
-  vpc_id                  = "${data.terraform_remote_state.vpc.openvpn-vpc-id}"
-  availability_zone       = "${format("%s%s", var.aws_region, "b")}"
-  cidr_block              = "${var.aws_openvpn_subnet_cidr_b}"
-  map_public_ip_on_launch = true
-
-  tags {
-    Environment = "${var.environment}"
-    Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-openvpn-b"
-  }
-}
-
-resource "aws_subnet" "openvpn_c" {
-  vpc_id                  = "${data.terraform_remote_state.vpc.openvpn-vpc-id}"
-  availability_zone       = "${format("%s%s", var.aws_region, "c")}"
-  cidr_block              = "${var.aws_openvpn_subnet_cidr_c}"
-  map_public_ip_on_launch = true
-
-  tags {
-    Environment = "${var.environment}"
-    Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-openvpn-c"
-  }
-}
-
-resource "aws_route_table_association" "openvpn_a" {
-  subnet_id      = "${aws_subnet.openvpn_a.id}"
-  route_table_id = "${aws_route_table.openvpn.id}"
-}
-
-resource "aws_route_table_association" "openvpn_b" {
-  subnet_id      = "${aws_subnet.openvpn_b.id}"
-  route_table_id = "${aws_route_table.openvpn.id}"
-}
-
-resource "aws_route_table_association" "openvpn_c" {
-  subnet_id      = "${aws_subnet.openvpn_c.id}"
-  route_table_id = "${aws_route_table.openvpn.id}"
-}
-
 data "aws_ami" "openvpn" {
   most_recent = true
 
@@ -286,26 +216,29 @@ data "aws_ami" "openvpn" {
 data "template_file" "openvpn" {
   template = "${file("provision/openvpn.tpl")}"
 
-  vars {
+  vars = {
     environment                = "${var.environment}"
     colour                     = "${var.colour}"
     bucket_name                = "${var.secrets_bucket_name}"
+    key_password               = "${var.openvpn_key_password}"
+    keystore_password          = "${var.openvpn_keystore_password}"
+    truststore_password        = "${var.openvpn_truststore_password}"
     openvpn_dns                = "${var.environment}-${var.colour}-openvpn.${var.hosted_zone_name}"
     openvpn_cidr               = "${var.openvpn_cidr}"
     openvpn_subnet             = "${replace(var.openvpn_cidr, "0/16", "0")}"
     hosted_zone_name           = "${var.hosted_zone_name}"
     hosted_zone_id             = "${var.hosted_zone_id}"
-    aws_openvpn_subnet         = "${replace(var.aws_openvpn_vpc_cidr, "0/16", "0")}"
-    aws_network_subnet         = "${replace(var.aws_network_vpc_cidr, "0/16", "0")}"
-    aws_bastion_subnet         = "${replace(var.aws_bastion_vpc_cidr, "0/16", "0")}"
-    aws_network_dns            = "${replace(var.aws_network_vpc_cidr, "0/16", "2")}"
+    aws_openvpn_subnet         = "${replace(data.terraform_remote_state.vpc.outputs.openvpn-vpc-cidr, "0/16", "0")}"
+    aws_platform_subnet        = "${replace(data.terraform_remote_state.vpc.outputs.platform-vpc-cidr, "0/16", "0")}"
+    aws_bastion_subnet         = "${replace(data.terraform_remote_state.vpc.outputs.bastion-vpc-cidr, "0/16", "0")}"
+    aws_platform_dns           = "${replace(data.terraform_remote_state.vpc.outputs.platform-vpc-cidr, "0/16", "2")}"
   }
 }
 
 resource "aws_instance" "openvpn_a" {
   ami                         = "${data.aws_ami.openvpn.id}"
-  instance_type               = "${var.openvpn_instance_type}"
-  subnet_id                   = "${aws_subnet.openvpn_a.id}"
+  instance_type               = "${var.instance_type}"
+  subnet_id                   = "${data.terraform_remote_state.subnets.outputs.openvpn-public-subnet-a-id}"
   vpc_security_group_ids      = ["${aws_security_group.openvpn.id}"]
   iam_instance_profile        = "${aws_iam_instance_profile.openvpn.id}"
   user_data                   = "${data.template_file.openvpn.rendered}"
@@ -318,7 +251,7 @@ resource "aws_instance" "openvpn_a" {
     volume_size = "${var.volume_size}"
   }
 
-  tags {
+  tags = {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
     Name        = "${var.environment}-${var.colour}-openvpn-a"
@@ -327,8 +260,8 @@ resource "aws_instance" "openvpn_a" {
 
 # resource "aws_instance" "openvpn_b" {
 #   ami                         = "${data.aws_ami.openvpn.id}"
-#   instance_type               = "${var.openvpn_instance_type}"
-#   subnet_id                   = "${aws_subnet.openvpn_b.id}"
+#   instance_type               = "${var.instance_type}"
+#   subnet_id                   = "${data.terraform_remote_state.subnets.outputs.openvpn-public-subnet-b-id}"
 #   vpc_security_group_ids      = ["${aws_security_group.openvpn.id}"]
 #   iam_instance_profile        = "${aws_iam_instance_profile.openvpn.id}"
 #   user_data                   = "${data.template_file.openvpn.rendered}"
@@ -336,7 +269,7 @@ resource "aws_instance" "openvpn_a" {
 #   source_dest_check           = false
 #   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 #
-#   tags {
+#   tags = {
 #     Environment = "${var.environment}"
 #     Colour      = "${var.colour}"
 #     Name        = "${var.environment}-${var.colour}-openvpn-b"
@@ -345,8 +278,8 @@ resource "aws_instance" "openvpn_a" {
 
 # resource "aws_instance" "openvpn_c" {
 #   ami                         = "${data.aws_ami.openvpn.id}"
-#   instance_type               = "${var.openvpn_instance_type}"
-#   subnet_id                   = "${aws_subnet.openvpn_c.id}"
+#   instance_type               = "${var.instance_type}"
+#   subnet_id                   = "${data.terraform_remote_state.subnets.outputs.openvpn-public-subnet-c-id}"
 #   vpc_security_group_ids      = ["${aws_security_group.openvpn.id}"]
 #   iam_instance_profile        = "${aws_iam_instance_profile.openvpn.id}"
 #   user_data                   = "${data.template_file.openvpn.rendered}"
@@ -354,7 +287,7 @@ resource "aws_instance" "openvpn_a" {
 #   source_dest_check           = false
 #   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 #
-#   tags {
+#   tags = {
 #     Environment = "${var.environment}"
 #     Colour      = "${var.colour}"
 #     Name        = "${var.environment}-${var.colour}-openvpn-c"
@@ -365,9 +298,10 @@ resource "aws_route53_record" "openvpn" {
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-openvpn.${var.hosted_zone_name}"
   type    = "A"
-  ttl     = 60
-
-  records = ["${aws_instance.openvpn_a.public_ip}"]
+  ttl     = 300
+  records = [
+    "${aws_instance.openvpn_a.public_ip}"
+  ]
   # records = [
   #   "${aws_instance.openvpn_a.public_ip}",
   #   "${aws_instance.openvpn_b.public_ip}",
@@ -375,6 +309,7 @@ resource "aws_route53_record" "openvpn" {
   # ]
 }
 
+/*
 data "template_file" "ca_cert" {
   template = "${file("../../secrets/environments/${var.environment}/${var.colour}/openvpn/ca_cert.pem")}"
 }
@@ -471,3 +406,4 @@ EOF
 
   filename = "../../secrets/generated/${var.environment}/${var.colour}/openvpn_base.conf"
 }
+*/

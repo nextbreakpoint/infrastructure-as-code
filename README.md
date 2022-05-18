@@ -1,715 +1,1572 @@
-# Infrastructure as code
+https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html
+https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html#roles-usingrole-createpolicy
+https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_account-policy.html
+https://docs.aws.amazon.com/vpc/latest/userguide/vpc-policy-examples.html
+https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/
+https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
+https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html
+https://aws.amazon.com/blogs/containers/de-mystifying-cluster-networking-for-amazon-eks-worker-nodes/
+https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html
+https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
-This repository contains scripts for creating a production-grade infrastructure for running micro-services using Docker containers. The scripts implement a simple and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com). The infrastructure consumes the minimum resources required to run the essential services, but it can be scaled in order to manage a higher workload, adding more machines and upgrading the type of the machines.
+curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+sudo installer -pkg AWSCLIV2.pkg -target /
 
-The infrastructure includes the following components:
+brew install kubernetes-cli
+brew install kubectx
+brew install aws-iam-authenticator
 
-- [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and analysing logs
 
-- [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
+from the AWS console, create a new user Admin which has a valid access key and two policies attached:
 
-- [Consul](https://www.consul.io) for discovering machines or services
+  arn:aws:iam::aws:policy/IAMFullAccess
+  arn:aws:iam::aws:policy/AmazonS3FullAccess
+  arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess
 
-- [Graphite](https://graphiteapp.org) and [Grafana](https://grafana.com) for collecting metrics and monitoring services
 
-- [Cassandra](http://cassandra.apache.org), [Kafka](https://kafka.apache.org), [Zookeeper](https://zookeeper.apache.org) for creating scalable event-driven services
+aws configure --profile admin
 
-- [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
 
-The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. Most of the machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. Some machines are created within a public network and they are reachable via the same VPN/SSH method, however they can serve web traffic on port 80 or 443 using their public ip address. The private machines can also be reached using an internet-facing load balancer or a proxy server running in a public subnet.
+cat ~/.aws/credentials
 
-The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
+[admin]
+aws_access_key_id = ...
+aws_secret_access_key = ...
 
-    BEWARE OF THE COST OF RUNNING THE INFRASTRUCTURE ON AWS. WE ARE NOT RESPONSIBLE FOR ANY CHARGES
 
-## Prepare workstation
+aws --profile admin iam create-user --user-name Terraform
 
-Follow the [instructions](https://docs.docker.com/engine/installation) on Docker.com to install Docker CE version 18.03 or later. Docker is the only tool that you need to install on your workstation.
-
-## Configure AWS credentials
-
-Create a new [AWS account](https://aws.amazon.com) or use an existing one if you can assign the required permissions to your user. In order to create the infrastructure, your must have full administration permissions (alternatively you can start with minimal permissions and add what is required as you go, but at the moment we don't provide the complete policy).
-
-Create a new Access Key for your user and save the credentials on your workstation. AWS credentials are typically stored at location ~/.aws/credentials.
-
-The content of ~/.aws/credentials should look like:
-
-    [default]
-    aws_access_key_id = "your_access_key_id"
-    aws_secret_access_key = "your_secret_access_key"
-
-## Configure SSL certificates
-
-Create and upload two SSL certificates using [Certificate Manager](https://eu-west-1.console.aws.amazon.com/acm/home?region=eu-west-1) in AWS console.
-
-First certificate must be issued for domain:
-
-    yourdomain.com
-
-Second certificate must be issued for domain:
-
-    internal.yourdomain.com
-
-The certificates will be used to provision two ALBs, one internet facing and the other internal.
-
-    You can use self-signed certificates, just remember that your browser will warn you when accessing resources on those domains
-
-## Build Docker image
-
-Create the Docker image that you will use to build the infrastructure:
-
-    ./docker_build.sh
-
-The image contains the tools you need to manage the infrastructure, including AWS CLI, Terraform, Packer, and others.
-
-## Configure S3 buckets
-
-Two S3 buckets are required for creating the infrastructure. The first bucket is required for storing secrets and certificates. The second bucket is required for storing Terraform's remote state. Since the buckets contains sensible data, the access must be restricted.
-
-    Consider enabling KMS encryption on the bucket to increase security
-
-Create a S3 bucket for secrets with command:
-
-    ./docker_run.sh make_bucket your_secrets_bucket_name
-
-Create a S3 bucket for Terraform with command:
-
-    ./docker_run.sh make_bucket your_terraform_bucket_name
-
-Once the buckets has been created, configure the Terraform's backend with command:
-
-    ./docker_run.sh configure_terraform your_terraform_bucket_name
-
-The script will set the bucket name and region in all remote_state.tf files.
-
-## Configure Terraform and Packer
-
-Create a file main.json in the config directory. Copy the content from the file template-main.json. The file should look like:
-
-    {
-        "account_id": "your_account_id",
-
-        "environment": "prod",
-        "colour": "green",
-
-        "hosted_zone_name": "yourdomain.com",
-        "hosted_zone_id": "your_public_zone_id",
-
-        "bastion_host": "bastion.yourdomain.com",
-
-        "secrets_bucket_name": "your_secrets_bucket_name",
-
-        "consul_datacenter": "internal",
-
-        "key_password": "your_key_password",
-        "keystore_password": "your_keystore_password",
-        "truststore_password": "your_truststore_password",
-        "kafka_password": "your_password",
-        "zookeeper_password": "your_password",
-        "mysql_root_password": "your_password",
-        "mysql_sonarqube_password": "your_password",
-        "mysql_artifactory_password": "your_password",
-        "kibana_password": "your_password",
-        "logstash_password": "your_password",
-        "elasticsearch_password": "your_password",
-
-        "cassandra_username": "cassandra",
-        "cassandra_password": "cassandra"
+{
+    "User": {
+        "Path": "/",
+        "UserName": "Terraform",
+        "UserId": "AIDA6NWV5OXI2RB6ALIBQ",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:user/Terraform",
+        "CreateDate": "2022-04-21T17:07:02+00:00"
     }
-
-Change the variables to the correct values for your infrastructure. The account id must represent a valid AWS account and your AWS credentials must have the correct permissions on that account. The domain yourdomain.com must be a valid domain hosted in a Route53's public zone.
-
-    Register a new domain with AWS if you don't have one already and create a new public zone
-
-## Generate secrets
-
-Create the secrets with command:
-
-    ./docker_run.sh generate_secrets
-
-Several certificates and passwords are required to create a secure infrastructure.
-
-## Generate SSH keys
-
-Generate the SSH keys with command:
-
-    ./docker_run.sh generate_keys
-
-SSH keys are required to access EC2 machines.
-
-## Configure Consul
-
-Create a configuration for Consul with command:
-
-    ./docker_run.sh configure_consul
-
-## Create VPCs
-
-Create the VPCs with command:
-
-    ./docker_run.sh module_create vpc
-
-## Create SSH keys
-
-Create the SSH keys with command:
-
-    ./docker_run.sh module_create keys
-
-## Create Bastion network
-
-Create the Bastion network with command:
-
-    ./docker_run.sh module_create bastion
-
-## Build images with Packer
-
-Create the AMI images with command:
-
-    ./docker_run.sh build_images
-
-Some EC2 machines are provisioned using custom AMI.
-
-The script might take quite a while. Once the images have been created, you don't need to recreate them unless something has changed in the provisioning scripts. Reusing the same images, considerably reduces the time required to create the infrastructure.
-
-    If you destroy the infrastructure but you don't delete the AMIs, then you can skip this step when you recreate the infrastructure
-
-## Create the infrastructure
-
-Create secrets with command:
-
-    ./docker_run.sh module_create secrets
-
-Create subnets and NAT machines with command:
-
-    ./docker_run.sh module_create network
-
-Create Swarm nodes with command:
-
-    ./docker_run.sh module_create swarm
-
-The Swarm cluster includes 3 manager nodes and 6 worker nodes with DNS records:
-
-    prod-green-swarm-manager-a.yourdomain.com
-    prod-green-swarm-manager-b.yourdomain.com
-    prod-green-swarm-manager-c.yourdomain.com
-    prod-green-swarm-worker-int-a.yourdomain.com
-    prod-green-swarm-worker-int-b.yourdomain.com
-    prod-green-swarm-worker-int-c.yourdomain.com
-    prod-green-swarm-worker-ext-a.yourdomain.com
-    prod-green-swarm-worker-ext-b.yourdomain.com
-    prod-green-swarm-worker-ext-c.yourdomain.com
-
-The worker nodes marked as external have an additional DNS record for the public address:
-
-    prod-green-swarm-worker-ext-pub-a.yourdomain.com
-    prod-green-swarm-worker-ext-pub-b.yourdomain.com
-    prod-green-swarm-worker-ext-pub-c.yourdomain.com
-
-Please note that the single letter at the end of the name represents the availability zone.    
-
-## Create Bastion server (optional)
-
-Create the Bastion server with command:
-
-    ./docker_run.sh module_create bastion -var bastion=true
-
-### Access machines using Bastion
-
-Copy the deployer key to Bastion machine:
-
-    scp -i prod-green-deployer.pem prod-green-deployer.pem ec2-user@prod-green-bastion.yourdomain.com:~
-
-Connect to bastion server using the command:
-
-    ssh -i prod-green-deployer.pem ec2-user@prod-green-bastion.yourdomain.com
-
-Connect to any other machines using the command:
-
-    ssh -i prod-green-deployer.pem ubuntu@private_ip_address
-
-You can find the ip address of the machines on the AWS console.
-
-## Create OpenVPN server
-
-Create the OpenVPN server with command:
-
-    ./docker_run.sh module_create openvpn
-
-### Access machines using OpenVPN
-
-A default client configuration is automatically generated at location:
-
-    secrets/openvpn/prod/green/openvpn_client.ovpn
-
-Install the configuration in your OpenVPN client and connect your client. OpenVPN server is configured to allow connections to any internal servers.
-
-You should create a different configuration for each client using the command:
-
-    ./docker_run.sh create_ovpn name
-
-The client configuration is generated at location:
-
-    secrets/openvpn/prod/green/openvpn_name.ovpn
-
-If you need to modify the server configuration, login into OpenVPN server:
-
-    ssh -i prod-green-deployer.pem ubuntu@prod-green-openvpn.yourdomain.com
-
-Edit the file /etc/openvpn/server.conf and then restart the server:
-
-    sudo service openvpn restart
-
-## Create the Docker Swarm
-
-Docker Swarm can be created when all the EC2 machines are ready.
-
-Verify that you can ping the manager nodes:
-
-    ping prod-green-swarm-manager-a.yourdomain.com
-    ping prod-green-swarm-manager-b.yourdomain.com
-    ping prod-green-swarm-manager-c.yourdomain.com
-
-Verify that you can ping the private worker nodes:
-
-    ping prod-green-swarm-worker-int-a.yourdomain.com
-    ping prod-green-swarm-worker-int-b.yourdomain.com
-    ping prod-green-swarm-worker-int-c.yourdomain.com
-
-Verify that you can ping the public worker nodes:
-
-    ping prod-green-swarm-worker-ext-a.yourdomain.com
-    ping prod-green-swarm-worker-ext-b.yourdomain.com
-    ping prod-green-swarm-worker-ext-c.yourdomain.com
-
-If you can't ping the machines, check your VPN connection. You must be connected to access machines in private subnets.
-
-Verify that you can login into the machines:
-
-    ssh -i prod-green-deployer.pem ubuntu@prod-green-swarm-manager-a.yourdomain.com
-
-Create the Swarm with command:
-
-    ./swarm_join.sh
-
-Configure the Swarm with command:
-
-    ./swarm_configure.sh
-
-Verify that the Swarm is working with command:
-
-    ./swarm_run.sh cli "docker node ls"
-
-It should print the list of the nodes, which should contain 6 nodes, 3 managers and 6 workers.
-
-### Create networks
-
-Create the overlay networks with command:
-
-    ./swarm_run.sh create_networks
-
-The overlay networks are used to allow communication between containers running on different machines.
-
-### Create services
-
-The services are deployed on the Swarm using Docker Stacks.
-
-Deploy a stack with command:
-
-    ./swarm_run.sh deploy_stack consul
-
-It should create volumes and services on the worker nodes.
-
-Verify that the services are running with command:
-
-    ./swarm_run.sh cli "docker service ls"
-
-In a similar way, you can deploy any stack from this list:
-
-    consul
-    nginx
-    zookeeper
-    kafka
-    cassandra
-    elasticsearch
-    logstash
-    kibana
-    graphite
-    grafana
-    jenkins
-    mysql
-    sonarqube (MySQL setup required)
-    artifactory (MySQL setup required)
-
-Please note that before deploying SonarQube or Artifactory, you must configure MySQL with command:
-
-    ./swarm_run.sh setup_mysql
-
-The connection to MySQL might fail if the database is not ready to accept connections. If the connection fails, retry the command after a minute.
-
-### Services placement
-
-The mapping between machines and services depends on the labels assigned to Swarm's nodes. The services are deployed according to the placement constraints in the YAML file which defines the stack of the service. The constraints are based on labels and roles of the nodes.
-
-See documentation of [Docker Compose](https://docs.docker.com/compose/compose-file/) and [Docker Swarm](https://docs.docker.com/engine/reference/commandline/node_update/).
-
-Please note that some services have ports exposed on the host machines, therefore are reachable from any other machine in the same VPC.
-
-Please note that some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
-
-#### Manager A
-
-Manager node in availability zone A
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    SonarQube | 9000 (tcp)
-    Artifactory | 8081 (tcp)
-    MySQL | 3306 (tcp)
-
-#### Manager B
-
-Manager node in availability zone B
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Graphite | 2080 (tcp)
-    Grafana | 3000 (tcp)
-
-#### Manager C
-
-Manager node in availability zone C
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Elasticsearch Kibana | 9200 (tcp)
-    Elasticsearch Kibana | 9300 (tcp)
-    Jenkins | 8080 (tcp)
-    Kibana | 5601 (tcp)
-
-#### Worker Int A
-
-Internal worker node in availability zone A
-
-    Elasticsearch | 9200 (tcp)
-    Elasticsearch | 9300 (tcp)
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Consul | 8500 (tcp)
-    Consul | 8600 (tcp/udp)
-    Consul | 8300 (tcp)
-    Consul | 8302  (tcp/udp)
-    Zookeeper | 2181 (tcp)
-    Zookeeper | 2888 (tcp)
-    Zookeeper | 3888 (tcp)
-    Kafka | 9092 (tcp)
-    Cassandra | 9042 (tcp)
-
-#### Worker Int B
-
-Internal worker node in availability zone B
-
-    Elasticsearch | 9200 (tcp)
-    Elasticsearch | 9300 (tcp)
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Consul | 8500 (tcp)
-    Consul | 8600 (tcp/udp)
-    Consul | 8300 (tcp)
-    Consul | 8302  (tcp/udp)
-    Zookeeper | 2181 (tcp)
-    Zookeeper | 2888 (tcp)
-    Zookeeper | 3888 (tcp)
-    Kafka | 9092 (tcp)
-    Cassandra | 9042 (tcp)
-
-#### Worker Int C
-
-Internal worker node in availability zone C
-
-    Elasticsearch | 9200 (tcp)
-    Elasticsearch | 9300 (tcp)
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Consul | 8500 (tcp)
-    Consul | 8600 (tcp/udp)
-    Consul | 8300 (tcp)
-    Consul | 8302  (tcp/udp)
-    Zookeeper | 2181 (tcp)
-    Zookeeper | 2888 (tcp)
-    Zookeeper | 3888 (tcp)
-    Kafka | 9092 (tcp)
-    Cassandra | 9042 (tcp)
-
-#### Worker Ext A
-
-External worker node in availability zone A
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Nginx | 80 (tcp)
-    Nginx | 443 (tcp)
-
-#### Worker Ext B
-
-External worker node in availability zone B
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Nginx | 80 (tcp)
-    Nginx | 443 (tcp)
-
-#### Worker Ext C
-
-External worker node in availability zone C
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Nginx | 80 (tcp)
-    Nginx | 443 (tcp)
-
-### Remove services
-
-Remove a service with command:
-
-    ./swarm_run.sh remove_stack consul
-
-The volumes associated with the service are not deleted when deleting a stack.
-
-    The content of the volumes will still be available when recreating the stack
-
-### Remove networks
-
-Remove the overlay networks with command:
-
-    ./swarm_run.sh remove_networks
-
-## Create Load-Balancers, Target Groups and Route53 records (optional)
-
-Create the load balancers with command:
-
-    ./docker_run.sh module_create lb
-
-Create target groups and Route53 records with command:
-
-    ./docker_run.sh module_create targets
-
-Target groups and DNS records can be used to route HTTP traffic to specific machines and ports.
-
-You can test the routing with your browser for services with UI:
-
-    https://prod-green-jenkins.yourdomain.com/
-    https://prod-green-sonarqube.yourdomain.com/
-    https://prod-green-artifactory.yourdomain.com/artifactory/webapp/#/home
-    https://prod-green-kibana.yourdomain.com/
-    https://prod-green-consul.yourdomain.com/
-    https://prod-green-graphite.yourdomain.com/
-    https://prod-green-grafana.yourdomain.com/
-    https://prod-green-nginx.yourdomain.com/
-    http://prod-green-nginx.yourdomain.com/
-
-Use host and port in your client for connecting to backend services:
-
-    prod-green-cassandra-a.yourdomain.com:9042
-    prod-green-cassandra-b.yourdomain.com:9042
-    prod-green-cassandra-c.yourdomain.com:9042
-
-    prod-green-kafka-a.yourdomain.com:9092
-    prod-green-kafka-b.yourdomain.com:9092
-    prod-green-kafka-c.yourdomain.com:9092
-
-    prod-green-zookeeper-a.yourdomain.com:2181
-    prod-green-zookeeper-b.yourdomain.com:2181
-    prod-green-zookeeper-c.yourdomain.com:2181
-
-    prod-green-elasticsearch-a.yourdomain.com:9200
-    prod-green-elasticsearch-b.yourdomain.com:9200
-    prod-green-elasticsearch-c.yourdomain.com:9200
-
-    prod-green-logstash-a.yourdomain.com:5044
-    prod-green-logstash-b.yourdomain.com:5044
-    prod-green-logstash-c.yourdomain.com:5044
-    prod-green-logstash-a.yourdomain.com:12201
-    prod-green-logstash-b.yourdomain.com:12201
-    prod-green-logstash-c.yourdomain.com:12201
-
-    prod-green-consul-a.yourdomain.com:9600
-    prod-green-consul-b.yourdomain.com:9600
-    prod-green-consul-c.yourdomain.com:9600
-
-## Service discovery
-
-You might want to use Consul for services discovery in your applications.
-
-Deploy the agents to publish on Consul the services running on worker nodes:
-
-    ./swarm_run.sh deploy_stack consul-workers
-
-Use Consul UI to check the status of your services:
-
-    https://prod-green-swarm-worker-int.yourdomain.com:8500
-
-You can use Consul as DNS server and you can lookup for a service using a DNS query:
-
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 consul.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 logstash.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 elasticsearch.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 kafka.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 zookeeper.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 cassandra.service.internal.consul
-
-## Collecting and analysing logs
-
-All containers running on the Swarm are configured to send logs to Logstash, therefore the logs are available in Kibana.
-
-Use Kibana to analyse logs and monitor services:
-
-    https://prod-green-swarm-manager.yourdomain.com:5601
-
-    NOTE: Default user is "elastic" with password "changeme"
-
-The Docker daemon of the managers and workers is configured to use the GELF logging driver. Update the configuration and restart the Docker daemons if you have problem with this configuration and you cannot see the logs. Alternatively you can override the logging configuration when running a container or a service.
-
-## Collecting metrics and monitoring
-
-Use Graphite and Grafana to collect metrics and monitor services:
-
-    http://prod-green-swarm-manager.yourdomain.com:3000
-    http://prod-green-swarm-manager.yourdomain.com:2080
-
-    NOTE: Default user is "admin" with password "admin"
-
-Configure your applications to send metrics to Graphite:
-
-    http://prod-green-swarm-manager.yourdomain.com:2003
-
-Define a Graphite source and create dashboards in Grafana.
-
-## Building reactive services
-
-Use Zookeeper, Kafka, Cassandra, and Elasticsearch to build reactive services.
-
-Zookeeper is configured to use SASL with MD5 passwords.
-
-Kafka is configured with SSL connections between brokers and clients.
-
-Cassandra doesn't enforce secure connections by default.
-
-Elasticsearch is configured with SSL connections between nodes (X-Pack enabled with trial licence).
-
-See the scripts test_kafka_consume.sh and test_kafka_produce.sh for a example of client configuration.
-
-## Creating delivery pipelines
-
-Create your delivery pipelines using Jenkins:
-
-    https://prod-green-swarm-manager.yourdomain.com:8443
-    http://prod-green-swarm-manager.yourdomain.com:8080
-
-    NOTE: Security is disabled by default
-
-Integrate your build pipeline with SonarQube to analyse your code:
-
-    http://prod-green-swarm-manager.yourdomain.com:9000
-
-    NOTE: Default user is "admin" with password "admin"
-
-Integrate your build pipeline with Artifactory to manage your artifacts:
-
-    http://prod-green-swarm-manager.yourdomain.com:8081
-
-    NOTE: Default user is "admin" with password "password"
-
-Deploy your applications to Docker Swarm or EC2, manually or using Jenkins CI.
-
-## Disable access via Bastion
-
-Bastion server can be stopped or destroyed if required. The server can be recreated when needed.
-
-    Stop Bastion server from AWS console
-
-## Disable access via OpenVPN
-
-OpenVPN server can be stopped or destroyed if required. The server can be recreated when needed.
-
-    Stop OpenVPN server from AWS console
-
-## Destroy Load-Balancers, Target Groups and Route53 records
-
-Destroy Target Groups and Route53 records with command:
-
-    ./docker_run.sh module_destroy targets
-
-Destroy Load-Balancers with command:
-
-    ./docker_run.sh module_destroy lb
-
-## Destroy the infrastructure
-
-Destroy Swarm nodes with commands:
-
-    ./docker_run.sh module_destroy swarm
-
-Destroy subnets and NAT machines with commands:
-
-    ./docker_run.sh module_destroy network
-
-Destroy secrets with commands:
-
-    ./docker_run.sh module_destroy secrets
-
-## Destroy Bastion server
-
-Destroy Bastion with command:
-
-    ./docker_run.sh module_destroy bastion
-
-## Destroy OpenVPN server
-
-Destroy OpenVPN with command:
-
-    ./docker_run.sh module_destroy openvpn
-
-## Destroy network
-
-Destroy the network with command:
-
-    ./docker_run.sh module_destroy network
-
-Please note that network can be destroyed only after destroying infrastructure, Bastion and OpenVPN.
-
-## Destroy VPC
-
-Destroy the VPC with command:
-
-    ./docker_run.sh module_destroy vpc
-
-Please note that network can be destroyed only after destroying all, including network.
-
-## Destroy SSH keys
-
-Destroy the SSH keys with command:
-
-    ./docker_run.sh module_destroy keys
-
-## Delete images
-
-Delete the AMIs with command:
-
-    ./docker_run.sh delete_images
-
-## Reset Terraform state
-
-Reset Terraform's state with command:
-
-    ./docker_run.sh reset_terraform
-
-Be careful to don't reset the state before destroying the infrastructure.
+}
+
+
+aws --profile admin iam create-access-key --user-name Terraform
+
+{
+    "AccessKey": {
+        "UserName": "Terraform",
+        "AccessKeyId": "...",
+        "Status": "Active",
+        "SecretAccessKey": "...",
+        "CreateDate": "2022-04-21T17:07:27+00:00"
+    }
+}
+
+
+aws configure --profile terraform
+
+
+cat ~/.aws/credentials
+
+[terraform]
+aws_access_key_id = ...
+aws_secret_access_key = ...
+
+
+cat <<EOF >assume-role-policy.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${AWS_ACCOUNT_ID}:root"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+
+aws --profile admin iam create-role --role-name Terraform-Manage-VPCs --assume-role-policy-document file://assume-role-policy.json
+aws --profile admin iam create-role --role-name Terraform-Manage-Subnets --assume-role-policy-document file://assume-role-policy.json
+aws --profile admin iam create-role --role-name Terraform-Manage-Keys --assume-role-policy-document file://assume-role-policy.json
+aws --profile admin iam create-role --role-name Terraform-Manage-Bastion --assume-role-policy-document file://assume-role-policy.json
+aws --profile admin iam create-role --role-name Terraform-Manage-OpenVPN --assume-role-policy-document file://assume-role-policy.json
+aws --profile admin iam create-role --role-name Terraform-Manage-Servers --assume-role-policy-document file://assume-role-policy.json
+aws --profile admin iam create-role --role-name Terraform-Manage-Lbs --assume-role-policy-document file://assume-role-policy.json
+aws --profile admin iam create-role --role-name Terraform-Manage-K8s --assume-role-policy-document file://assume-role-policy.json
+
+aws --profile admin iam create-role --role-name Packer-Build --assume-role-policy-document file://assume-role-policy.json
+
+aws --profile admin iam create-role --role-name EKS-Console --assume-role-policy-document file://assume-role-policy.json
+
+
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "Terraform-Manage-VPCs",
+        "RoleId": "AROA6NWV5OXI4CRGBS7NX",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-VPCs",
+        "CreateDate": "2022-04-21T10:43:22+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::${AWS_ACCOUNT_ID}:root"
+                    },
+                    "Action": "sts:AssumeRole",
+                    "Condition": {
+                        "Bool": {
+                            "aws:MultiFactorAuthPresent": "true"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+
+cat <<EOF >role-policy-manage-vpcs.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AcceptVpcPeeringConnection",
+        "ec2:AssociateDhcpOptions",
+        "ec2:AssociateVpcCidrBlock",
+        "ec2:AttachInternetGateway",
+        "ec2:CreateDhcpOptions",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateTags",
+        "ec2:CreateVpc",
+        "ec2:CreateVpcPeeringConnection",
+        "ec2:DeleteDhcpOptions",
+        "ec2:DeleteInternetGateway",
+        "ec2:DeleteTags",
+        "ec2:DeleteVpc",
+        "ec2:DeleteVpcPeeringConnection",
+        "ec2:DescribeDhcpOptions",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeTags",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeVpcPeeringConnections",
+        "ec2:DescribeVpcs",
+        "ec2:DetachInternetGateway",
+        "ec2:DisassociateVpcCidrBlock",
+        "ec2:ModifyVpcAttribute",
+        "ec2:ModifyVpcPeeringConnectionOptions",
+        "ec2:RejectVpcPeeringConnection"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Manage-VPCs --policy-document file://role-policy-manage-vpcs.json
+
+{
+    "Policy": {
+        "PolicyName": "Manage-VPCs",
+        "PolicyId": "ANPA6NWV5OXIUFEEZ5XIK",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-VPCs",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2022-04-22T06:49:21+00:00",
+        "UpdateDate": "2022-04-22T06:49:21+00:00"
+    }
+}
+
+
+cat <<EOF >role-policy-manage-subnets.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AllocateAddress",
+        "ec2:AssignPrivateIpAddresses",
+        "ec2:AssociateAddress",
+        "ec2:AssociateRouteTable",
+        "ec2:AssociateSubnetCidrBlock",
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:CreateNatGateway",
+        "ec2:CreateNetworkInterface",
+        "ec2:CreateRoute",
+        "ec2:CreateRouteTable",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateSubnet",
+        "ec2:CreateTags",
+        "ec2:DeleteNatGateway",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DeleteRoute",
+        "ec2:DeleteRouteTable",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteTags",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeInstances",
+        "ec2:DescribeNatGateways",
+        "ec2:DescribeNetworkInterfaceAttribute",
+        "ec2:DescribeNetworkInterfacePermissions",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeSecurityGroupReferences",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeTags",
+        "ec2:DetachNetworkInterface",
+        "ec2:DisassociateAddress",
+        "ec2:DisassociateRouteTable",
+        "ec2:DisassociateSubnetCidrBlock",
+        "ec2:ModifyNetworkInterfaceAttribute",
+        "ec2:ModifySecurityGroupRules",
+        "ec2:ModifySubnetAttribute",
+        "ec2:ReleaseAddress",
+        "ec2:ReplaceRoute",
+        "ec2:ReplaceRouteTableAssociation",
+        "ec2:ResetNetworkInterfaceAttribute",
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:UnassignPrivateIpAddresses"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Manage-Subnets --policy-document file://role-policy-manage-subnets.json
+
+{
+    "Policy": {
+        "PolicyName": "Manage-Subnets",
+        "PolicyId": "ANPA6NWV5OXIWHSZWMJET",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Subnets",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2022-04-22T06:50:16+00:00",
+        "UpdateDate": "2022-04-22T06:50:16+00:00"
+    }
+}
+
+
+cat <<EOF >role-policy-manage-keys.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+              "ec2:CreateKeyPair",
+              "ec2:DeleteKeyPair",
+              "ec2:ImportKeyPair"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+              "ec2:DescribeKeyPairs"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Manage-Keys --policy-document file://role-policy-manage-keys.json
+
+{
+    "Policy": {
+        "PolicyName": "Manage-Keys",
+        "PolicyId": "ANPA6NWV5OXIRVVPKY3EY",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Keys",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2022-04-24T17:10:19+00:00",
+        "UpdateDate": "2022-04-24T17:10:19+00:00"
+    }
+}
+
+
+cat <<EOF >role-policy-manage-bastion.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DeleteLaunchTemplate",
+                "ec2:DeleteSnapshot",
+                "ec2:DescribeInstances",
+                "ec2:TerminateInstances",
+                "ec2:DescribeTags",
+                "ec2:DeleteTags",
+                "ec2:CreateTags",
+                "ec2:DescribeRegions",
+                "ec2:RunInstances",
+                "ec2:DescribeSnapshots",
+                "ec2:StopInstances",
+                "ec2:CreateLaunchTemplateVersion",
+                "ec2:CreateVolume",
+                "ec2:DescribeImages",
+                "ec2:DeleteVolume",
+                "ec2:CreateLaunchTemplate",
+                "ec2:DescribeVolumeStatus",
+                "ec2:StartInstances",
+                "ec2:DescribeVolumes",
+                "ec2:CreateSnapshot",
+                "ec2:DescribeInstanceAttribute",
+                "ec2:DescribeInstanceTypes",
+                "ec2:DeleteLaunchTemplateVersions",
+                "ec2:DescribeInstanceStatus",
+                "ec2:DescribeSecurityGroupReferences",
+                "ec2:DescribeSecurityGroupRules",
+                "ec2:DescribeSecurityGroups",
+                "ec2:CreateSecurityGroup",
+                "ec2:DeleteSecurityGroup",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:DescribeLaunchTemplates",
+                "ec2:DescribeLaunchTemplateVersions",
+                "ec2:GetLaunchTemplateData",
+                "ec2:ModifyLaunchTemplate",
+                "ec2:AssociateIamInstanceProfile",
+                "ec2:DisassociateIamInstanceProfile",
+                "ec2:DescribeInstanceCreditSpecifications",
+                "ec2:GetDefaultCreditSpecification",
+                "ec2:ModifyDefaultCreditSpecification",
+                "ec2:ModifyInstanceCreditSpecification",
+                "ec2:ModifyInstanceAttribute",
+                "ec2:DescribeNetworkInterfaces",
+                "iam:ListRolePolicies",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListInstanceProfilesForRole",
+                "iam:PassRole",
+                "iam:GetRole",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:GetRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:DeleteInstanceProfile",
+                "iam:GetInstanceProfile",
+                "iam:CreateInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "route53:GetHostedZone",
+                "route53:GetChange",
+                "route53:ListResourceRecordSets",
+                "route53:ChangeResourceRecordSets"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Manage-Bastion --policy-document file://role-policy-manage-bastion.json
+
+{
+    "Policy": {
+        "PolicyName": "Manage-Bastion",
+        "PolicyId": "ANPA6NWV5OXIZ2GOSQKYU",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Bastion",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2022-04-24T18:10:13+00:00",
+        "UpdateDate": "2022-04-24T18:10:13+00:00"
+    }
+}
+
+
+cat <<EOF >role-policy-manage-openvpn.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DeleteLaunchTemplate",
+                "ec2:DeleteSnapshot",
+                "ec2:DescribeInstances",
+                "ec2:TerminateInstances",
+                "ec2:DescribeTags",
+                "ec2:DeleteTags",
+                "ec2:CreateTags",
+                "ec2:DescribeRegions",
+                "ec2:RunInstances",
+                "ec2:DescribeSnapshots",
+                "ec2:StopInstances",
+                "ec2:CreateLaunchTemplateVersion",
+                "ec2:CreateVolume",
+                "ec2:DescribeImages",
+                "ec2:DeleteVolume",
+                "ec2:CreateLaunchTemplate",
+                "ec2:DescribeVolumeStatus",
+                "ec2:StartInstances",
+                "ec2:DescribeVolumes",
+                "ec2:CreateSnapshot",
+                "ec2:DescribeInstanceAttribute",
+                "ec2:DescribeInstanceTypes",
+                "ec2:DeleteLaunchTemplateVersions",
+                "ec2:DescribeInstanceStatus",
+                "ec2:DescribeSecurityGroupReferences",
+                "ec2:DescribeSecurityGroupRules",
+                "ec2:DescribeSecurityGroups",
+                "ec2:CreateSecurityGroup",
+                "ec2:DeleteSecurityGroup",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:DescribeLaunchTemplates",
+                "ec2:DescribeLaunchTemplateVersions",
+                "ec2:GetLaunchTemplateData",
+                "ec2:ModifyLaunchTemplate",
+                "ec2:AssociateIamInstanceProfile",
+                "ec2:DisassociateIamInstanceProfile",
+                "ec2:DescribeInstanceCreditSpecifications",
+                "ec2:GetDefaultCreditSpecification",
+                "ec2:ModifyDefaultCreditSpecification",
+                "ec2:ModifyInstanceCreditSpecification",
+                "ec2:ModifyInstanceAttribute",
+                "ec2:DescribeNetworkInterfaces",
+                "iam:ListRolePolicies",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListInstanceProfilesForRole",
+                "iam:PassRole",
+                "iam:GetRole",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:GetRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:AttachRolePolicy",
+                "iam:DetachRolePolicy",
+                "iam:DeleteInstanceProfile",
+                "iam:GetInstanceProfile",
+                "iam:CreateInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "route53:GetHostedZone",
+                "route53:GetChange",
+                "route53:ListResourceRecordSets",
+                "route53:ChangeResourceRecordSets"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+              "s3:ListBucket",
+              "s3:GetObject"
+            ],
+            "Resource": [
+               "arn:aws:s3:::nextbreakpoint-openvpn-wip",
+               "arn:aws:s3:::nextbreakpoint-openvpn-wip/*"
+            ]
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Manage-OpenVPN --policy-document file://role-policy-manage-openvpn.json
+
+
+cat <<EOF >role-policy-manage-servers.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DeleteLaunchTemplate",
+                "ec2:DeleteSnapshot",
+                "ec2:DescribeInstances",
+                "ec2:TerminateInstances",
+                "ec2:DescribeTags",
+                "ec2:DeleteTags",
+                "ec2:CreateTags",
+                "ec2:DescribeRegions",
+                "ec2:RunInstances",
+                "ec2:DescribeSnapshots",
+                "ec2:StopInstances",
+                "ec2:CreateLaunchTemplateVersion",
+                "ec2:CreateVolume",
+                "ec2:DescribeImages",
+                "ec2:DeleteVolume",
+                "ec2:CreateLaunchTemplate",
+                "ec2:DescribeVolumeStatus",
+                "ec2:StartInstances",
+                "ec2:DescribeVolumes",
+                "ec2:CreateSnapshot",
+                "ec2:DescribeInstanceAttribute",
+                "ec2:DescribeInstanceTypes",
+                "ec2:DeleteLaunchTemplateVersions",
+                "ec2:DescribeInstanceStatus",
+                "ec2:DescribeSecurityGroupReferences",
+                "ec2:DescribeSecurityGroupRules",
+                "ec2:DescribeSecurityGroups",
+                "ec2:CreateSecurityGroup",
+                "ec2:DeleteSecurityGroup",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:DescribeLaunchTemplates",
+                "ec2:DescribeLaunchTemplateVersions",
+                "ec2:GetLaunchTemplateData",
+                "ec2:ModifyLaunchTemplate",
+                "ec2:AssociateIamInstanceProfile",
+                "ec2:DisassociateIamInstanceProfile",
+                "ec2:DescribeInstanceCreditSpecifications",
+                "ec2:GetDefaultCreditSpecification",
+                "ec2:ModifyDefaultCreditSpecification",
+                "ec2:ModifyInstanceCreditSpecification",
+                "ec2:ModifyInstanceAttribute",
+                "ec2:DescribeNetworkInterfaces",
+                "iam:ListRolePolicies",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListInstanceProfilesForRole",
+                "iam:PassRole",
+                "iam:GetRole",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:GetRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:DeleteInstanceProfile",
+                "iam:GetInstanceProfile",
+                "iam:CreateInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "route53:GetHostedZone",
+                "route53:GetChange",
+                "route53:ListResourceRecordSets",
+                "route53:ChangeResourceRecordSets"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Manage-Servers --policy-document file://role-policy-manage-servers.json
+
+
+cat <<EOF >role-policy-manage-lbs.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeTags",
+                "ec2:CreateTags",
+                "ec2:DeleteTags",
+                "ec2:DescribeSecurityGroupReferences",
+                "ec2:DescribeSecurityGroupRules",
+                "ec2:DescribeSecurityGroups",
+                "ec2:CreateSecurityGroup",
+                "ec2:DeleteSecurityGroup",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "elasticloadbalancing:ModifyListener",
+                "elasticloadbalancing:RegisterTargets",
+                "elasticloadbalancing:SetIpAddressType",
+                "elasticloadbalancing:SetRulePriorities",
+                "elasticloadbalancing:RemoveListenerCertificates",
+                "elasticloadbalancing:DeleteLoadBalancer",
+                "elasticloadbalancing:SetWebAcl",
+                "elasticloadbalancing:DescribeLoadBalancers",
+                "elasticloadbalancing:RemoveTags",
+                "elasticloadbalancing:CreateListener",
+                "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:CreateRule",
+                "elasticloadbalancing:DescribeListenerCertificates",
+                "elasticloadbalancing:AddListenerCertificates",
+                "elasticloadbalancing:ModifyTargetGroupAttributes",
+                "elasticloadbalancing:DeleteRule",
+                "elasticloadbalancing:DescribeSSLPolicies",
+                "elasticloadbalancing:CreateLoadBalancer",
+                "elasticloadbalancing:DescribeTags",
+                "elasticloadbalancing:CreateTargetGroup",
+                "elasticloadbalancing:DeregisterTargets",
+                "elasticloadbalancing:SetSubnets",
+                "elasticloadbalancing:DeleteTargetGroup",
+                "elasticloadbalancing:DescribeLoadBalancerAttributes",
+                "elasticloadbalancing:DescribeTargetGroupAttributes",
+                "elasticloadbalancing:ModifyRule",
+                "elasticloadbalancing:DescribeAccountLimits",
+                "elasticloadbalancing:AddTags",
+                "elasticloadbalancing:DescribeTargetHealth",
+                "elasticloadbalancing:SetSecurityGroups",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:DescribeRules",
+                "elasticloadbalancing:ModifyLoadBalancerAttributes",
+                "elasticloadbalancing:ModifyTargetGroup",
+                "elasticloadbalancing:DeleteListener",
+                "acm:ListCertificates",
+                "acm:ListTagsForCertificate",
+                "acm:DescribeCertificate"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Manage-Lbs --policy-document file://role-policy-manage-lbs.json
+
+{
+    "Policy": {
+        "PolicyName": "Manage-Lbs",
+        "PolicyId": "ANPA6NWV5OXI4STFOCECZ",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Lbs",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2022-04-25T20:33:44+00:00",
+        "UpdateDate": "2022-04-25T20:33:44+00:00"
+    }
+}
+
+
+cat <<EOF >role-policy-manage-k8s.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeTags",
+                "ec2:CreateTags",
+                "ec2:DeleteTags",
+                "ec2:DescribeSecurityGroupReferences",
+                "ec2:DescribeSecurityGroupRules",
+                "ec2:DescribeSecurityGroups",
+                "ec2:CreateSecurityGroup",
+                "ec2:DeleteSecurityGroup",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeKeyPairs",
+                "iam:ListRolePolicies",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListInstanceProfilesForRole",
+                "iam:PassRole",
+                "iam:GetRole",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:GetRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:AttachRolePolicy",
+                "iam:DetachRolePolicy",
+                "iam:DeleteInstanceProfile",
+                "iam:GetInstanceProfile",
+                "iam:CreateInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "iam:CreateServiceLinkedRole",
+                "iam:DeleteServiceLinkedRole",
+                "eks:DeleteFargateProfile",
+                "eks:DescribeFargateProfile",
+                "eks:ListTagsForResource",
+                "eks:UpdateAddon",
+                "eks:UpdateClusterConfig",
+                "eks:DescribeAddon",
+                "eks:DescribeNodegroup",
+                "eks:ListNodegroups",
+                "eks:DisassociateIdentityProviderConfig",
+                "eks:RegisterCluster",
+                "eks:DeleteCluster",
+                "eks:CreateFargateProfile",
+                "eks:DescribeIdentityProviderConfig",
+                "eks:DeleteNodegroup",
+                "eks:AccessKubernetesApi",
+                "eks:CreateAddon",
+                "eks:UpdateNodegroupConfig",
+                "eks:DescribeCluster",
+                "eks:ListClusters",
+                "eks:UpdateClusterVersion",
+                "eks:ListAddons",
+                "eks:UpdateNodegroupVersion",
+                "eks:AssociateEncryptionConfig",
+                "eks:ListUpdates",
+                "eks:DescribeAddonVersions",
+                "eks:ListIdentityProviderConfigs",
+                "eks:CreateCluster",
+                "eks:UntagResource",
+                "eks:CreateNodegroup",
+                "eks:DeregisterCluster",
+                "eks:ListFargateProfiles",
+                "eks:DeleteAddon",
+                "eks:DescribeUpdate",
+                "eks:TagResource",
+                "eks:AssociateIdentityProviderConfig"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Manage-K8s --policy-document file://role-policy-manage-k8s.json
+
+
+cat <<EOF >role-policy-build-ami.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DeleteLaunchTemplate",
+                "ec2:DeleteSnapshot",
+                "ec2:DescribeInstances",
+                "ec2:TerminateInstances",
+                "ec2:DescribeTags",
+                "ec2:DeleteTags",
+                "ec2:CreateTags",
+                "ec2:DescribeRegions",
+                "ec2:RunInstances",
+                "ec2:DescribeSnapshots",
+                "ec2:StopInstances",
+                "ec2:CreateLaunchTemplateVersion",
+                "ec2:CreateVolume",
+                "ec2:DescribeImages",
+                "ec2:DeleteVolume",
+                "ec2:CreateLaunchTemplate",
+                "ec2:DescribeVolumeStatus",
+                "ec2:StartInstances",
+                "ec2:DescribeVolumes",
+                "ec2:CreateSnapshot",
+                "ec2:DescribeInstanceAttribute",
+                "ec2:DescribeInstanceTypes",
+                "ec2:DeleteLaunchTemplateVersions",
+                "ec2:DescribeInstanceStatus",
+                "ec2:DescribeSecurityGroupReferences",
+                "ec2:DescribeSecurityGroupRules",
+                "ec2:DescribeSecurityGroups",
+                "ec2:CreateSecurityGroup",
+                "ec2:DeleteSecurityGroup",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:DescribeLaunchTemplates",
+                "ec2:DescribeLaunchTemplateVersions",
+                "ec2:GetLaunchTemplateData",
+                "ec2:ModifyLaunchTemplate",
+                "ec2:AssociateIamInstanceProfile",
+                "ec2:DisassociateIamInstanceProfile",
+                "ec2:DescribeInstanceCreditSpecifications",
+                "ec2:GetDefaultCreditSpecification",
+                "ec2:ModifyDefaultCreditSpecification",
+                "ec2:ModifyInstanceCreditSpecification",
+                "ec2:ModifyInstanceAttribute",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DescribeSubnets",
+                "ec2:CreateImage",
+                "ec2:CreateKeyPair",
+                "ec2:DeleteKeyPair",
+                "ec2:ImportKeyPair"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Build-AMI --policy-document file://role-policy-build-ami.json
+
+
+cat <<EOF > eks-console-policy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListRoles",
+                "eks:ListClusters"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "eks:ListFargateProfiles",
+                "eks:DescribeNodegroup",
+                "eks:DescribeUpdate",
+                "eks:AccessKubernetesApi",
+                "eks:ListNodegroups",
+                "eks:ListUpdates",
+                "eks:ListAddons",
+                "eks:DescribeAddonVersions",
+                "eks:ListIdentityProviderConfigs",
+                "eks:DescribeCluster"
+            ],
+            "Resource": "arn:aws:eks:eu-west-2:${AWS_ACCOUNT_ID}:cluster/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ssm:GetParameter",
+            "Resource": "arn:aws:ssm:*:${AWS_ACCOUNT_ID}:parameter/*"
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name EKS-Console --policy-document file://eks-console-policy.json
+
+
+
+
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-VPCs --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-VPCs
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Subnets --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Subnets
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Keys --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Keys
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Bastion --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Bastion
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-OpenVPN --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-OpenVPN
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Servers --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Servers
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Lbs --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-Lbs
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-K8s --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Manage-K8s
+
+aws --profile admin iam attach-role-policy --role-name Packer-Build --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Build-AMI
+
+aws --profile admin iam attach-role-policy --role-name EKS-Console --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/EKS-Console
+
+
+cat <<EOF >role-policy-update-terraform-state.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::nextbreakpoint-terraform-wip"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": ["arn:aws:s3:::nextbreakpoint-terraform-wip/*"]
+    }
+  ]
+}
+EOF
+
+aws --profile admin iam create-policy --policy-name Update-Terraform-State --policy-document file://role-policy-update-terraform-state.json
+
+{
+    "Policy": {
+        "PolicyName": "Update-Terraform-State",
+        "PolicyId": "ANPA6NWV5OXIWRQDNF4M2",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2022-04-22T07:46:21+00:00",
+        "UpdateDate": "2022-04-22T07:46:21+00:00"
+    }
+}
+
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-VPCs --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Subnets --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Keys --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Bastion --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-OpenVPN --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Servers --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-Lbs --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State
+aws --profile admin iam attach-role-policy --role-name Terraform-Manage-K8s --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/Update-Terraform-State
+
+
+
+aws --profile admin iam create-group --group-name Terraform
+aws --profile admin iam create-group --group-name Packer
+aws --profile admin iam create-group --group-name Platform
+
+{
+    "Group": {
+        "Path": "/",
+        "GroupName": "Terraform",
+        "GroupId": "AGPA6NWV5OXIU7VAA7KWM",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:group/Terraform",
+        "CreateDate": "2022-04-22T08:08:16+00:00"
+    }
+}
+
+
+cat <<EOF >assume-role-terraform-manage-vpcs.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-VPCs"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Terraform --policy-name Assume-Role-Terraform-Manage-VPCs --policy-document file://assume-role-terraform-manage-vpcs.json
+
+
+cat <<EOF >assume-role-terraform-manage-subnets.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-Subnets"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Terraform --policy-name Assume-Role-Terraform-Manage-Subnets --policy-document file://assume-role-terraform-manage-subnets.json
+
+
+cat <<EOF >assume-role-terraform-manage-keys.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-Keys"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Terraform --policy-name Assume-Role-Terraform-Manage-Keys --policy-document file://assume-role-terraform-manage-keys.json
+
+
+cat <<EOF >assume-role-terraform-manage-bastion.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-Bastion"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Terraform --policy-name Assume-Role-Terraform-Manage-Bastion --policy-document file://assume-role-terraform-manage-bastion.json
+
+
+cat <<EOF >assume-role-terraform-manage-openvpn.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-OpenVPN"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Terraform --policy-name Assume-Role-Terraform-Manage-OpenVPN --policy-document file://assume-role-terraform-manage-openvpn.json
+
+
+cat <<EOF >assume-role-terraform-manage-servers.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-Servers"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Terraform --policy-name Assume-Role-Terraform-Manage-Servers --policy-document file://assume-role-terraform-manage-servers.json
+
+
+cat <<EOF >assume-role-terraform-manage-lbs.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-Lbs"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Terraform --policy-name Assume-Role-Terraform-Manage-Lbs --policy-document file://assume-role-terraform-manage-lbs.json
+
+
+cat <<EOF >assume-role-terraform-manage-k8s.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-K8s"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Terraform --policy-name Assume-Role-Terraform-Manage-K8s --policy-document file://assume-role-terraform-manage-k8s.json
+
+
+cat <<EOF >assume-role-packer-build.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/Packer-Build"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Packer --policy-name Assume-Role-Packer-Build --policy-document file://assume-role-packer-build.json
+
+
+
+cat <<EOF >assume-role-eks-console.json
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/EKS-Console"
+  }
+}
+EOF
+
+aws --profile admin iam put-group-policy --group-name Platform --policy-name Assume-Role-EKS-Console --policy-document file://assume-role-eks-console.json
+
+
+
+aws --profile admin iam add-user-to-group --user-name Terraform --group-name Terraform
+aws --profile admin iam add-user-to-group --user-name Terraform --group-name Packer
+
+
+aws --profile terraform sts assume-role --role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-VPCs --role-session-name Terraform-Manage-VPCs --duration-seconds=3600
+
+{
+    "Credentials": {
+        "AccessKeyId": "..",
+        "SecretAccessKey": "...",
+        "SessionToken": "...",
+        "Expiration": "2022-04-21T12:33:11+00:00"
+    },
+    "AssumedRoleUser": {
+        "AssumedRoleId": "AROA6NWV5OXI4CRGBS7NX:Terraform-Manage-VPCs",
+        "Arn": "arn:aws:sts::${AWS_ACCOUNT_ID}:assumed-role/Terraform-Manage-VPCs/Terraform-Manage-VPCs"
+    }
+}
+
+
+$(aws --profile terraform sts assume-role --role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/Terraform-Manage-VPCs --role-session-name Terraform-Manage-VPCs --duration-seconds=3600 | jq --raw-output '"export AWS_ACCESS_KEY_ID=" + .Credentials.AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY=" + .Credentials.SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .Credentials.SessionToken')
+
+
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-VPCs)
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-Subnets)
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-Keys)
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-Bastion)
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-OpenVPN)
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-Servers)
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-Lbs)
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-K8s)
+
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Packer-Build)
+
+
+
+
+
+$(./assume-role.sh --account=$AWS_ACCOUNT_ID --role=Terraform-Manage-VPCs)
+
+aws sts get-caller-identity
+
+{
+    "UserId": "AROA6NWV5OXI4CRGBS7NX:Terraform-Manage-VPCs",
+    "Account": "${AWS_ACCOUNT_ID}",
+    "Arn": "arn:aws:sts::${AWS_ACCOUNT_ID}:assumed-role/Terraform-Manage-VPCs/Terraform-Manage-VPCs"
+}
+
+aws ec2 describe-vpcs   
+
+
+
+
+aws --profile admin iam update-account-password-policy --minimum-password-length 8 --require-numbers --require-uppercase-characters --require-lowercase-characters --require-symbols --max-password-age 30
+
+
+aws --profile admin iam create-user --user-name Andrea
+
+{
+    "User": {
+        "Path": "/",
+        "UserName": "Andrea",
+        "UserId": "AIDA6NWV5OXIWPWSPXESN",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:user/Andrea",
+        "CreateDate": "2022-04-22T06:13:28+00:00"
+    }
+}
+
+
+aws --profile admin iam create-login-profile --user-name Andrea --password-reset-required --password password
+
+{
+    "LoginProfile": {
+        "UserName": "Andrea",
+        "CreateDate": "2022-04-22T06:34:19+00:00",
+        "PasswordResetRequired": true
+    }
+}
+
+
+aws --profile admin iam create-virtual-mfa-device --virtual-mfa-device-name andrea-mfa-device --outfile QRCode.png --bootstrap-method QRCodePNG
+
+{
+    "VirtualMFADevice": {
+        "SerialNumber": "arn:aws:iam::${AWS_ACCOUNT_ID}:mfa/andrea-mfa-device"
+    }
+}
+
+
+aws --profile admin iam enable-mfa-device --user-name Andrea --serial-number arn:aws:iam::${AWS_ACCOUNT_ID}:mfa/andrea-mfa-device --authentication-code1 299084 --authentication-code2 067305
+
+
+aws --profile admin iam create-group --group-name Administrators
+
+{
+    "Group": {
+        "Path": "/",
+        "GroupName": "Administrators",
+        "GroupId": "AGPA6NWV5OXI6WHN2HKMB",
+        "Arn": "arn:aws:iam::${AWS_ACCOUNT_ID}:group/Administrators",
+        "CreateDate": "2022-04-22T06:21:33+00:00"
+    }
+}
+
+
+aws --profile admin iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/IAMFullAccess
+aws --profile admin iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess
+aws --profile admin iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess
+aws --profile admin iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+aws --profile admin iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/IAMAccessAnalyzerReadOnlyAccess
+aws --profile admin iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/EKS-Console
+
+aws --profile admin iam add-user-to-group --user-name Andrea --group-name Administrators
+
+
+open https://${AWS_ACCOUNT_ID}.signin.aws.amazon.com/console
+
+
+
+BASTION_SUBNET=$(terraform output -json bastion-public-subnet-a-id | jq -r '.')
+packer build --var-file=../vars.json --var aws_subnet_id=${BASTION_SUBNET} packer.json
+
+
+
+aws --profile admin iam update-access-key --access-key-id $ACCESS_KEY_ID --status Inactive --user-name Admin
+
+
+aws --profile admin iam create-user --user-name Andrea.Medeghini
+aws --profile admin iam create-access-key --user-name Andrea.Medeghini
+aws --profile admin iam add-user-to-group --user-name Andrea.Medeghini --group-name Platform
+$(./assume-role.sh --profile=andrea.medeghini --account=$AWS_ACCOUNT_ID --role=EKS-Console)
+
+aws eks update-kubeconfig --region eu-west-2 --name prod-green-k8s --role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/EKS-Console
+
+
+
+aws --profile admin s3 mb s3://nextbreakpoint-terraform-wip --region eu-west-2
+aws --profile admin s3 mb s3://nextbreakpoint-openvpn-wip --region eu-west-2
+aws --profile admin s3 mb s3://nextbreakpoint-servers-wip --region eu-west-2
+
+
+tfenv install 1.1.9
+tfenv use 1.1.9
+
+
+cat <<EOF >vpcs.json
+{
+    "environment": "prod",
+    "colour": "green",
+    "aws_network_vpc_cidr": "172.32.0.0/16",
+    "aws_bastion_vpc_cidr": "172.33.0.0/16",
+    "aws_openvpn_vpc_cidr": "172.34.0.0/16"
+}
+EOF
+
+cat <<EOF >subnets.json
+{
+    "environment": "prod",
+    "colour": "green",
+    "workspace": "integration-green",
+    "aws_platform_public_subnet_cidr_a": "172.32.0.0/24",
+    "aws_platform_public_subnet_cidr_b": "172.32.2.0/24",
+    "aws_platform_public_subnet_cidr_c": "172.32.4.0/24",
+    "aws_platform_private_subnet_cidr_a": "172.32.1.0/24",
+    "aws_platform_private_subnet_cidr_b": "172.32.3.0/24",
+    "aws_platform_private_subnet_cidr_c": "172.32.5.0/24",
+    "aws_bastion_subnet_cidr_a": "172.33.0.0/24",
+    "aws_bastion_subnet_cidr_b": "172.33.2.0/24",
+    "aws_bastion_subnet_cidr_c": "172.33.4.0/24",
+    "aws_openvpn_subnet_cidr_a": "172.34.0.0/24",
+    "aws_openvpn_subnet_cidr_b": "172.34.2.0/24",
+    "aws_openvpn_subnet_cidr_c": "172.34.4.0/24",
+    "enable_nat_gateways": true
+}
+EOF
+
+cat <<EOF >keys.json
+{
+    "environment": "prod",
+    "colour": "green",
+    "keys_path": "keys"
+}
+EOF
+
+cat <<EOF >bastion.json
+{
+    "environment": "prod",
+    "colour": "green",
+    "workspace": "integration-green",
+    "hosted_zone_id": "Z1XAF7NWT4WCJG",
+    "hosted_zone_name": "nextbreakpoint.com",
+    "bastion": true
+}
+EOF
+
+cat <<EOF >openvpn.json
+{
+    "environment": "prod",
+    "colour": "green",
+    "workspace": "integration-green",
+    "hosted_zone_id": "Z1XAF7NWT4WCJG",
+    "hosted_zone_name": "nextbreakpoint.com",
+    "base_version": "1.0",
+    "account_id": "${AWS_ACCOUNT_ID}",
+    "secrets_bucket_name": "nextbreakpoint-openvpn-wip",
+    "openvpn_key_password": "password",
+    "openvpn_keystore_password": "password",
+    "openvpn_truststore_password": "password"
+}
+EOF
+
+cat <<EOF >servers.json
+{
+    "environment": "prod",
+    "colour": "green",
+    "workspace": "integration-green",
+    "hosted_zone_id": "Z1XAF7NWT4WCJG",
+    "hosted_zone_name": "nextbreakpoint.com",
+    "base_version": "1.0",
+    "account_id": "${AWS_ACCOUNT_ID}",
+    "secrets_bucket_name": "nextbreakpoint-servers-wip"
+}
+EOF
+
+cat <<EOF >k8s.json
+{
+    "environment": "prod",
+    "colour": "green",
+    "workspace": "integration-green",
+    "hosted_zone_id": "Z1XAF7NWT4WCJG",
+    "hosted_zone_name": "nextbreakpoint.com"
+}
+EOF
+
+
+ssh-keygen -b 2048 -t rsa -N "" -f keys/prod-green-openvpn.pem
+ssh-keygen -b 2048 -t rsa -N "" -f keys/prod-green-bastion.pem
+ssh-keygen -b 2048 -t rsa -N "" -f keys/prod-green-server.pem
+ssh-keygen -b 2048 -t ed25519 -N "" -f keys/prod-green-packer.pem
+
+
+aws --profile admin acm request-certificate --domain-name '*.nextbreakpoint.com' --validation-method DNS    
+aws --profile admin acm request-certificate --domain-name '*.internal.nextbreakpoint.com' --validation-method DNS    
+
+
+ssh -i keys/prod-green-bastion.pem ubuntu@prod-green-bastion.nextbreakpoint.com
+
+
+aws --profile admin s3 cp s3://nextbreakpoint-openvpn-wip/client.ovpn .
+aws --profile admin s3 cp s3://nextbreakpoint-openvpn-wip/client.conf .
+
+
+aws --profile admin iam get-user --user-name Admin | jq -r '.User.UserId'
+
+aws --profile admin iam get-role --role-name Terraform-Manage-VPCs | jq -r '.Role.RoleId'
+aws --profile admin iam get-role --role-name Terraform-Manage-Subnets | jq -r '.Role.RoleId'
+aws --profile admin iam get-role --role-name Terraform-Manage-Keys | jq -r '.Role.RoleId'
+aws --profile admin iam get-role --role-name Terraform-Manage-Lbs | jq -r '.Role.RoleId'
+aws --profile admin iam get-role --role-name Terraform-Manage-Bastion | jq -r '.Role.RoleId'
+aws --profile admin iam get-role --role-name Terraform-Manage-OpenVPN | jq -r '.Role.RoleId'
+aws --profile admin iam get-role --role-name Terraform-Manage-Servers | jq -r '.Role.RoleId'
+aws --profile admin iam get-role --role-name Terraform-Manage-K8s | jq -r '.Role.RoleId'
+
+
+cat <<EOF >bucket-openvpn-deny-access.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+         "arn:aws:s3:::nextbreakpoint-openvpn-wip",
+         "arn:aws:s3:::nextbreakpoint-openvpn-wip/*"
+      ],
+      "Condition": {
+        "StringNotLike": {
+          "aws:userId": [
+            "AROA6NWV5OXI2ID2PROVL:*",
+            "AIDA6NWV5OXIRIRKQ6FYM",
+            "${AWS_ACCOUNT_ID}"
+          ]
+        }
+      }
+    }
+  ]
+}
+EOF
+
+aws --profile admin s3api put-bucket-policy --bucket nextbreakpoint-openvpn-wip --policy file://bucket-openvpn-deny-access.json
+
+
+cat <<EOF >bucket-terraform-deny-access.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+         "arn:aws:s3:::nextbreakpoint-terraform-wip",
+         "arn:aws:s3:::nextbreakpoint-terraform-wip/*"
+      ],
+      "Condition": {
+        "StringNotLike": {
+          "aws:userId": [
+            "AROA6NWV5OXIRN6QAYDZT:*",
+            "AROA6NWV5OXI7W7TEMWI6:*",
+            "AROA6NWV5OXIZRLFNVACE:*",
+            "AROA6NWV5OXI6NW43MLUV:*",
+            "AROA6NWV5OXIWJGWWLA2P:*",
+            "AROA6NWV5OXI2ID2PROVL:*",
+            "AROA6NWV5OXIY4SKANOLI:*",
+            "AROA6NWV5OXIUYWLFEDFR:*",
+            "AIDA6NWV5OXIRIRKQ6FYM",
+            "${AWS_ACCOUNT_ID}"
+          ]
+        }
+      }
+    }
+  ]
+}
+EOF
+
+aws --profile admin s3api put-bucket-policy --bucket nextbreakpoint-terraform-wip --policy file://bucket-terraform-deny-access.json
+
+
+
+cat <<EOF > eks-readonly-policy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListRoles",
+                "eks:ListClusters"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "eks:ListFargateProfiles",
+                "eks:DescribeNodegroup",
+                "eks:DescribeUpdate",
+                "eks:AccessKubernetesApi",
+                "eks:ListNodegroups",
+                "eks:ListUpdates",
+                "eks:ListAddons",
+                "eks:DescribeAddonVersions",
+                "eks:ListIdentityProviderConfigs",
+                "eks:DescribeCluster"
+            ],
+            "Resource": "arn:aws:eks:eu-west-2:${AWS_ACCOUNT_ID}:cluster/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ssm:GetParameter",
+            "Resource": "arn:aws:ssm:*:${AWS_ACCOUNT_ID}:parameter/*"
+        }
+    ]
+}
+EOF
+
+aws --profile admin iam put-user-policy --user-name Andrea --policy-name EKS-ReadOnly --policy-document file://eks-readonly-policy.json
+
+
+cat <<EOF >decode-authorizaton-message.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "decodepolicy",
+      "Effect": "Allow",
+      "Action": "sts:DecodeAuthorizationMessage",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+
+aws --profile admin iam put-user-policy --user-name Admin --policy-name DecodeAuthorizationMessage --policy-document file://decode-authorizaton-message.json
+
+aws --profile admin s3api put-public-access-block --bucket nextbreakpoint-openvpn-wip --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+
+aws --profile admin s3api put-public-access-block --bucket nextbreakpoint-terraform-wip --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+
+
+aws --profile admin sts decode-authorization-message --encoded-message $MESSAGE | jq -r '.DecodedMessage' | jq
+
+
+terraform init
+terraform workspace new integration-green
+terraform plan --var-file=keys.json -out tfplan
+terraform plan --var-file=vpcs.json -out tfplan
+terraform plan --var-file=subnets.json -out tfplan
+terraform plan --var-file=bastion.json -out tfplan
+terraform plan --var-file=openvpn.json -out tfplan
+terraform plan --var-file=servers.json -out tfplan
+terraform plan --var-file=lbs.json -out tfplan
+terraform plan --var-file=k8s.json -out tfplan
+terraform apply tfplan
+terraform destroy --var-file=keys.json
+terraform destroy --var-file=vpcs.json
+terraform destroy --var-file=subnets.json
+terraform destroy --var-file=bastion.json
+terraform destroy --var-file=openvpn.json
+terraform destroy --var-file=servers.json
+terraform destroy --var-file=lbs.json
+terraform destroy --var-file=k8s.json
+
+
+aws eks update-kubeconfig --region eu-west-2 --name prod-green-k8s
+
+
+kubectl create ns test
+
+cat <<EOF > namespace-test-role.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-test-role
+  namespace: test
+rules:
+  - apiGroups:
+      - ""
+      - "apps"
+      - "batch"
+      - "extensions"
+    resources:
+      - "configmaps"
+      - "cronjobs"
+      - "deployments"
+      - "events"
+      - "ingresses"
+      - "jobs"
+      - "pods"
+      - "pods/attach"
+      - "pods/exec"
+      - "pods/log"
+      - "pods/portforward"
+      - "secrets"
+      - "services"
+    verbs:
+      - "create"
+      - "delete"
+      - "describe"
+      - "get"
+      - "list"
+      - "patch"
+      - "update"
+EOF
+
+kubectl apply -f namespace-test-role.yaml
+
+cat <<EOF > namespace-test-rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-test-rolebinding
+  namespace: test
+subjects:
+- kind: User
+  name: k8s-test-user
+roleRef:
+  kind: Role
+  name: k8s-test-role
+  apiGroup: rbac.authorization.k8s.io
+EOF
+
+kubectl apply -f namespace-test-rolebinding.yaml
+
+
+eksctl create iamidentitymapping --cluster prod-green-k8s --region=eu-west-2 --arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/EKS-Console --username k8s-test-user
+
+
+kubectl apply -f https://s3.us-west-2.amazonaws.com/amazon-eks/docs/eks-console-full-access.yaml
+
+eksctl get iamidentitymapping --cluster prod-green-k8s --region=eu-west-2
+
+eksctl create iamidentitymapping --cluster prod-green-k8s --region=eu-west-2 --arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/EKS-Console --group eks-console-dashboard-full-access-group --no-duplicate-arns
+
+eksctl create iamidentitymapping --cluster prod-green-k8s --region=eu-west-2 --arn arn:aws:iam::${AWS_ACCOUNT_ID}:user/Andrea --group eks-console-dashboard-restricted-access-group --no-duplicate-arns
+
+eksctl create iamidentitymapping --cluster prod-green-k8s --region=eu-west-2 --arn arn:aws:iam::${AWS_ACCOUNT_ID}:user/Andrea --group eks-console-dashboard-full-access-group --no-duplicate-arns

@@ -1,6 +1,0 @@
-{
-  "base_version": "1.0",
-  "aws_region": "eu-west-1",
-  "key_name": "deployer",
-  "key_path": "../../"
-}
