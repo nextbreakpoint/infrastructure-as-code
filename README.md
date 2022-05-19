@@ -1,28 +1,85 @@
-https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html
-https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html#roles-usingrole-createpolicy
-https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_account-policy.html
-https://docs.aws.amazon.com/vpc/latest/userguide/vpc-policy-examples.html
-https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/
-https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
-https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
-https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html
-https://aws.amazon.com/blogs/containers/de-mystifying-cluster-networking-for-amazon-eks-worker-nodes/
-https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html
-https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
-curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-sudo installer -pkg AWSCLIV2.pkg -target /
+# Infrastructure as code
 
-brew install kubernetes-cli
-brew install kubectx
-brew install aws-iam-authenticator
+This repository contains the resources for creating a minimal infrastructure for running micro-services on [Kubernetes](https://kubernetes.io).
+We provide a simple and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com).
+The infrastructure is configured to use the minimum amount of resources required to run the essential services,
+but it can be scaled in order to manage a higher workload, and extended with additional components if needed.
 
 
-from the AWS console, create a new user Admin which has a valid access key and two policies attached:
+## Requirements
 
-  arn:aws:iam::aws:policy/IAMFullAccess
-  arn:aws:iam::aws:policy/AmazonS3FullAccess
-  arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess
+You need an AWS account for creating the infrastructure. Create one on [AWS](https://aws.amazon.com) if you don't have one already.
+
+    BEWARE OF THE COST OF RUNNING THE INFRASTRUCTURE ON AWS. WE ARE NOT RESPONSIBLE FOR ANY CHARGES
+
+
+## References
+
+See documentation:
+
+    https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html
+    https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html#roles-usingrole-createpolicy
+    https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_account-policy.html
+    https://docs.aws.amazon.com/vpc/latest/userguide/vpc-policy-examples.html
+    https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/
+    https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
+    https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+    https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html
+    https://aws.amazon.com/blogs/containers/de-mystifying-cluster-networking-for-amazon-eks-worker-nodes/
+    https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html
+    https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+
+
+## Setup
+
+Install AWS CLI V2:
+
+    curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+    sudo installer -pkg AWSCLIV2.pkg -target /
+
+Install tools:
+
+    brew install tfenv
+    brew install kubernetes-cli
+    brew install kubectx
+    brew install aws-iam-authenticator
+
+
+## Bootstrap
+
+You will need a user which has the right permissions to configure the required resources before we can automate the process.
+You could use your AWS root account, but we don't recommend it, because that user has high privileges. We recommend instead
+that you manually create from the AWS web console a new user with only the required privileges.
+
+Create a new user with name "Bootstrap", create an access key, and add these policies to the user permissions:
+
+    arn:aws:iam::aws:policy/IAMFullAccess
+    arn:aws:iam::aws:policy/AmazonS3FullAccess
+    arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess
+
+We will use that user to create groups, users, roles, and policies for Terraform and Packer.
+Once that is done we can disable the access key or delete the user to increase security.
+
+Execute the script:
+
+    bootstrap.sh
+
+Disable the access key:
+
+    aws ...
+
+
+## Networking
+
+
+## Kubernetes
+
+
+
+
+---------------------------------
+
 
 
 aws configure --profile admin
