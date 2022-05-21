@@ -1,24 +1,3 @@
-##############################################################################
-# Providers
-##############################################################################
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "${var.aws_region}"
-}
-
-##############################################################################
-# Resources
-##############################################################################
-
 resource "aws_security_group" "lb_internal" {
   name        = "${var.environment}-${var.colour}-lb-int"
   description = "Internal ALB security group"

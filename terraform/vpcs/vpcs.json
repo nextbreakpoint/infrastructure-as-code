@@ -1,7 +1,0 @@
-{
-    "environment": "prod",
-    "colour": "green",
-    "aws_platform_vpc_cidr": "172.32.0.0/16",
-    "aws_bastion_vpc_cidr": "172.33.0.0/16",
-    "aws_openvpn_vpc_cidr": "172.34.0.0/16"
-}

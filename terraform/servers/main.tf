@@ -1,23 +1,4 @@
-##############################################################################
-# Providers
-##############################################################################
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "${var.aws_region}"
-}
-
-##############################################################################
-# Resources
-##############################################################################
+data "aws_caller_identity" "current" {}
 
 resource "aws_security_group" "server" {
   name        = "${var.environment}-${var.colour}-server"
@@ -105,24 +86,21 @@ resource "aws_iam_role" "server" {
       "Principal": {
         "Service": "ec2.amazonaws.com"
       },
-      "Effect": "Allow",
-      "Sid": ""
+      "Effect": "Allow"
     },
     {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "s3.amazonaws.com"
       },
-      "Effect": "Allow",
-      "Sid": ""
+      "Effect": "Allow"
     },
     {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "route53.amazonaws.com"
       },
-      "Effect": "Allow",
-      "Sid": ""
+      "Effect": "Allow"
     }
   ]
 }
@@ -147,24 +125,18 @@ resource "aws_iam_role_policy" "server" {
     },
     {
         "Action": [
-            "s3:PutObject",
-            "s3:GetObject",
-            "s3:DeleteObject"
-        ],
-        "Effect": "Allow",
-        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
-    },
-    {
-        "Action": [
             "route53:ChangeResourceRecordSets"
         ],
         "Effect": "Allow",
-        "Resource": "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
+        "Resource": [
+          "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
+        ]
     }
   ]
 }
 EOF
 }
+
 
 # {
 #     "Action": [
@@ -176,6 +148,7 @@ EOF
 #     "Resource": "*"
 # }
 
+
 resource "aws_iam_instance_profile" "server" {
   name = "${var.environment}-${var.colour}-server"
   role = "${aws_iam_role.server.name}"
@@ -186,7 +159,7 @@ data "aws_ami" "server" {
 
   filter {
     name   = "name"
-    values = ["server-${var.environment}-${var.colour}-${var.base_version}-*"]
+    values = ["server-${var.server_image_version}-*"]
   }
 
   filter {
@@ -194,7 +167,7 @@ data "aws_ami" "server" {
     values = ["hvm"]
   }
 
-  owners = ["${var.account_id}"]
+  owners = ["${data.aws_caller_identity.current.account_id}"]
 }
 
 data "template_file" "server" {
@@ -204,7 +177,6 @@ data "template_file" "server" {
     aws_region                = "${var.aws_region}"
     environment               = "${var.environment}"
     colour                    = "${var.colour}"
-    bucket_name               = "${var.secrets_bucket_name}"
     hosted_zone_name          = "${var.hosted_zone_name}"
     hosted_zone_dns           = "${replace(data.terraform_remote_state.vpc.outputs.platform-vpc-cidr, "0/16", "2")}"
   }
@@ -233,6 +205,7 @@ resource "aws_instance" "server_a" {
   }
 }
 
+/*
 resource "aws_instance" "server_b" {
   ami                         = "${data.aws_ami.server.id}"
   instance_type               = "${var.instance_type}"
@@ -278,6 +251,7 @@ resource "aws_instance" "server_c" {
     Name        = "${var.environment}-${var.colour}-server-c"
   }
 }
+*/
 
 # resource "aws_launch_configuration" "server_launch_configuration" {
 #   name_prefix                 = "${var.environment}-${var.colour}-server-"
@@ -335,17 +309,21 @@ resource "aws_instance" "server_c" {
 #   }
 # }
 
-resource "aws_route53_record" "server_manager" {
+resource "aws_route53_record" "server" {
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-server.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "60"
 
   records = [
-    "${aws_instance.server_a.private_ip}",
-    "${aws_instance.server_b.private_ip}",
-    "${aws_instance.server_c.private_ip}"
+    "${aws_instance.server_a.private_ip}"
   ]
+
+  #records = [
+    #"${aws_instance.server_a.private_ip}",
+    #"${aws_instance.server_b.private_ip}",
+    #"${aws_instance.server_c.private_ip}"
+  #]
 }
 
 resource "aws_route53_record" "server_a" {
@@ -359,6 +337,7 @@ resource "aws_route53_record" "server_a" {
   ]
 }
 
+/*
 resource "aws_route53_record" "server_b" {
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-server-b.${var.hosted_zone_name}"
@@ -380,3 +359,4 @@ resource "aws_route53_record" "server_c" {
     "${aws_instance.server_c.private_ip}"
   ]
 }
+*/

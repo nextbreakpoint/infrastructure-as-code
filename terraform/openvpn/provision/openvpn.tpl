@@ -224,7 +224,6 @@ write_files:
         echo '</tls-auth>' >> /etc/openvpn/client.ovpn
 
         aws s3 cp /etc/openvpn/client.ovpn s3://${bucket_name}/client.ovpn
-        aws s3 cp /etc/openvpn/client.conf s3://${bucket_name}/client.conf
   - path: /etc/openvpn/secrets.sh
     permissions: '0644'
     content: |

@@ -1,24 +1,3 @@
-##############################################################################
-# Providers
-##############################################################################
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "${var.aws_region}"
-}
-
-##############################################################################
-# Resources
-##############################################################################
-
 data "template_file" "bastion_public_key" {
   template = "${file("${var.keys_path}/${var.environment}-${var.colour}-bastion.pem.pub")}"
 }

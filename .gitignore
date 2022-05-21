@@ -13,5 +13,11 @@
 *.tfstate.backup
 terraform.tfstate*
 .terraform
+.variables
 tfplan
 .terraform.lock.hcl
+/terraform/terragrunt.hcl
+AWSCLIV2.pkg
+client.ovpn
+policies
+resources

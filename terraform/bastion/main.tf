@@ -1,24 +1,3 @@
-##############################################################################
-# Providers
-##############################################################################
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "${var.aws_region}"
-}
-
-##############################################################################
-# Resources
-##############################################################################
-
 resource "aws_security_group" "bastion" {
   name        = "${var.environment}-${var.colour}-bastion"
   description = "Bastion security group"
@@ -94,11 +73,11 @@ resource "aws_iam_role_policy" "bastion" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": [
-        "ec2:DescribeInstances"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
+        "Action": [
+          "ec2:DescribeInstances"
+        ],
+        "Effect": "Allow",
+        "Resource": "*"
     },
     {
         "Action": [
@@ -126,9 +105,7 @@ resource "aws_iam_role_policy" "bastion" {
             "route53:ListHostedZonesByName"
         ],
         "Effect": "Allow",
-        "Resource": [
-            "*"
-        ]
+        "Resource": "*"
     }
   ]
 }
@@ -211,25 +188,6 @@ module "bastion_a" {
   # user_data             = "${data.template_file.bastion.rendered}"
 # }
 
-# module "bastion_c" {
-#   source = "./bastion"
-#
-  # count                 = "${var.bastion == true ? 1 : 0}"
-  # environment           = "${var.environment}"
-  # colour                = "${var.colour}"
-  # name                  = "${var.environment}-${var.colour}-bastion-c"
-  # #ami                  = "${lookup(var.amazon_nat_ami, var.aws_region)}"
-  # ami                   = "${data.aws_ami.bastion.id}"
-  # volume_type           = "${var.volume_type}"
-  # volume_size           = "${var.volume_size}"
-  # instance_profile      = "${aws_iam_instance_profile.bastion.id}"
-  # instance_type         = "${var.instance_type}"
-  # key_name              = "${var.environment}-${var.colour}-${var.key_name}"
-  # security_groups       = "${aws_security_group.bastion.id}"
-  # subnet_id             = "${data.terraform_remote_state.subnets.outputs.bastion-public-subnet-c-id}"
-  # user_data             = "${data.template_file.bastion.rendered}"
-# }
-
 resource "aws_route53_record" "bastion" {
   count   = "${var.bastion == true ? 1 : 0}"
   zone_id = "${var.hosted_zone_id}"
@@ -241,7 +199,6 @@ resource "aws_route53_record" "bastion" {
   ]
   # records = [
   #   "${module.bastion_a.public-ips}",
-  #   "${module.bastion_b.public-ips}",
-  #   "${module.bastion_c.public-ips}"
+  #   "${module.bastion_b.public-ips}"
   # ]
 }

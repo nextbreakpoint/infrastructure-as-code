@@ -1,24 +1,3 @@
-##############################################################################
-# Providers
-##############################################################################
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "${var.aws_region}"
-}
-
-##############################################################################
-# Resources
-##############################################################################
-
 resource "aws_vpc" "platform" {
   cidr_block           = "${var.aws_platform_vpc_cidr}"
   instance_tenancy     = "default"

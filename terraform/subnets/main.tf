@@ -1,24 +1,3 @@
-##############################################################################
-# Providers
-##############################################################################
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "${var.aws_region}"
-}
-
-##############################################################################
-# Public Subnets
-##############################################################################
-
 resource "aws_subnet" "platform_public_a" {
   vpc_id                  = "${data.terraform_remote_state.vpc.outputs.platform-vpc-id}"
   availability_zone       = "${format("%s%s", var.aws_region, "a")}"
@@ -124,19 +103,6 @@ resource "aws_subnet" "bastion_b" {
   }
 }
 
-resource "aws_subnet" "bastion_c" {
-  vpc_id                  = "${data.terraform_remote_state.vpc.outputs.bastion-vpc-id}"
-  availability_zone       = "${format("%s%s", var.aws_region, "c")}"
-  cidr_block              = "${var.aws_bastion_subnet_cidr_c}"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Environment = "${var.environment}"
-    Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-bastion-c"
-  }
-}
-
 resource "aws_route_table" "bastion" {
   vpc_id = "${data.terraform_remote_state.vpc.outputs.bastion-vpc-id}"
 
@@ -172,11 +138,6 @@ resource "aws_route_table_association" "bastion_b" {
   route_table_id = "${aws_route_table.bastion.id}"
 }
 
-resource "aws_route_table_association" "bastion_c" {
-  subnet_id      = "${aws_subnet.bastion_c.id}"
-  route_table_id = "${aws_route_table.bastion.id}"
-}
-
 resource "aws_subnet" "openvpn_a" {
   vpc_id                  = "${data.terraform_remote_state.vpc.outputs.openvpn-vpc-id}"
   availability_zone       = "${format("%s%s", var.aws_region, "a")}"
@@ -200,19 +161,6 @@ resource "aws_subnet" "openvpn_b" {
     Environment = "${var.environment}"
     Colour      = "${var.colour}"
     Name        = "${var.environment}-${var.colour}-openvpn-b"
-  }
-}
-
-resource "aws_subnet" "openvpn_c" {
-  vpc_id                  = "${data.terraform_remote_state.vpc.outputs.openvpn-vpc-id}"
-  availability_zone       = "${format("%s%s", var.aws_region, "c")}"
-  cidr_block              = "${var.aws_openvpn_subnet_cidr_c}"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Environment = "${var.environment}"
-    Colour      = "${var.colour}"
-    Name        = "${var.environment}-${var.colour}-openvpn-c"
   }
 }
 
@@ -250,15 +198,6 @@ resource "aws_route_table_association" "openvpn_b" {
   subnet_id      = "${aws_subnet.openvpn_b.id}"
   route_table_id = "${aws_route_table.openvpn.id}"
 }
-
-resource "aws_route_table_association" "openvpn_c" {
-  subnet_id      = "${aws_subnet.openvpn_c.id}"
-  route_table_id = "${aws_route_table.openvpn.id}"
-}
-
-##############################################################################
-# NAT Boxes
-##############################################################################
 
 resource "aws_security_group" "platform_nat" {
   name        = "${var.environment}-${var.colour}-NAT"
@@ -405,10 +344,6 @@ resource "aws_nat_gateway" "nat_gateway_c" {
       Name        = "${var.environment}-${var.colour}-natgw-c"
     }
 }
-
-##############################################################################
-# Private subnets
-##############################################################################
 
 resource "aws_subnet" "platform_private_a" {
   vpc_id            = "${data.terraform_remote_state.vpc.outputs.platform-vpc-id}"

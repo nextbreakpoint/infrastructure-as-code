@@ -1,35 +1,3 @@
-###################################################################
-# AWS configuration below
-###################################################################
-
-variable "aws_region" {
-  default = "eu-west-2"
-}
-
-###################################################################
-# Resources configuration below
-###################################################################
-
-### MANDATORY ###
-variable "environment" {}
-
-### MANDATORY ###
-variable "colour" {}
-
-### MANDATORY ###
-variable "workspace" {}
-
-/*
-### MANDATORY ###
-variable "key_name" {
-  description = "Name of the SSH keypair to use in AWS."
-}
-*/
-
-variable "enable_nat_gateways" {
-  default = true
-}
-
 ### MANDATORY ###
 variable "aws_platform_private_subnet_cidr_a" {
   description = "Private subnet A cidr block"
@@ -71,11 +39,6 @@ variable "aws_bastion_subnet_cidr_b" {
 }
 
 ### MANDATORY ###
-variable "aws_bastion_subnet_cidr_c" {
-  description = "Bastion subnet C cidr block"
-}
-
-### MANDATORY ###
 variable "aws_openvpn_subnet_cidr_a" {
   description = "OpenVPN subnet A cidr block"
 }
@@ -85,9 +48,8 @@ variable "aws_openvpn_subnet_cidr_b" {
   description = "OpenVPN subnet B cidr block"
 }
 
-### MANDATORY ###
-variable "aws_openvpn_subnet_cidr_c" {
-  description = "OpenVPN subnet C cidr block"
+variable "enable_nat_gateways" {
+  default = true
 }
 
 /*

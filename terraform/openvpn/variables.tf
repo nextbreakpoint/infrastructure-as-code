@@ -1,28 +1,15 @@
-###################################################################
-# AWS configuration below
-###################################################################
+### MANDATORY ###
+variable "hosted_zone_name" {}
 
-variable "aws_region" {
-  default = "eu-west-2"
+### MANDATORY ###
+variable "hosted_zone_id" {}
+
+variable "key_name" {
+  default = "openvpn"
 }
 
-###################################################################
-# Resources configuration below
-###################################################################
-
-### MANDATORY ###
-variable "environment" {}
-
-### MANDATORY ###
-variable "colour" {}
-
-### MANDATORY ###
-variable "workspace" {}
-
-### MANDATORY ###
-variable "key_name" {
-  description = "Name of the SSH keypair to use in AWS."
-  default     = "openvpn"
+variable "instance_type" {
+  default = "t2.small"
 }
 
 variable "volume_type" {
@@ -33,28 +20,15 @@ variable "volume_size" {
   default = "8"
 }
 
-### MANDATORY ###
-variable "hosted_zone_name" {}
-
-### MANDATORY ###
-variable "hosted_zone_id" {}
-
-### MANDATORY ###
-variable "account_id" {}
-
-### MANDATORY ###
-variable "base_version" {}
-
-### MANDATORY ###
-variable "secrets_bucket_name" {}
-
 variable "openvpn_cidr" {
   default = "10.8.0.0/16"
 }
 
-variable "instance_type" {
-  default = "t2.small"
-}
+### MANDATORY ###
+variable "openvpn_image_version" {}
+
+### MANDATORY ###
+variable "openvpn_bucket_name" {}
 
 ### MANDATORY ###
 variable "openvpn_key_password" {}
@@ -64,3 +38,7 @@ variable "openvpn_keystore_password" {}
 
 ### MANDATORY ###
 variable "openvpn_truststore_password" {}
+
+variable "openvpn" {
+  default = false
+}

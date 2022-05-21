@@ -4,9 +4,9 @@ set -e
 
 POSITIONAL_ARGS=()
 
-PROFILE="terraform"
-ACCOUNT_ID=""
-ROLE_NAME=""
+PROFILE=""
+ACCOUNT=""
+ROLE=""
 
 for i in "$@"; do
   case $i in
@@ -15,11 +15,11 @@ for i in "$@"; do
       shift
       ;;
     --account=*)
-      ACCOUNT_ID="${i#*=}"
+      ACCOUNT="${i#*=}"
       shift
       ;;
     --role=*)
-      ROLE_NAME="${i#*=}"
+      ROLE="${i#*=}"
       shift
       ;;
     *)
@@ -29,18 +29,33 @@ for i in "$@"; do
   esac
 done
 
-if [[ -z $ROLE_NAME ]]; then
-  echo "Missing required parameter --role"
+if [[ -z $PROFILE ]]; then
+  echo "Missing required parameter --profile"
   exit 1
 fi
 
-if [[ -z $ACCOUNT_ID ]]; then
+if [[ -z $ACCOUNT ]]; then
   echo "Missing required parameter --account"
   exit 1
 fi
 
-$(aws --profile ${PROFILE} sts assume-role --role-arn arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME} --role-session-name Terraform --duration-seconds=3600 | jq --raw-output '"export AWS_ACCESS_KEY_ID=" + .Credentials.AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY=" + .Credentials.SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .Credentials.SessionToken')
+if [[ -z $ROLE ]]; then
+  echo "Missing required parameter --role"
+  exit 1
+fi
 
-echo "export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
-echo "export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
-echo "export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN"
+$(aws --profile ${PROFILE} sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/${ROLE} --role-session-name Terraform --duration-seconds=3600 | jq --raw-output '"export ACCESS_KEY_ID=" + .Credentials.AccessKeyId + "\nexport SECRET_ACCESS_KEY=" + .Credentials.SecretAccessKey + "\nexport SESSION_TOKEN=" + .Credentials.SessionToken')
+
+if [[ -z $ACCESS_KEY_ID ]]; then
+  exit 1
+fi
+
+if [[ -z $SECRET_ACCESS_KEY ]]; then
+  exit 1
+fi
+
+if [[ -z $SESSION_TOKEN ]]; then
+  exit 1
+fi
+
+echo "AWS_ACCESS_KEY_ID=\"${ACCESS_KEY_ID}\"\nAWS_SECRET_ACCESS_KEY=\"${SECRET_ACCESS_KEY}\"\nAWS_SESSION_TOKEN=\"${SESSION_TOKEN}\""

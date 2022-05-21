@@ -1,7 +1,3 @@
-##############################################################################
-# Outputs
-##############################################################################
-
 output "platform-public-subnet-a-id" {
   value = "${aws_subnet.platform_public_a.id}"
 }
@@ -34,20 +30,12 @@ output "bastion-public-subnet-b-id" {
   value = "${aws_subnet.bastion_b.id}"
 }
 
-output "bastion-public-subnet-c-id" {
-  value = "${aws_subnet.bastion_c.id}"
-}
-
 output "openvpn-public-subnet-a-id" {
   value = "${aws_subnet.openvpn_a.id}"
 }
 
 output "openvpn-public-subnet-b-id" {
   value = "${aws_subnet.openvpn_b.id}"
-}
-
-output "openvpn-public-subnet-c-id" {
-  value = "${aws_subnet.openvpn_c.id}"
 }
 
 output "platform-public-subnet-a-cidr" {
@@ -82,18 +70,10 @@ output "bastion-public-subnet-b-cidr" {
   value = "${aws_subnet.bastion_b.cidr_block}"
 }
 
-output "bastion-public-subnet-c-cidr" {
-  value = "${aws_subnet.bastion_c.cidr_block}"
-}
-
 output "openvpn-public-subnet-a-cidr" {
   value = "${aws_subnet.openvpn_a.cidr_block}"
 }
 
 output "openvpn-public-subnet-b-cidr" {
   value = "${aws_subnet.openvpn_b.cidr_block}"
-}
-
-output "openvpn-public-subnet-c-cidr" {
-  value = "${aws_subnet.openvpn_c.cidr_block}"
 }

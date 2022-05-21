@@ -1,24 +1,3 @@
-##############################################################################
-# Providers
-##############################################################################
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "${var.aws_region}"
-}
-
-##############################################################################
-# Resources
-##############################################################################
-
 /*
 resource "aws_security_group" "cluster" {
   name        = "${var.environment}-${var.colour}-cluster"
@@ -227,9 +206,9 @@ resource "aws_eks_node_group" "cluster" {
   ]
 
   scaling_config {
-    desired_size = 1
-    max_size     = 2
-    min_size     = 1
+    desired_size = 0
+    max_size     = 4
+    min_size     = 0
   }
 
   update_config {

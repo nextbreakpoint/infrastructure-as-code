@@ -1,31 +1,4 @@
-##############################################################################
-# Providers
-##############################################################################
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.2"
-    }
-  }
-}
-
-provider "aws" {
-  region  = "${var.aws_region}"
-}
-
-provider "local" {
-}
-
-##############################################################################
-# Resources
-##############################################################################
+data "aws_caller_identity" "current" {}
 
 resource "aws_security_group" "openvpn" {
   name        = "${var.environment}-${var.colour}-openvpn"
@@ -99,24 +72,21 @@ resource "aws_iam_role" "openvpn" {
       "Principal": {
         "Service": "ec2.amazonaws.com"
       },
-      "Effect": "Allow",
-      "Sid": ""
+      "Effect": "Allow"
     },
     {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "s3.amazonaws.com"
       },
-      "Effect": "Allow",
-      "Sid": ""
+      "Effect": "Allow"
     },
     {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "route53.amazonaws.com"
       },
-      "Effect": "Allow",
-      "Sid": ""
+      "Effect": "Allow"
     }
   ]
 }
@@ -140,19 +110,22 @@ resource "aws_iam_role_policy" "openvpn" {
     },
     {
         "Action": [
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:DeleteObject"
+          "s3:*"
         ],
         "Effect": "Allow",
-        "Resource": "arn:aws:s3:::${var.secrets_bucket_name}/*"
+        "Resource": [
+          "arn:aws:s3:::${var.openvpn_bucket_name}",
+          "arn:aws:s3:::${var.openvpn_bucket_name}/*"
+        ]
     },
     {
         "Action": [
             "route53:ChangeResourceRecordSets"
         ],
         "Effect": "Allow",
-        "Resource": "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
+        "Resource": [
+          "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
+        ]
     }
   ]
 }
@@ -186,9 +159,7 @@ EOF
 #         "route53:ListHostedZonesByName"
 #     ],
 #     "Effect": "Allow",
-#     "Resource": [
-#         "*"
-#     ]
+#     "Resource": "*"
 # }
 
 
@@ -202,7 +173,7 @@ data "aws_ami" "openvpn" {
 
   filter {
     name   = "name"
-    values = ["openvpn-${var.environment}-${var.colour}-${var.base_version}-*"]
+    values = ["openvpn-${var.openvpn_image_version}-*"]
   }
 
   filter {
@@ -210,7 +181,7 @@ data "aws_ami" "openvpn" {
     values = ["hvm"]
   }
 
-  owners = ["${var.account_id}"]
+  owners = ["${data.aws_caller_identity.current.account_id}"]
 }
 
 data "template_file" "openvpn" {
@@ -219,7 +190,7 @@ data "template_file" "openvpn" {
   vars = {
     environment                = "${var.environment}"
     colour                     = "${var.colour}"
-    bucket_name                = "${var.secrets_bucket_name}"
+    bucket_name                = "${var.openvpn_bucket_name}"
     key_password               = "${var.openvpn_key_password}"
     keystore_password          = "${var.openvpn_keystore_password}"
     truststore_password        = "${var.openvpn_truststore_password}"
@@ -236,6 +207,7 @@ data "template_file" "openvpn" {
 }
 
 resource "aws_instance" "openvpn_a" {
+  count                       = "${var.openvpn == true ? 1 : 0}"
   ami                         = "${data.aws_ami.openvpn.id}"
   instance_type               = "${var.instance_type}"
   subnet_id                   = "${data.terraform_remote_state.subnets.outputs.openvpn-public-subnet-a-id}"
@@ -259,6 +231,7 @@ resource "aws_instance" "openvpn_a" {
 }
 
 # resource "aws_instance" "openvpn_b" {
+#   count                       = "${var.openvpn == true ? 1 : 0}"
 #   ami                         = "${data.aws_ami.openvpn.id}"
 #   instance_type               = "${var.instance_type}"
 #   subnet_id                   = "${data.terraform_remote_state.subnets.outputs.openvpn-public-subnet-b-id}"
@@ -269,28 +242,15 @@ resource "aws_instance" "openvpn_a" {
 #   source_dest_check           = false
 #   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 #
-#   tags = {
-#     Environment = "${var.environment}"
-#     Colour      = "${var.colour}"
-#     Name        = "${var.environment}-${var.colour}-openvpn-b"
+#   root_block_device {
+#     volume_type = "${var.volume_type}"
+#     volume_size = "${var.volume_size}"
 #   }
-# }
-
-# resource "aws_instance" "openvpn_c" {
-#   ami                         = "${data.aws_ami.openvpn.id}"
-#   instance_type               = "${var.instance_type}"
-#   subnet_id                   = "${data.terraform_remote_state.subnets.outputs.openvpn-public-subnet-c-id}"
-#   vpc_security_group_ids      = ["${aws_security_group.openvpn.id}"]
-#   iam_instance_profile        = "${aws_iam_instance_profile.openvpn.id}"
-#   user_data                   = "${data.template_file.openvpn.rendered}"
-#   associate_public_ip_address = "true"
-#   source_dest_check           = false
-#   key_name                    = "${var.environment}-${var.colour}-${var.key_name}"
 #
 #   tags = {
 #     Environment = "${var.environment}"
 #     Colour      = "${var.colour}"
-#     Name        = "${var.environment}-${var.colour}-openvpn-c"
+#     Name        = "${var.environment}-${var.colour}-openvpn-b"
 #   }
 # }
 
@@ -300,12 +260,11 @@ resource "aws_route53_record" "openvpn" {
   type    = "A"
   ttl     = 300
   records = [
-    "${aws_instance.openvpn_a.public_ip}"
+    "${aws_instance.openvpn_a[0].public_ip}"
   ]
   # records = [
-  #   "${aws_instance.openvpn_a.public_ip}",
-  #   "${aws_instance.openvpn_b.public_ip}",
-  #   "${aws_instance.openvpn_c.public_ip}"
+  #   "${aws_instance.openvpn_a[0].public_ip}",
+  #   "${aws_instance.openvpn_b[0].public_ip}"
   # ]
 }
 
