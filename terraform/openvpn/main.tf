@@ -255,6 +255,7 @@ resource "aws_instance" "openvpn_a" {
 # }
 
 resource "aws_route53_record" "openvpn" {
+  count   = "${var.openvpn == true ? 1 : 0}"
   zone_id = "${var.hosted_zone_id}"
   name    = "${var.environment}-${var.colour}-openvpn.${var.hosted_zone_name}"
   type    = "A"
