@@ -313,12 +313,27 @@ Restrict access to OpenVPN bucket to increase security:
           "Principal": "*",
           "Action": "s3:*",
           "Resource": [
+            "arn:aws:s3:::${YOUR_OPENVPN_BUCKET_NAME}",
+            "arn:aws:s3:::${YOUR_OPENVPN_BUCKET_NAME}/*"
+          ],
+          "Condition": {
+            "Bool": {
+              "aws:SecureTransport": "false"
+            }
+          }
+        },
+        {
+          "Effect": "Deny",
+          "Principal": "*",
+          "Action": "s3:*",
+          "Resource": [
              "arn:aws:s3:::${YOUR_OPENVPN_BUCKET_NAME}",
              "arn:aws:s3:::${YOUR_OPENVPN_BUCKET_NAME}/*"
           ],
           "Condition": {
             "StringNotLike": {
               "aws:userId": [
+                "$(aws --profile superuser iam get-role --role-name Terraform-Manage-Bootstrap | jq -r '.Role.RoleId'):*",
                 "$(aws --profile superuser iam get-role --role-name Terraform-Manage-Servers | jq -r '.Role.RoleId'):*",
                 "$(aws --profile superuser iam get-user --user-name Superuser | jq -r '.User.UserId')",
                 "${YOUR_AWS_ACCOUNT_ID}"
@@ -330,8 +345,9 @@ Restrict access to OpenVPN bucket to increase security:
     }
     EOF
 
-    aws --profile bootstrap-admin s3api put-bucket-policy --bucket ${YOUR_OPENVPN_BUCKET_NAME} --policy file://policies/bucket-openvpn-deny-access.json
-    aws --profile bootstrap-admin s3api put-public-access-block --bucket ${YOUR_OPENVPN_BUCKET_NAME} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+    export $(./assume-role.sh --profile=bootstrap-admin --account=${YOUR_AWS_ACCOUNT_ID} --role=Terraform-Manage-Bootstrap)
+    aws s3api put-bucket-policy --bucket ${YOUR_OPENVPN_BUCKET_NAME} --policy file://policies/bucket-openvpn-deny-access.json
+    aws s3api put-public-access-block --bucket ${YOUR_OPENVPN_BUCKET_NAME} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
 
 Restrict access to Terraform bucket to increase security:
 
@@ -339,6 +355,20 @@ Restrict access to Terraform bucket to increase security:
     {
       "Version": "2012-10-17",
       "Statement": [
+        {
+          "Effect": "Deny",
+          "Principal": "*",
+          "Action": "s3:*",
+          "Resource": [
+            "arn:aws:s3:::${YOUR_TERRAFORM_BUCKET_NAME}",
+            "arn:aws:s3:::${YOUR_TERRAFORM_BUCKET_NAME}/*"
+          ],
+          "Condition": {
+            "Bool": {
+              "aws:SecureTransport": "false"
+            }
+          }
+        },
         {
           "Effect": "Deny",
           "Principal": "*",
@@ -365,8 +395,9 @@ Restrict access to Terraform bucket to increase security:
     }
     EOF
 
-    aws --profile bootstrap-admin s3api put-bucket-policy --bucket ${YOUR_TERRAFORM_BUCKET_NAME} --policy file://policies/bucket-terraform-deny-access.json
-    aws --profile bootstrap-admin s3api put-public-access-block --bucket ${YOUR_TERRAFORM_BUCKET_NAME} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+    export $(./assume-role.sh --profile=bootstrap-admin --account=${YOUR_AWS_ACCOUNT_ID} --role=Terraform-Manage-Bootstrap)
+    aws s3api put-bucket-policy --bucket ${YOUR_TERRAFORM_BUCKET_NAME} --policy file://policies/bucket-terraform-deny-access.json
+    aws s3api put-public-access-block --bucket ${YOUR_TERRAFORM_BUCKET_NAME} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
 
 See reference documentation:
 
