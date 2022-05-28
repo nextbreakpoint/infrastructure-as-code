@@ -1,11 +1,7 @@
-##############################################################################
-# Outputs
-##############################################################################
-
-output "openvpn-a-id" {
-  value = "${aws_instance.openvpn_a.id}"
-}
-
 output "openvpn-a-private-ip" {
-  value = "${aws_instance.openvpn_a.private_ip}"
+  value = "${aws_instance.openvpn_a[0].private_ip}"
 }
+
+# output "openvpn-b-private-ip" {
+#   value = "${aws_instance.openvpn_b[0].private_ip}"
+# }

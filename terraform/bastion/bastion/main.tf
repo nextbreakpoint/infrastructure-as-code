@@ -1,4 +1,3 @@
-variable "count" {}
 variable "environment" {}
 variable "colour" {}
 variable "name" {}
@@ -13,7 +12,6 @@ variable "key_name" {}
 variable "user_data" {}
 
 resource "aws_instance" "bastion" {
-  count                       = "${var.count}"
   ami                         = "${var.ami}"
   instance_type               = "${var.instance_type}"
   iam_instance_profile        = "${var.instance_profile}"

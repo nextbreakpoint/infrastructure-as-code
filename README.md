@@ -1,715 +1,392 @@
+
 # Infrastructure as code
 
-This repository contains scripts for creating a production-grade infrastructure for running micro-services using Docker containers. The scripts implement a simple and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com). The infrastructure consumes the minimum resources required to run the essential services, but it can be scaled in order to manage a higher workload, adding more machines and upgrading the type of the machines.
+This repository contains the resources for creating a minimal infrastructure for running micro-services on [Kubernetes](https://kubernetes.io).
 
-The infrastructure includes the following components:
+    THIS PROJECT IS WORK IN PROGRESS
 
-- [Logstash](https://www.elastic.co/products/logstash), [Elasticsearch](https://www.elastic.co/products/elasticsearch) and [Kibana](https://www.elastic.co/products/kibana) for collecting and analysing logs
+We provide a simple and reliable process for creating a scalable and secure infrastructure on [AWS](https://aws.amazon.com).
+The infrastructure is configured to use the minimum amount of resources required to run the essential services,
+but it can be scaled in order to manage a higher workload, and extended with additional components if needed.
 
-- [Jenkins](https://jenkins-ci.org), [SonarQube](https://www.sonarqube.org) and [Artifactory](https://jfrog.com/artifactory/) for creating a delivery pipeline
 
-- [Consul](https://www.consul.io) for discovering machines or services
+## Requirements
 
-- [Graphite](https://graphiteapp.org) and [Grafana](https://grafana.com) for collecting metrics and monitoring services
-
-- [Cassandra](http://cassandra.apache.org), [Kafka](https://kafka.apache.org), [Zookeeper](https://zookeeper.apache.org) for creating scalable event-driven services
-
-- [OpenVPN](https://openvpn.net) for creating a secure connection to private machines
-
-The infrastructure is based on Docker containers running on a [Docker Swarm](https://docs.docker.com/engine/swarm/) cluster which includes several EC2 machines. Most of the machines are created within a private network and they are reachable via VPN connection, using OpenVPN, or via SSH, using a bastion machine. Some machines are created within a public network and they are reachable via the same VPN/SSH method, however they can serve web traffic on port 80 or 443 using their public ip address. The private machines can also be reached using an internet-facing load balancer or a proxy server running in a public subnet.
-
-The infrastructure is managed by using [Docker](https://www.docker.com), [Terraform](https://www.terraform.io) and [Packer](https://www.packer.io).
+You need an AWS account for creating the infrastructure. Create one on [AWS](https://aws.amazon.com) if you don't have one already.
 
     BEWARE OF THE COST OF RUNNING THE INFRASTRUCTURE ON AWS. WE ARE NOT RESPONSIBLE FOR ANY CHARGES
 
-## Prepare workstation
+Once you have created your account, save the account id, you will need it soon.
 
-Follow the [instructions](https://docs.docker.com/engine/installation) on Docker.com to install Docker CE version 18.03 or later. Docker is the only tool that you need to install on your workstation.
 
-## Configure AWS credentials
+## Setup
 
-Create a new [AWS account](https://aws.amazon.com) or use an existing one if you can assign the required permissions to your user. In order to create the infrastructure, your must have full administration permissions (alternatively you can start with minimal permissions and add what is required as you go, but at the moment we don't provide the complete policy).
+Install AWS CLI v2:
 
-Create a new Access Key for your user and save the credentials on your workstation. AWS credentials are typically stored at location ~/.aws/credentials.
+    curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+    sudo installer -pkg AWSCLIV2.pkg -target /
 
-The content of ~/.aws/credentials should look like:
+Install required tools:
 
-    [default]
-    aws_access_key_id = "your_access_key_id"
-    aws_secret_access_key = "your_secret_access_key"
+    brew install jq
+    brew install terragrunt
+    brew install kubernetes-cli
+    brew tap weaveworks/tap
+    brew install weaveworks/tap/eksctl
+    brew install aws-iam-authenticator
 
-## Configure SSL certificates
+Install optional tools:
 
-Create and upload two SSL certificates using [Certificate Manager](https://eu-west-1.console.aws.amazon.com/acm/home?region=eu-west-1) in AWS console.
+    brew install kubectx
+    brew install tfenv
+    tfenv install 1.2.1
+    tfenv use 1.2.1
 
-First certificate must be issued for domain:
 
-    yourdomain.com
+## Bootstrap
 
-Second certificate must be issued for domain:
+You will need a user which has the right permissions to configure the required resources before we can automate the process.
+You could use your AWS root account, but we don't recommend it, because that user has high privileges. We recommend instead
+that you manually create from the AWS web console a new user with only the required privileges.
 
-    internal.yourdomain.com
+Sign in to your AWS account:
 
-The certificates will be used to provision two ALBs, one internet facing and the other internal.
+  open https://${YOUR_AWS_ACCOUNT_ID}.signin.aws.amazon.com/console
 
-    You can use self-signed certificates, just remember that your browser will warn you when accessing resources on those domains
+Create a user "Superuser", attach the policy arn:aws:iam::aws:policy/IAMFullAccess, and create an access key (keep access key details secret).
+We will use the user to create users and groups, and to create the fundamental roles and policies required for managing the infrastructure.
 
-## Build Docker image
+Create an AWS profile (you will need the access key details):
 
-Create the Docker image that you will use to build the infrastructure:
+    ./add-profile.sh --profile=superuser \
+      --region=${YOUR_AWS_REGION} \
+      --access-key-id=${SUPERUSER_ACCESS_KEY_ID} \
+      --secret-access-key=${SUPERUSER_SECRET_ACCESS_KEY} \
 
-    ./docker_build.sh
+Create SSH keys (you will need them later to access the EC2 machines):
 
-The image contains the tools you need to manage the infrastructure, including AWS CLI, Terraform, Packer, and others.
+    ./make-keys.sh --path=keys --environment=prod --colour=green
 
-## Configure S3 buckets
+Copy the keys to a safe place and share them only with people who you trust.
 
-Two S3 buckets are required for creating the infrastructure. The first bucket is required for storing secrets and certificates. The second bucket is required for storing Terraform's remote state. Since the buckets contains sensible data, the access must be restricted.
+Create policy files:
 
-    Consider enabling KMS encryption on the bucket to increase security
+    ./make-policies.sh --account=${YOUR_AWS_ACCOUNT_ID}
 
-Create a S3 bucket for secrets with command:
+Create bootstrap role:
 
-    ./docker_run.sh make_bucket your_secrets_bucket_name
+    aws --profile superuser iam create-role \
+        --role-name Terraform-Manage-Bootstrap \
+        --assume-role-policy-document file://policies/assume-role.json
 
-Create a S3 bucket for Terraform with command:
+Create bootstrap group:
 
-    ./docker_run.sh make_bucket your_terraform_bucket_name
+    aws --profile superuser iam create-group --group-name Terraform-Bootstrap
 
-Once the buckets has been created, configure the Terraform's backend with command:
+Configure role policies:
 
-    ./docker_run.sh configure_terraform your_terraform_bucket_name
+    aws --profile superuser iam attach-role-policy \
+        --role-name Terraform-Manage-Bootstrap \
+        --policy-arn arn:aws:iam::aws:policy/IAMFullAccess
 
-The script will set the bucket name and region in all remote_state.tf files.
+    aws --profile superuser iam attach-role-policy \
+        --role-name Terraform-Manage-Bootstrap \
+        --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 
-## Configure Terraform and Packer
+    aws --profile superuser iam attach-role-policy \
+        --role-name Terraform-Manage-Bootstrap \
+        --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
 
-Create a file main.json in the config directory. Copy the content from the file template-main.json. The file should look like:
+    aws --profile superuser iam attach-role-policy \
+        --role-name Terraform-Manage-Bootstrap \
+        --policy-arn arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess
 
+Configure group policies:
+
+    aws --profile superuser iam put-group-policy \
+        --group-name Terraform-Bootstrap \
+        --policy-name Terraform-Manage-Bootstrap \
+        --policy-document file://policies/assume-role-manage-boostrap.json
+
+Create a user "BootstrapAdmin", assign a group, create an access key and AWS profile:
+
+    ./create-user.sh --profile=superuser --user-profile=bootstrap-admin \
+      --user-name=BootstrapAdmin --group-name=Terraform-Bootstrap --region=${YOUR_AWS_REGION}
+
+Create a user "SecurityAdmin", assign a group, create an access key and AWS profile:
+
+    ./create-user.sh --profile=superuser --user-profile=security-admin \
+      --user-name=SecurityAdmin --group-name=Terraform-Security --region=${YOUR_AWS_REGION}
+
+Create a user "NetworksAdmin", assign a group, create an access key and AWS profile:
+
+    ./create-user.sh --profile=superuser --user-profile=networks-admin \
+      --user-name=NetworksAdmin --group-name=Terraform-Networks --region=${YOUR_AWS_REGION}
+
+Create a user "ServersAdmin", assign a group, create an access key and AWS profile:
+
+    ./create-user.sh --profile=superuser --user-profile=servers-admin \
+      --user-name=ServersAdmin --group-name=Terraform-Servers --region=${YOUR_AWS_REGION}
+
+Create a user "ClustersAdmin", assign a group, create an access key and AWS profile:
+
+    ./create-user.sh --profile=superuser --user-profile=clusters-admin \
+      --user-name=ClustersAdmin --group-name=Terraform-Clusters --region=${YOUR_AWS_REGION}
+
+Create a user "Packer", assign a group, create an access key and AWS profile:
+
+    ./create-user.sh --profile=superuser --user-profile=packer \
+      --user-name=Packer --group-name=Packer-Build --region=${YOUR_AWS_REGION}
+
+Create a user "Developer", assign a group, create an access key and AWS profile:
+
+    ./create-user.sh --profile=superuser --user-profile=developer \
+      --user-name=Developer --group-name=Developers --region=${YOUR_AWS_REGION}
+
+Ensure you have created two certificates (one for public servers and the other for private servers):
+
+    aws --profile bootstrap-admin acm request-certificate --domain-name '*.${YOUR_ZONE_NAME}' --validation-method DNS    
+    aws --profile bootstrap-admin acm request-certificate --domain-name '*.internal.${YOUR_ZONE_NAME}' --validation-method DNS    
+
+Initialize Terraform state:
+
+    ./terraform-state.sh --profile=bootstrap-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME}
+
+Configure Terragrunt script (see script for additional configuration parameters):
+
+    ./terragrunt-configure.sh --region=${YOUR_AWS_REGION} \
+      --terraform-bucket-name=${YOUR_TERRAFORM_BUCKET_NAME} --openvpn-bucket-name=${YOUR_OPENVPN_BUCKET_NAME} \
+      --hosted-zone-id=${YOUR_ROUTE53_ZONE_ID} --hosted-zone-name=${YOUR_ROUTE53_ZONE_NAME} \
+      --keys-path=${YOUR_KEYS_PATH} --environment=prod --colour=green
+
+Create bootstrap resources:
+
+    ./terragrunt-run.sh --profile=bootstrap-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=bootstrap
+
+
+## Security
+
+We can now create the remaining groups, roles, and policies for managing the infrastructure.
+We will run Terraform using a role that has the minimum required permissions for performing the task.
+
+Create resources:
+
+    ./terragrunt-run.sh --profile=security-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=security
+
+
+## Networks
+
+We can now create the required VPCs, subnets, and routing tables for the infrastructure.
+We will run Terraform using a role that has the minimum required permissions for performing the task.
+
+Create resources:
+
+    ./terragrunt-run.sh --profile=networks-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=vpcs
+    ./terragrunt-run.sh --profile=networks-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=subnets
+
+
+## Servers
+
+We can now create the required servers to access the machines in the private networks.
+We will run Terraform using a role that has the minimum required permissions for performing the task.
+
+Build AMI images (you will need one of the SSH keys):
+
+    PACKER_BUILD_SUBNET=$(./query-subnet.sh --profile=networks-admin --key="bastion-public-subnet-a-id" --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME})
+    ./build-image.sh --profile=packer --account=${YOUR_AWS_ACCOUNT_ID} --subnet=${PACKER_BUILD_SUBNET} --ssh-key=prod-green-packer --image=openvpn --version=1.0
+    ./build-image.sh --profile=packer --account=${YOUR_AWS_ACCOUNT_ID} --subnet=${PACKER_BUILD_SUBNET} --ssh-key=prod-green-packer --image=server --version=1.0
+
+Create bucket for OpenVPN secrets:
+
+    ./openvpn-init-secrets.sh --profile=bootstrap-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_OPENVPN_BUCKET_NAME}
+
+Create resources:
+
+    ./terragrunt-run.sh --profile=servers-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=keys
+    ./terragrunt-run.sh --profile=servers-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=bastion
+    ./terragrunt-run.sh --profile=servers-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=openvpn
+    ./terragrunt-run.sh --profile=servers-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=servers
+
+Download OpenVPN secrets (it might take some time for the server to create the secrets):
+
+    ./openvpn-get-secrets.sh --profile=bootstrap-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_OPENVPN_BUCKET_NAME}
+
+Use the client.pvpn file to configure OpenVPN Connect and access the EC2 machines.
+
+After connecting to the VPN run the command:
+
+    ssh -i keys/prod-green-server.pem ubuntu@<the_private_ip_address_or_hostname_of_ec2_machine>
+
+You can access the bastion machine without VPN:
+
+    ssh -i keys/prod-green-bastion.pem ubuntu@prod-green-bastion.${YOUR_ZONE_NAME}
+
+
+## Clusters
+
+We can now create the Kubernetes cluster and related resources, including load balancers.
+We will run Terraform using a role that has the minimum required permissions for performing the task.
+
+Create resources:
+
+    ./terragrunt-run.sh --profile=clusters-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=k8s
+    ./terragrunt-run.sh --profile=clusters-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME} --module=lbs
+
+Get Kubernetes config:
+
+    ./k8s-get-config.sh --profile=clusters-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --cluster=prod-green-k8s --role=Developers
+
+Configure namespace:
+
+    ./k8s-configure-namespace.sh --profile=clusters-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --cluster=prod-green-k8s --namespace=test
+
+Configure role:
+
+    ./k8s-configure-role.sh --profile=clusters-admin --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --cluster=prod-green-k8s --namespace=test --role=Developers
+
+Get Kubernetes config as user "Developer":
+
+    ./k8s-get-config.sh --profile=developer --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --cluster=prod-green-k8s --role=Developers
+
+Access Kubernetes as user "Developer":
+
+    AWS_PROFILE=developer kubectl -n test get pod
+
+
+## Notes
+
+Disable the access keys you don't use to increase security:
+
+    USER_ACCESS_KEY_ID=$(aws --profile superuser iam list-access-keys --user-name BootstrapAdmin | jq -r ".AccessKeyMetadata[0].AccessKeyId")
+    aws --profile superuser iam update-access-key --access-key-id ${USER_ACCESS_KEY_ID} --status Inactive --user-name BootstrapAdmin
+
+Configure password policy:
+
+    aws --profile superuser iam update-account-password-policy --minimum-password-length 8 \
+      --require-numbers --require-uppercase-characters --require-lowercase-characters --require-symbols --max-password-age 30
+
+Create a AWS console user and enable MFA:
+
+    aws --profile superuser iam create-user --user-name SomeUser
+    aws --profile superuser iam create-login-profile --user-name SomeUser --password-reset-required --password password
+    aws --profile superuser iam create-virtual-mfa-device --virtual-mfa-device-name someuser-mfa-device --outfile QRCode.png --bootstrap-method QRCodePNG
+    aws --profile superuser iam enable-mfa-device --user-name SomeUser --serial-number arn:aws:iam::${YOUR_AWS_ACCOUNT_ID}:mfa/someuser-mfa-device --authentication-code1 ${FIRST_CODE} --authentication-code2 ${SECOND_CODE}
+
+Create an administrators group:
+
+    aws --profile superuser iam create-group --group-name Administrators
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/IAMFullAccess
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/IAMAccessAnalyzerReadOnlyAccess
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::aws:policy/AWSBillingReadOnlyAccess
+    aws --profile superuser iam attach-group-policy --group-name Administrators --policy-arn arn:aws:iam::${YOUR_AWS_ACCOUNT_ID}:policy/EKS-Console
+
+Add an administrator user:
+
+    aws --profile superuser iam add-user-to-group --user-name SomeUser --group-name Administrators
+
+Allow a user to decode an authorization messages:
+
+    aws --profile superuser iam attach-user-policy --user-name Superuser --policy-arn arn:aws:iam::${YOUR_AWS_ACCOUNT_ID}:policy/Decode-Authorization-Message
+
+Decode authorization messages to debug permission issues:
+
+    ./decode-message.sh --profile=bootstrap --account=${YOUR_AWS_ACCOUNT_ID} --message=${THE_ENCODED_MESSAGE}     
+
+Remove access to the Kubernetes cluster for a role:
+
+    eksctl delete iamidentitymapping --cluster prod-green-k8s --region=${YOUR_AWS_REGION} --arn arn:aws:iam::${YOUR_AWS_ACCOUNT_ID}:role/Test-Developers
+
+Restrict access to OpenVPN bucket to increase security:
+
+    cat <<EOF >policies/bucket-openvpn-deny-access.json
     {
-        "account_id": "your_account_id",
-
-        "environment": "prod",
-        "colour": "green",
-
-        "hosted_zone_name": "yourdomain.com",
-        "hosted_zone_id": "your_public_zone_id",
-
-        "bastion_host": "bastion.yourdomain.com",
-
-        "secrets_bucket_name": "your_secrets_bucket_name",
-
-        "consul_datacenter": "internal",
-
-        "key_password": "your_key_password",
-        "keystore_password": "your_keystore_password",
-        "truststore_password": "your_truststore_password",
-        "kafka_password": "your_password",
-        "zookeeper_password": "your_password",
-        "mysql_root_password": "your_password",
-        "mysql_sonarqube_password": "your_password",
-        "mysql_artifactory_password": "your_password",
-        "kibana_password": "your_password",
-        "logstash_password": "your_password",
-        "elasticsearch_password": "your_password",
-
-        "cassandra_username": "cassandra",
-        "cassandra_password": "cassandra"
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Deny",
+          "Principal": "*",
+          "Action": "s3:*",
+          "Resource": [
+             "arn:aws:s3:::${YOUR_OPENVPN_BUCKET_NAME}",
+             "arn:aws:s3:::${YOUR_OPENVPN_BUCKET_NAME}/*"
+          ],
+          "Condition": {
+            "StringNotLike": {
+              "aws:userId": [
+                "$(aws --profile superuser iam get-role --role-name Terraform-Manage-Servers | jq -r '.Role.RoleId'):*",
+                "$(aws --profile superuser iam get-user --user-name Superuser | jq -r '.User.UserId')",
+                "${YOUR_AWS_ACCOUNT_ID}"
+              ]
+            }
+          }
+        }
+      ]
     }
-
-Change the variables to the correct values for your infrastructure. The account id must represent a valid AWS account and your AWS credentials must have the correct permissions on that account. The domain yourdomain.com must be a valid domain hosted in a Route53's public zone.
-
-    Register a new domain with AWS if you don't have one already and create a new public zone
-
-## Generate secrets
-
-Create the secrets with command:
-
-    ./docker_run.sh generate_secrets
-
-Several certificates and passwords are required to create a secure infrastructure.
-
-## Generate SSH keys
-
-Generate the SSH keys with command:
-
-    ./docker_run.sh generate_keys
-
-SSH keys are required to access EC2 machines.
-
-## Configure Consul
-
-Create a configuration for Consul with command:
-
-    ./docker_run.sh configure_consul
-
-## Create VPCs
-
-Create the VPCs with command:
-
-    ./docker_run.sh module_create vpc
-
-## Create SSH keys
-
-Create the SSH keys with command:
-
-    ./docker_run.sh module_create keys
-
-## Create Bastion network
-
-Create the Bastion network with command:
-
-    ./docker_run.sh module_create bastion
-
-## Build images with Packer
-
-Create the AMI images with command:
-
-    ./docker_run.sh build_images
-
-Some EC2 machines are provisioned using custom AMI.
-
-The script might take quite a while. Once the images have been created, you don't need to recreate them unless something has changed in the provisioning scripts. Reusing the same images, considerably reduces the time required to create the infrastructure.
-
-    If you destroy the infrastructure but you don't delete the AMIs, then you can skip this step when you recreate the infrastructure
-
-## Create the infrastructure
-
-Create secrets with command:
-
-    ./docker_run.sh module_create secrets
-
-Create subnets and NAT machines with command:
-
-    ./docker_run.sh module_create network
-
-Create Swarm nodes with command:
-
-    ./docker_run.sh module_create swarm
-
-The Swarm cluster includes 3 manager nodes and 6 worker nodes with DNS records:
-
-    prod-green-swarm-manager-a.yourdomain.com
-    prod-green-swarm-manager-b.yourdomain.com
-    prod-green-swarm-manager-c.yourdomain.com
-    prod-green-swarm-worker-int-a.yourdomain.com
-    prod-green-swarm-worker-int-b.yourdomain.com
-    prod-green-swarm-worker-int-c.yourdomain.com
-    prod-green-swarm-worker-ext-a.yourdomain.com
-    prod-green-swarm-worker-ext-b.yourdomain.com
-    prod-green-swarm-worker-ext-c.yourdomain.com
-
-The worker nodes marked as external have an additional DNS record for the public address:
-
-    prod-green-swarm-worker-ext-pub-a.yourdomain.com
-    prod-green-swarm-worker-ext-pub-b.yourdomain.com
-    prod-green-swarm-worker-ext-pub-c.yourdomain.com
-
-Please note that the single letter at the end of the name represents the availability zone.    
-
-## Create Bastion server (optional)
-
-Create the Bastion server with command:
-
-    ./docker_run.sh module_create bastion -var bastion=true
-
-### Access machines using Bastion
-
-Copy the deployer key to Bastion machine:
-
-    scp -i prod-green-deployer.pem prod-green-deployer.pem ec2-user@prod-green-bastion.yourdomain.com:~
-
-Connect to bastion server using the command:
-
-    ssh -i prod-green-deployer.pem ec2-user@prod-green-bastion.yourdomain.com
-
-Connect to any other machines using the command:
-
-    ssh -i prod-green-deployer.pem ubuntu@private_ip_address
-
-You can find the ip address of the machines on the AWS console.
-
-## Create OpenVPN server
-
-Create the OpenVPN server with command:
-
-    ./docker_run.sh module_create openvpn
-
-### Access machines using OpenVPN
-
-A default client configuration is automatically generated at location:
-
-    secrets/openvpn/prod/green/openvpn_client.ovpn
-
-Install the configuration in your OpenVPN client and connect your client. OpenVPN server is configured to allow connections to any internal servers.
-
-You should create a different configuration for each client using the command:
-
-    ./docker_run.sh create_ovpn name
-
-The client configuration is generated at location:
-
-    secrets/openvpn/prod/green/openvpn_name.ovpn
-
-If you need to modify the server configuration, login into OpenVPN server:
-
-    ssh -i prod-green-deployer.pem ubuntu@prod-green-openvpn.yourdomain.com
-
-Edit the file /etc/openvpn/server.conf and then restart the server:
-
-    sudo service openvpn restart
-
-## Create the Docker Swarm
-
-Docker Swarm can be created when all the EC2 machines are ready.
-
-Verify that you can ping the manager nodes:
-
-    ping prod-green-swarm-manager-a.yourdomain.com
-    ping prod-green-swarm-manager-b.yourdomain.com
-    ping prod-green-swarm-manager-c.yourdomain.com
-
-Verify that you can ping the private worker nodes:
-
-    ping prod-green-swarm-worker-int-a.yourdomain.com
-    ping prod-green-swarm-worker-int-b.yourdomain.com
-    ping prod-green-swarm-worker-int-c.yourdomain.com
-
-Verify that you can ping the public worker nodes:
-
-    ping prod-green-swarm-worker-ext-a.yourdomain.com
-    ping prod-green-swarm-worker-ext-b.yourdomain.com
-    ping prod-green-swarm-worker-ext-c.yourdomain.com
-
-If you can't ping the machines, check your VPN connection. You must be connected to access machines in private subnets.
-
-Verify that you can login into the machines:
-
-    ssh -i prod-green-deployer.pem ubuntu@prod-green-swarm-manager-a.yourdomain.com
-
-Create the Swarm with command:
-
-    ./swarm_join.sh
-
-Configure the Swarm with command:
-
-    ./swarm_configure.sh
-
-Verify that the Swarm is working with command:
-
-    ./swarm_run.sh cli "docker node ls"
-
-It should print the list of the nodes, which should contain 6 nodes, 3 managers and 6 workers.
-
-### Create networks
-
-Create the overlay networks with command:
-
-    ./swarm_run.sh create_networks
-
-The overlay networks are used to allow communication between containers running on different machines.
-
-### Create services
-
-The services are deployed on the Swarm using Docker Stacks.
-
-Deploy a stack with command:
-
-    ./swarm_run.sh deploy_stack consul
-
-It should create volumes and services on the worker nodes.
-
-Verify that the services are running with command:
-
-    ./swarm_run.sh cli "docker service ls"
-
-In a similar way, you can deploy any stack from this list:
-
-    consul
-    nginx
-    zookeeper
-    kafka
-    cassandra
-    elasticsearch
-    logstash
-    kibana
-    graphite
-    grafana
-    jenkins
-    mysql
-    sonarqube (MySQL setup required)
-    artifactory (MySQL setup required)
-
-Please note that before deploying SonarQube or Artifactory, you must configure MySQL with command:
-
-    ./swarm_run.sh setup_mysql
-
-The connection to MySQL might fail if the database is not ready to accept connections. If the connection fails, retry the command after a minute.
-
-### Services placement
-
-The mapping between machines and services depends on the labels assigned to Swarm's nodes. The services are deployed according to the placement constraints in the YAML file which defines the stack of the service. The constraints are based on labels and roles of the nodes.
-
-See documentation of [Docker Compose](https://docs.docker.com/compose/compose-file/) and [Docker Swarm](https://docs.docker.com/engine/reference/commandline/node_update/).
-
-Please note that some services have ports exposed on the host machines, therefore are reachable from any other machine in the same VPC.
-
-Please note that some ports are only accessible from the overlay network, and are used for internal communication between nodes of the cluster.
-
-#### Manager A
-
-Manager node in availability zone A
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    SonarQube | 9000 (tcp)
-    Artifactory | 8081 (tcp)
-    MySQL | 3306 (tcp)
-
-#### Manager B
-
-Manager node in availability zone B
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Graphite | 2080 (tcp)
-    Grafana | 3000 (tcp)
-
-#### Manager C
-
-Manager node in availability zone C
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Elasticsearch Kibana | 9200 (tcp)
-    Elasticsearch Kibana | 9300 (tcp)
-    Jenkins | 8080 (tcp)
-    Kibana | 5601 (tcp)
-
-#### Worker Int A
-
-Internal worker node in availability zone A
-
-    Elasticsearch | 9200 (tcp)
-    Elasticsearch | 9300 (tcp)
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Consul | 8500 (tcp)
-    Consul | 8600 (tcp/udp)
-    Consul | 8300 (tcp)
-    Consul | 8302  (tcp/udp)
-    Zookeeper | 2181 (tcp)
-    Zookeeper | 2888 (tcp)
-    Zookeeper | 3888 (tcp)
-    Kafka | 9092 (tcp)
-    Cassandra | 9042 (tcp)
-
-#### Worker Int B
-
-Internal worker node in availability zone B
-
-    Elasticsearch | 9200 (tcp)
-    Elasticsearch | 9300 (tcp)
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Consul | 8500 (tcp)
-    Consul | 8600 (tcp/udp)
-    Consul | 8300 (tcp)
-    Consul | 8302  (tcp/udp)
-    Zookeeper | 2181 (tcp)
-    Zookeeper | 2888 (tcp)
-    Zookeeper | 3888 (tcp)
-    Kafka | 9092 (tcp)
-    Cassandra | 9042 (tcp)
-
-#### Worker Int C
-
-Internal worker node in availability zone C
-
-    Elasticsearch | 9200 (tcp)
-    Elasticsearch | 9300 (tcp)
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Consul | 8500 (tcp)
-    Consul | 8600 (tcp/udp)
-    Consul | 8300 (tcp)
-    Consul | 8302  (tcp/udp)
-    Zookeeper | 2181 (tcp)
-    Zookeeper | 2888 (tcp)
-    Zookeeper | 3888 (tcp)
-    Kafka | 9092 (tcp)
-    Cassandra | 9042 (tcp)
-
-#### Worker Ext A
-
-External worker node in availability zone A
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Nginx | 80 (tcp)
-    Nginx | 443 (tcp)
-
-#### Worker Ext B
-
-External worker node in availability zone B
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Nginx | 80 (tcp)
-    Nginx | 443 (tcp)
-
-#### Worker Ext C
-
-External worker node in availability zone C
-
-    Logstash | 5044 (tcp)
-    Logstash | 9600 (tcp)
-    Logstash | 12201 (tcp/udp)
-    Nginx | 80 (tcp)
-    Nginx | 443 (tcp)
-
-### Remove services
-
-Remove a service with command:
-
-    ./swarm_run.sh remove_stack consul
-
-The volumes associated with the service are not deleted when deleting a stack.
-
-    The content of the volumes will still be available when recreating the stack
-
-### Remove networks
-
-Remove the overlay networks with command:
-
-    ./swarm_run.sh remove_networks
-
-## Create Load-Balancers, Target Groups and Route53 records (optional)
-
-Create the load balancers with command:
-
-    ./docker_run.sh module_create lb
-
-Create target groups and Route53 records with command:
-
-    ./docker_run.sh module_create targets
-
-Target groups and DNS records can be used to route HTTP traffic to specific machines and ports.
-
-You can test the routing with your browser for services with UI:
-
-    https://prod-green-jenkins.yourdomain.com/
-    https://prod-green-sonarqube.yourdomain.com/
-    https://prod-green-artifactory.yourdomain.com/artifactory/webapp/#/home
-    https://prod-green-kibana.yourdomain.com/
-    https://prod-green-consul.yourdomain.com/
-    https://prod-green-graphite.yourdomain.com/
-    https://prod-green-grafana.yourdomain.com/
-    https://prod-green-nginx.yourdomain.com/
-    http://prod-green-nginx.yourdomain.com/
-
-Use host and port in your client for connecting to backend services:
-
-    prod-green-cassandra-a.yourdomain.com:9042
-    prod-green-cassandra-b.yourdomain.com:9042
-    prod-green-cassandra-c.yourdomain.com:9042
-
-    prod-green-kafka-a.yourdomain.com:9092
-    prod-green-kafka-b.yourdomain.com:9092
-    prod-green-kafka-c.yourdomain.com:9092
-
-    prod-green-zookeeper-a.yourdomain.com:2181
-    prod-green-zookeeper-b.yourdomain.com:2181
-    prod-green-zookeeper-c.yourdomain.com:2181
-
-    prod-green-elasticsearch-a.yourdomain.com:9200
-    prod-green-elasticsearch-b.yourdomain.com:9200
-    prod-green-elasticsearch-c.yourdomain.com:9200
-
-    prod-green-logstash-a.yourdomain.com:5044
-    prod-green-logstash-b.yourdomain.com:5044
-    prod-green-logstash-c.yourdomain.com:5044
-    prod-green-logstash-a.yourdomain.com:12201
-    prod-green-logstash-b.yourdomain.com:12201
-    prod-green-logstash-c.yourdomain.com:12201
-
-    prod-green-consul-a.yourdomain.com:9600
-    prod-green-consul-b.yourdomain.com:9600
-    prod-green-consul-c.yourdomain.com:9600
-
-## Service discovery
-
-You might want to use Consul for services discovery in your applications.
-
-Deploy the agents to publish on Consul the services running on worker nodes:
-
-    ./swarm_run.sh deploy_stack consul-workers
-
-Use Consul UI to check the status of your services:
-
-    https://prod-green-swarm-worker-int.yourdomain.com:8500
-
-You can use Consul as DNS server and you can lookup for a service using a DNS query:
-
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 consul.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 logstash.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 elasticsearch.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 kafka.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 zookeeper.service.internal.consul
-    dig @prod-green-swarm-worker-int.yourdomain.com -p 8600 cassandra.service.internal.consul
-
-## Collecting and analysing logs
-
-All containers running on the Swarm are configured to send logs to Logstash, therefore the logs are available in Kibana.
-
-Use Kibana to analyse logs and monitor services:
-
-    https://prod-green-swarm-manager.yourdomain.com:5601
-
-    NOTE: Default user is "elastic" with password "changeme"
-
-The Docker daemon of the managers and workers is configured to use the GELF logging driver. Update the configuration and restart the Docker daemons if you have problem with this configuration and you cannot see the logs. Alternatively you can override the logging configuration when running a container or a service.
-
-## Collecting metrics and monitoring
-
-Use Graphite and Grafana to collect metrics and monitor services:
-
-    http://prod-green-swarm-manager.yourdomain.com:3000
-    http://prod-green-swarm-manager.yourdomain.com:2080
-
-    NOTE: Default user is "admin" with password "admin"
-
-Configure your applications to send metrics to Graphite:
-
-    http://prod-green-swarm-manager.yourdomain.com:2003
-
-Define a Graphite source and create dashboards in Grafana.
-
-## Building reactive services
-
-Use Zookeeper, Kafka, Cassandra, and Elasticsearch to build reactive services.
-
-Zookeeper is configured to use SASL with MD5 passwords.
-
-Kafka is configured with SSL connections between brokers and clients.
-
-Cassandra doesn't enforce secure connections by default.
-
-Elasticsearch is configured with SSL connections between nodes (X-Pack enabled with trial licence).
-
-See the scripts test_kafka_consume.sh and test_kafka_produce.sh for a example of client configuration.
-
-## Creating delivery pipelines
-
-Create your delivery pipelines using Jenkins:
-
-    https://prod-green-swarm-manager.yourdomain.com:8443
-    http://prod-green-swarm-manager.yourdomain.com:8080
-
-    NOTE: Security is disabled by default
-
-Integrate your build pipeline with SonarQube to analyse your code:
-
-    http://prod-green-swarm-manager.yourdomain.com:9000
-
-    NOTE: Default user is "admin" with password "admin"
-
-Integrate your build pipeline with Artifactory to manage your artifacts:
-
-    http://prod-green-swarm-manager.yourdomain.com:8081
-
-    NOTE: Default user is "admin" with password "password"
-
-Deploy your applications to Docker Swarm or EC2, manually or using Jenkins CI.
-
-## Disable access via Bastion
-
-Bastion server can be stopped or destroyed if required. The server can be recreated when needed.
-
-    Stop Bastion server from AWS console
-
-## Disable access via OpenVPN
-
-OpenVPN server can be stopped or destroyed if required. The server can be recreated when needed.
-
-    Stop OpenVPN server from AWS console
-
-## Destroy Load-Balancers, Target Groups and Route53 records
-
-Destroy Target Groups and Route53 records with command:
-
-    ./docker_run.sh module_destroy targets
-
-Destroy Load-Balancers with command:
-
-    ./docker_run.sh module_destroy lb
-
-## Destroy the infrastructure
-
-Destroy Swarm nodes with commands:
-
-    ./docker_run.sh module_destroy swarm
-
-Destroy subnets and NAT machines with commands:
-
-    ./docker_run.sh module_destroy network
-
-Destroy secrets with commands:
-
-    ./docker_run.sh module_destroy secrets
-
-## Destroy Bastion server
-
-Destroy Bastion with command:
-
-    ./docker_run.sh module_destroy bastion
-
-## Destroy OpenVPN server
-
-Destroy OpenVPN with command:
-
-    ./docker_run.sh module_destroy openvpn
-
-## Destroy network
-
-Destroy the network with command:
-
-    ./docker_run.sh module_destroy network
-
-Please note that network can be destroyed only after destroying infrastructure, Bastion and OpenVPN.
-
-## Destroy VPC
-
-Destroy the VPC with command:
-
-    ./docker_run.sh module_destroy vpc
-
-Please note that network can be destroyed only after destroying all, including network.
-
-## Destroy SSH keys
-
-Destroy the SSH keys with command:
-
-    ./docker_run.sh module_destroy keys
-
-## Delete images
-
-Delete the AMIs with command:
-
-    ./docker_run.sh delete_images
-
-## Reset Terraform state
-
-Reset Terraform's state with command:
-
-    ./docker_run.sh reset_terraform
-
-Be careful to don't reset the state before destroying the infrastructure.
+    EOF
+
+    aws --profile bootstrap-admin s3api put-bucket-policy --bucket ${YOUR_OPENVPN_BUCKET_NAME} --policy file://policies/bucket-openvpn-deny-access.json
+    aws --profile bootstrap-admin s3api put-public-access-block --bucket ${YOUR_OPENVPN_BUCKET_NAME} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+
+Restrict access to Terraform bucket to increase security:
+
+    cat <<EOF >policies/bucket-terraform-deny-access.json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Deny",
+          "Principal": "*",
+          "Action": "s3:*",
+          "Resource": [
+             "arn:aws:s3:::${YOUR_TERRAFORM_BUCKET_NAME}",
+             "arn:aws:s3:::${YOUR_TERRAFORM_BUCKET_NAME}/*"
+          ],
+          "Condition": {
+            "StringNotLike": {
+              "aws:userId": [
+                "$(aws --profile superuser iam get-role --role-name Terraform-Manage-Bootstrap | jq -r '.Role.RoleId'):*",
+                "$(aws --profile superuser iam get-role --role-name Terraform-Manage-Security | jq -r '.Role.RoleId'):*",
+                "$(aws --profile superuser iam get-role --role-name Terraform-Manage-Networks | jq -r '.Role.RoleId'):*",
+                "$(aws --profile superuser iam get-role --role-name Terraform-Manage-Servers | jq -r '.Role.RoleId'):*",
+                "$(aws --profile superuser iam get-role --role-name Terraform-Manage-Clusters | jq -r '.Role.RoleId'):*",
+                "$(aws --profile superuser iam get-user --user-name Superuser | jq -r '.User.UserId')",
+                "${YOUR_AWS_ACCOUNT_ID}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+    EOF
+
+    aws --profile bootstrap-admin s3api put-bucket-policy --bucket ${YOUR_TERRAFORM_BUCKET_NAME} --policy file://policies/bucket-terraform-deny-access.json
+    aws --profile bootstrap-admin s3api put-public-access-block --bucket ${YOUR_TERRAFORM_BUCKET_NAME} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+
+See reference documentation:
+
+    https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html
+    https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html#roles-usingrole-createpolicy
+    https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_account-policy.html
+    https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/
+    https://aws.amazon.com/blogs/containers/de-mystifying-cluster-networking-for-amazon-eks-worker-nodes/
+    https://docs.aws.amazon.com/vpc/latest/userguide/vpc-policy-examples.html
+    https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+    https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
+    https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+    https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html
+    https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html
+    https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html#cluster-autoscaler
+    https://docs.aws.amazon.com/eks/latest/userguide/choosing-instance-type.html
+    https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html
+    https://docs.aws.amazon.com/eks/latest/userguide/update-stack.html
+    https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html
+    https://docs.aws.amazon.com/eks/latest/userguide/worker.html
+    https://aws.github.io/aws-eks-best-practices/security/docs/iam/#restrict-access-to-the-instance-profile-assigned-to-the-worker-node
+    https://cloud-images.ubuntu.com/aws-eks/amazon-eks-ubuntu-nodegroup.yaml
+    https://github.com/awslabs/amazon-eks-ami/blob/master/amazon-eks-nodegroup.yaml
