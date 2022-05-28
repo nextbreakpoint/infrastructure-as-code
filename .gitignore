@@ -21,3 +21,7 @@ AWSCLIV2.pkg
 client.ovpn
 policies
 resources
+backend.tf
+provider.tf
+external.tf
+common.tf
