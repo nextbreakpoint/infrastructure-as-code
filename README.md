@@ -193,8 +193,8 @@ We will run Terraform using a role that has the minimum required permissions for
 Build AMI images (you will need one of the SSH keys):
 
     PACKER_BUILD_SUBNET=$(./query-subnet.sh --profile=networks-admin --key="bastion-public-subnet-a-id" --region=${YOUR_AWS_REGION} --bucket=${YOUR_TERRAFORM_BUCKET_NAME})
-    ./build-image.sh --profile=packer --account=${YOUR_AWS_ACCOUNT_ID} --subnet=${PACKER_BUILD_SUBNET} --ssh-key=prod-green-packer --image=openvpn --version=1.0
-    ./build-image.sh --profile=packer --account=${YOUR_AWS_ACCOUNT_ID} --subnet=${PACKER_BUILD_SUBNET} --ssh-key=prod-green-packer --image=server --version=1.0
+    ./build-image.sh --profile=packer --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --subnet=${PACKER_BUILD_SUBNET} --ssh-key=prod-green-packer --image=openvpn --version=1.0
+    ./build-image.sh --profile=packer --account=${YOUR_AWS_ACCOUNT_ID} --region=${YOUR_AWS_REGION} --subnet=${PACKER_BUILD_SUBNET} --ssh-key=prod-green-packer --image=server --version=1.0
 
 Create bucket for OpenVPN secrets:
 

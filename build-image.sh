@@ -6,6 +6,7 @@ POSITIONAL_ARGS=()
 
 PROFILE=""
 ACCOUNT=""
+REGION=""
 SUBNET=""
 SSH_KEY=""
 IMAGE=""
@@ -19,6 +20,10 @@ for i in "$@"; do
       ;;
     --account=*)
       ACCOUNT="${i#*=}"
+      shift
+      ;;
+    --region=*)
+      REGION="${i#*=}"
       shift
       ;;
     --subnet=*)
@@ -51,6 +56,11 @@ fi
 
 if [[ -z $ACCOUNT ]]; then
   echo "Missing required parameter --account"
+  exit 1
+fi
+
+if [[ -z $REGION ]]; then
+  echo "Missing required parameter --region"
   exit 1
 fi
 
@@ -93,6 +103,6 @@ fi
 
 pushd packer/images/${IMAGE}
 
-packer build --var key_path="../../../keys" --var key_name=${SSH_KEY} --var base_version=${VERSION} --var aws_subnet_id=${SUBNET} packer.json
+packer build --var key_path="../../../keys" --var key_name=${SSH_KEY} --var base_version=${VERSION} --var aws_subnet_id=${SUBNET} --var aws_region=${REGION} packer.json
 
 popd > /dev/null
