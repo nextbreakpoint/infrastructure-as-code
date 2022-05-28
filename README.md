@@ -49,9 +49,9 @@ You will need a user which has the right permissions to configure the required r
 You could use your AWS root account, but we don't recommend it, because that user has high privileges. We recommend instead
 that you manually create from the AWS web console a new user with only the required privileges.
 
-Sign in to your AWS account:
+Sign in to your AWS account (you must have created one):
 
-  open https://${YOUR_AWS_ACCOUNT_ID}.signin.aws.amazon.com/console
+    open https://${YOUR_AWS_ACCOUNT_ID}.signin.aws.amazon.com/console
 
 Create a user "Superuser", attach the policy arn:aws:iam::aws:policy/IAMFullAccess, and create an access key (keep access key details secret).
 We will use the user to create users and groups, and to create the fundamental roles and policies required for managing the infrastructure.
@@ -399,7 +399,8 @@ Restrict access to Terraform bucket to increase security:
     aws s3api put-bucket-policy --bucket ${YOUR_TERRAFORM_BUCKET_NAME} --policy file://policies/bucket-terraform-deny-access.json
     aws s3api put-public-access-block --bucket ${YOUR_TERRAFORM_BUCKET_NAME} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
 
-See documentation for help:
+
+## Reference documentation
 
 - https://www.terraform.io/language
 - https://terragrunt.gruntwork.io/docs/
