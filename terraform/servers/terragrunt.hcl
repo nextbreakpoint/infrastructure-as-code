@@ -28,7 +28,7 @@ generate "external" {
 data "terraform_remote_state" "vpc" {
   backend = "s3"
   config = {
-    bucket = var.bucket_name
+    bucket = var.terraform_bucket_name
     region = var.aws_region
     key    = "vpcs/terraform.tfstate"
   }
@@ -37,7 +37,7 @@ data "terraform_remote_state" "vpc" {
 data "terraform_remote_state" "subnets" {
   backend = "s3"
   config = {
-    bucket = var.bucket_name
+    bucket = var.terraform_bucket_name
     region = var.aws_region
     key    = "subnets/terraform.tfstate"
   }
