@@ -401,29 +401,29 @@ Restrict access to Terraform bucket to increase security:
 
 See documentation for help:
 
-https://www.terraform.io/language
-https://terragrunt.gruntwork.io/docs/
-https://stedolan.github.io/jq/manual/v1.6/
-https://registry.terraform.io/providers/hashicorp/aws/latest/docs
-https://terragrunt.gruntwork.io/docs/getting-started/quick-start/
-https://awscli.amazonaws.com/v2/documentation/api/latest/reference/index.html
-https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html
-https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html#roles-usingrole-createpolicy
-https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_account-policy.html
-https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/
-https://aws.amazon.com/blogs/containers/de-mystifying-cluster-networking-for-amazon-eks-worker-nodes/
-https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-https://docs.aws.amazon.com/vpc/latest/userguide/vpc-policy-examples.html
-https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
-https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
-https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html
-https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html
-https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html#cluster-autoscaler
-https://docs.aws.amazon.com/eks/latest/userguide/choosing-instance-type.html
-https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html
-https://docs.aws.amazon.com/eks/latest/userguide/update-stack.html
-https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html
-https://docs.aws.amazon.com/eks/latest/userguide/worker.html
-https://aws.github.io/aws-eks-best-practices/security/docs/iam/#restrict-access-to-the-instance-profile-assigned-to-the-worker-node
-https://cloud-images.ubuntu.com/aws-eks/amazon-eks-ubuntu-nodegroup.yaml
-https://github.com/awslabs/amazon-eks-ami/blob/master/amazon-eks-nodegroup.yaml
+- https://www.terraform.io/language
+- https://terragrunt.gruntwork.io/docs/
+- https://stedolan.github.io/jq/manual/v1.6/
+- https://registry.terraform.io/providers/hashicorp/aws/latest/docs
+- https://terragrunt.gruntwork.io/docs/getting-started/quick-start/
+- https://awscli.amazonaws.com/v2/documentation/api/latest/reference/index.html
+- https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html
+- https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html#roles-usingrole-createpolicy
+- https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_account-policy.html
+- https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/
+- https://aws.amazon.com/blogs/containers/de-mystifying-cluster-networking-for-amazon-eks-worker-nodes/
+- https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+- https://docs.aws.amazon.com/vpc/latest/userguide/vpc-policy-examples.html
+- https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
+- https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+- https://docs.aws.amazon.com/eks/latest/userguide/dashboard-tutorial.html
+- https://docs.aws.amazon.com/eks/latest/userguide/private-clusters.html
+- https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html#cluster-autoscaler
+- https://docs.aws.amazon.com/eks/latest/userguide/choosing-instance-type.html
+- https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html
+- https://docs.aws.amazon.com/eks/latest/userguide/update-stack.html
+- https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html
+- https://docs.aws.amazon.com/eks/latest/userguide/worker.html
+- https://aws.github.io/aws-eks-best-practices/security/docs/iam/#restrict-access-to-the-instance-profile-assigned-to-the-worker-node
+- https://cloud-images.ubuntu.com/aws-eks/amazon-eks-ubuntu-nodegroup.yaml
+- https://github.com/awslabs/amazon-eks-ami/blob/master/amazon-eks-nodegroup.yaml
