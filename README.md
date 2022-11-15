@@ -252,7 +252,7 @@ Access Kubernetes as user "Developer":
 
     AWS_PROFILE=developer kubectl -n test get pod
 
-See Kubernetes documentation about [authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) to configure the permissions for the role.
+See Kubernetes's documentation about [authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) to configure the permissions for the role Developers.
 
 
 ## Notes
