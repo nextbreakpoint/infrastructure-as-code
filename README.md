@@ -12,7 +12,7 @@ but it can be scaled in order to manage a higher workload, and extended with add
 
 ## Requirements
 
-You need an AWS account for creating the infrastructure. Create one on [AWS](https://aws.amazon.com) if you don't have one already.
+You need an AWS account for creating the infrastructure. Create it on [AWS](https://aws.amazon.com) if you don't have one already.
 
     BEWARE OF THE COST OF RUNNING THE INFRASTRUCTURE ON AWS. WE ARE NOT RESPONSIBLE FOR ANY CHARGES
 
@@ -47,14 +47,14 @@ Install optional tools:
 
 You will need a user which has the right permissions to configure the required resources before we can automate the process.
 You could use your AWS root account, but we don't recommend it, because that user has high privileges. We recommend instead
-that you manually create from the AWS web console a new user with only the required privileges.
+that you manually create a new user with only the required privileges from the AWS web console.
 
 Sign in to your AWS account (you must have created one):
 
     open https://${YOUR_AWS_ACCOUNT_ID}.signin.aws.amazon.com/console
 
-Create a user "Superuser", attach the policy arn:aws:iam::aws:policy/IAMFullAccess, and create an access key (keep access key details secret).
-We will use the user to create users and groups, and to create the fundamental roles and policies required for managing the infrastructure.
+Create a user "Superuser", attach the policy arn:aws:iam::aws:policy/IAMFullAccess, and create an access key (keep the access key details secret).
+We will use the user to create users and groups, and to create the essential roles and policies for managing the infrastructure.
 
 Create an AWS profile (you will need the access key details):
 
