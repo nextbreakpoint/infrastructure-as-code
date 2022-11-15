@@ -108,7 +108,7 @@ Configure group policies:
         --policy-name Terraform-Manage-Bootstrap \
         --policy-document file://policies/assume-role-manage-boostrap.json
 
-Create a user "BootstrapAdmin", assign a group, create an access key and a profile:
+Create a user "BootstrapAdmin", assign a group, create an access key, and create a profile:
 
     ./create-user.sh --profile=superuser --user-profile=bootstrap-admin \
       --user-name=BootstrapAdmin --group-name=Terraform-Bootstrap --region=${YOUR_AWS_REGION}
