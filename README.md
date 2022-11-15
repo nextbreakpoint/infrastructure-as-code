@@ -108,37 +108,37 @@ Configure group policies:
         --policy-name Terraform-Manage-Bootstrap \
         --policy-document file://policies/assume-role-manage-boostrap.json
 
-Create a user "BootstrapAdmin", assign a group, create an access key and AWS profile:
+Create a user "BootstrapAdmin", assign a group, create an access key and a profile:
 
     ./create-user.sh --profile=superuser --user-profile=bootstrap-admin \
       --user-name=BootstrapAdmin --group-name=Terraform-Bootstrap --region=${YOUR_AWS_REGION}
 
-Create a user "SecurityAdmin", assign a group, create an access key and AWS profile:
+Create a user "SecurityAdmin", assign a group, create an access key, and create a profile:
 
     ./create-user.sh --profile=superuser --user-profile=security-admin \
       --user-name=SecurityAdmin --group-name=Terraform-Security --region=${YOUR_AWS_REGION}
 
-Create a user "NetworksAdmin", assign a group, create an access key and AWS profile:
+Create a user "NetworksAdmin", assign a group, create an access key, and create a profile:
 
     ./create-user.sh --profile=superuser --user-profile=networks-admin \
       --user-name=NetworksAdmin --group-name=Terraform-Networks --region=${YOUR_AWS_REGION}
 
-Create a user "ServersAdmin", assign a group, create an access key and AWS profile:
+Create a user "ServersAdmin", assign a group, create an access key, and create a profile:
 
     ./create-user.sh --profile=superuser --user-profile=servers-admin \
       --user-name=ServersAdmin --group-name=Terraform-Servers --region=${YOUR_AWS_REGION}
 
-Create a user "ClustersAdmin", assign a group, create an access key and AWS profile:
+Create a user "ClustersAdmin", assign a group, create an access key, and create a profile:
 
     ./create-user.sh --profile=superuser --user-profile=clusters-admin \
       --user-name=ClustersAdmin --group-name=Terraform-Clusters --region=${YOUR_AWS_REGION}
 
-Create a user "Packer", assign a group, create an access key and AWS profile:
+Create a user "Packer", assign a group, create an access key, and create a profile:
 
     ./create-user.sh --profile=superuser --user-profile=packer \
       --user-name=Packer --group-name=Packer-Build --region=${YOUR_AWS_REGION}
 
-Create a user "Developer", assign a group, create an access key and AWS profile:
+Create a user "Developer", assign a group, create an access key, and create a profile:
 
     ./create-user.sh --profile=superuser --user-profile=developer \
       --user-name=Developer --group-name=Developers --region=${YOUR_AWS_REGION}
